@@ -1,55 +1,156 @@
-# Student Routine Organizer — Exercise Tracker Module
+# Student Routine Organizer
 
-This package contains **only the Exercise Tracker module**, as required. It is built to slot into the larger Student Routine Organizer project (Diary Journal, Money Tracker, Habit Tracker, Authentication, Dashboard, Admin are separate modules built by teammates).
+> A web-based daily routine management system for university students, built with PHP, MySQL, and XAMPP following a Three-Tier Architecture.
 
-## Setup (XAMPP + phpMyAdmin)
+---
 
-1. Copy this whole folder into `C:/xampp/htdocs/student-routine-organizer/` (or your XAMPP `htdocs` path).
-2. Start **Apache** and **MySQL** in the XAMPP Control Panel.
-3. Open **phpMyAdmin** (`http://localhost/phpmyadmin`).
-4. Go to the **Import** tab and import `database/exercise_schema.sql`. This creates the database, the `users` table, the `exercise` table, and some sample data.
-5. Visit `http://localhost/student-routine-organizer/authentication/hash_seed_passwords.php` **once** — this converts the sample plain-text passwords into proper hashed passwords. Delete this file afterwards.
-6. Go to `http://localhost/student-routine-organizer/authentication/login.php` and log in with a sample account: `ali@example.com` / `password123`.
-7. You'll land on the Dashboard, where you can click into the Exercise Tracker.
+## Project Description
 
-You can also register a brand-new account at `authentication/register.php`.
+The **Student Routine Organizer** is a collaborative university group project that provides students with a centralized platform to manage four core aspects of their daily academic and personal lives:
+
+- 🏃 Physical activity via the **Exercise Tracker**
+- 📖 Mental well-being via the **Diary Journal**
+- 💰 Financial awareness via the **Money Tracker**
+- ✅ Habit formation via the **Habit Tracker**
+
+The system includes secure user authentication with role-based access control and an Administrator Dashboard for user management. It is designed for local deployment on XAMPP and developed collaboratively by four students using GitHub.
+
+---
+
+## Features
+
+- ✅ Secure registration, login, and logout with session management
+- ✅ Role-based access control (Student / Admin)
+- ✅ Password hashing using industry-standard bcrypt algorithm
+- ✅ Full CRUD operations across all four modules
+- ✅ Admin dashboard with user deactivation and deletion
+- ✅ Clean Three-Tier Architecture (Presentation / Business Logic / Data)
+- ✅ Input validation both client-side (JavaScript) and server-side (PHP)
+- ✅ Session-based flash messaging system
+- ✅ Modular codebase — each feature is isolated in its own directory
+
+---
+
+## Modules
+
+| Module | Description |
+|--------|-------------|
+| **Exercise Tracker** | Log workout sessions with type, duration, intensity, date, and calories |
+| **Diary Journal** | Write personal journal entries with mood tagging and privacy controls |
+| **Money Tracker** | Record income and expenses by category with automatic balance calculation |
+| **Habit Tracker** | Define habits, check in daily, and track streaks |
+
+---
 
 ## Folder Structure
 
 ```
 student-routine-organizer/
-├── database/exercise_schema.sql      ← SQL: create DB, tables, sample data
-├── config/database.php               ← mysqli connection (Database Layer, shared by all modules)
-├── includes/
-│   ├── session_check.php             ← Login/session guard (used by Exercise Tracker pages)
-│   ├── header.php                    ← Shared page top + navigation
-│   └── footer.php                    ← Shared page bottom
-├── assets/css/
-│   ├── exercise.css                  ← Styling for Exercise Tracker + Dashboard
-│   └── auth.css                      ← Styling for Login / Register pages
-├── authentication/
-│   ├── auth_functions.php            ← Validation + DB functions (Business Logic Layer)
-│   ├── register.php                  ← Create a new student account
-│   ├── login.php                     ← Login, starts the session
-│   ├── logout.php                    ← Destroys the session
-│   └── hash_seed_passwords.php       ← Run ONCE after importing the SQL, then delete
-├── dashboard/
-│   └── dashboard.php                 ← Minimal landing page after login (placeholder for the real Dashboard module)
-├── modules/exercise/
-│   ├── exercise_functions.php        ← Validation + DB functions (Business Logic Layer)
-│   ├── exercise_list.php             ← View / search / filter / sort / statistics
-│   ├── add_exercise.php              ← Add a new record
-│   ├── exercise_details.php          ← View one record
-│   ├── edit_exercise.php             ← Update a record
-│   └── delete_exercise.php           ← Delete a record (after JS confirm)
-└── docs/
-    └── exercise_module_documentation.md
+├── README.md
+├── LICENSE
+├── .gitignore
+├── docs/                    ← All project documentation
+├── database/                ← DB schema and seed files
+├── config/                  ← Database config (not committed)
+├── assets/
+│   ├── css/                 ← Stylesheets per page/module
+│   ├── js/                  ← JavaScript per module
+│   └── images/
+├── includes/                ← Shared PHP: DB, session, guards, header, footer
+├── authentication/          ← Registration, login, logout
+├── dashboard/               ← Student dashboard and profile
+├── modules/
+│   ├── exercise/            ← Exercise Tracker CRUD
+│   ├── diary/               ← Diary Journal CRUD
+│   ├── money/               ← Money Tracker CRUD
+│   └── habit/               ← Habit Tracker CRUD + check-in
+└── admin/                   ← Admin dashboard and user management
 ```
 
-## Notes
+---
 
-- Written in plain **procedural PHP** with **mysqli** (no frameworks, no Composer).
-- Passwords are hashed with `password_hash()` / checked with `password_verify()` — never stored as plain text for real accounts. Only the SQL seed data starts as plain text, which is why `hash_seed_passwords.php` exists (see setup step 5).
-- `dashboard/dashboard.php` is a minimal placeholder so login has somewhere to go and the Exercise Tracker button has a home — swap it out for your teammate's real Dashboard module whenever it's ready (just keep the Exercise Tracker link).
-- Diary Journal, Money Tracker, Habit Tracker, and Admin are still separate modules built by your teammates — not included here.
-- See `docs/exercise_module_documentation.md` for full Exercise Tracker documentation: functional requirements, ER diagram, flowchart, use case diagram, sequence diagram, data dictionary, user manual, and testing scenarios.
+## Installation Overview
+
+> Full setup instructions are available in `docs/project_overview.md`.
+
+1. Install XAMPP and ensure Apache and MySQL services are running.
+2. Clone this repository into the `htdocs` folder of your XAMPP installation.
+3. Create the database in phpMyAdmin using the schema file in `database/`.
+4. Copy `config/db_config.example.php` to `config/db_config.php` and update it with your local database credentials.
+5. Navigate to `http://localhost/student-routine-organizer` in your browser.
+6. Register a student account or use the seeded admin account provided in `database/seed_data.sql`.
+
+---
+
+## Development Workflow
+
+This project follows the **Feature Branch Workflow**:
+
+1. Pick up your assigned feature from the GitHub Project Board.
+2. Create your branch from `develop`: `feature/your-module`
+3. Commit changes using the convention: `[type]: [short description]`
+4. Push your branch and open a Pull Request to `develop`.
+5. Another team member reviews and approves your PR.
+6. After approval, merge into `develop`.
+7. The Team Lead merges stable `develop` into `main` at each milestone.
+
+See `docs/git_branch_strategy.md` for full details.
+
+---
+
+## Team Members
+
+| Name | Role | Module Owned |
+|------|------|-------------|
+| Member 1 | Team Lead & Auth Developer | Authentication, Dashboard, Shared Layer |
+| Member 2 | Exercise Module Developer | Exercise Tracker |
+| Member 3 | Diary & Money Developer | Diary Journal, Money Tracker |
+| Member 4 | Habit & Admin Developer | Habit Tracker, Admin Dashboard |
+
+---
+
+## Contribution Guidelines
+
+1. **Never commit directly to `main` or `develop`.**
+2. All changes must go through a Pull Request with at least one reviewer.
+3. Follow the commit message convention (see `docs/git_branch_strategy.md`).
+4. Check the GitHub Project Board for available tasks and assignments.
+5. Document your work in the relevant `docs/` files as you go.
+6. Do not commit `config/db_config.php` — it is listed in `.gitignore`.
+7. Ensure all forms have both client-side and server-side validation before merging.
+
+---
+
+## Project Status
+
+| Phase | Status |
+|-------|--------|
+| Planning & Documentation | ✅ Complete |
+| Database Design | ✅ Complete |
+| Authentication | 🔄 In Progress |
+| Exercise Module | 🔄 In Progress |
+| Diary Module | ⬜ Pending |
+| Money Module | ⬜ Pending |
+| Habit Module | ⬜ Pending |
+| Admin Dashboard | ⬜ Pending |
+| Testing | ⬜ Pending |
+| Deployment | ⬜ Pending |
+
+---
+
+## License
+
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
+
+---
+
+## Acknowledgements
+
+- University assignment guidelines and requirements.
+- XAMPP by Apache Friends for local PHP/MySQL development.
+- PHP documentation at [php.net](https://www.php.net).
+- MySQL Reference Manual at [dev.mysql.com](https://dev.mysql.com/doc/).
+
+---
+
+*Student Routine Organizer — University Group Assignment | PHP + MySQL + XAMPP | Three-Tier Architecture*
