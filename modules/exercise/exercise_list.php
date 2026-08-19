@@ -8,14 +8,15 @@
 // ===================================================================
 
 require_once "../../includes/session_check.php";
+require_once "../../includes/cookie_consent.php";
 require_once "../../config/database.php";
 require_once "exercise_functions.php";
 
 // ── Sort (with cookie memory) ────────────────────────────────
 if (isset($_GET['sort'])) {
-    setcookie("preferred_sort", $_GET['sort'], time() + (30 * 24 * 60 * 60));
+    setOptionalPreferenceCookie('preferred_sort', $_GET['sort']);
     $sort = $_GET['sort'];
-} elseif (isset($_COOKIE['preferred_sort'])) {
+} elseif (optionalCookiesAllowed() && isset($_COOKIE['preferred_sort'])) {
     $sort = $_COOKIE['preferred_sort'];
 } else {
     $sort = "newest";
