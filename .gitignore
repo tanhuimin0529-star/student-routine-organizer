@@ -1,6 +1,3 @@
-# Exclude database folder
-database/
-
 # User database credentials and local configurations
 config/db_config.php
 
