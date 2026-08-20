@@ -44,7 +44,6 @@
         <a href="../../dashboard/dashboard.php">Home</a>
         <a href="dashboard.php"<?php if (isset($page_title) && $page_title === 'Fitness Dashboard') echo ' class="active"'; ?>>Fitness Dashboard</a>
         <a href="exercise_list.php"<?php if (isset($page_title) && $page_title === 'Exercise List') echo ' class="active"'; ?>>My Records</a>
-        <a href="add_exercise.php"<?php if (isset($page_title) && $page_title === 'Add Exercise') echo ' class="active"'; ?>>+ Log Workout</a>
         <a href="../../authentication/logout.php">Logout</a>
     </div>
     <button class="dark-mode-toggle" title="Toggle dark/light mode">🌙</button>
