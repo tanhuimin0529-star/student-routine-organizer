@@ -1,8 +1,5 @@
 /* =====================================================================
    exercise.css
-   COMPLETE REDESIGN — Premium Fitness Dashboard
-   Theme: Pastel glassmorphism with light gray minimalist base
-   Colors: Purple, Blue, Cyan, Green pastels + soft gray background
    ===================================================================== */
 
 /* ---------- Google Font ---------- */
@@ -161,7 +158,7 @@ body {
 }
 
 /* ---------------------------------------------------------------
-   Morphing Blob Background — Pastel Purple/Blue/Cyan/Green
+   Morphing Blob Background
 --------------------------------------------------------------- */
 .morph-bg {
     position: fixed;
@@ -349,7 +346,7 @@ body {
 }
 
 /* ---------------------------------------------------------------
-   Navbar — Glass Navigation
+   Navbar
 --------------------------------------------------------------- */
 .navbar {
     background: var(--glass-bg-strong);
@@ -507,7 +504,7 @@ h3 {
 }
 
 /* ---------------------------------------------------------------
-   Alerts — Glassmorphism
+   Alerts
 --------------------------------------------------------------- */
 .alert {
     padding: 14px 20px;
@@ -560,7 +557,7 @@ h3 {
 }
 
 /* ---------------------------------------------------------------
-   Glass Cards — Core Component
+   Glass Cards 
 --------------------------------------------------------------- */
 .card,
 .glass-card {
@@ -614,7 +611,7 @@ h3 {
 }
 
 /* ---------------------------------------------------------------
-   Stats Container (legacy support for exercise_list)
+   Stats Container
 --------------------------------------------------------------- */
 .stats-container {
     display: grid;
@@ -673,7 +670,7 @@ h3 {
 }
 
 /* ---------------------------------------------------------------
-   Search / Filter Bar — Glass
+   Search / Filter Bar
 --------------------------------------------------------------- */
 .search-bar {
     display: flex;
@@ -713,7 +710,7 @@ h3 {
 }
 
 /* ---------------------------------------------------------------
-   Forms — Glass-styled Inputs
+   Forms
 --------------------------------------------------------------- */
 form label {
     display: block;
@@ -771,7 +768,7 @@ form textarea {
 }
 
 /* ---------------------------------------------------------------
-   Buttons — Glowing & Ripple
+   Buttons
 --------------------------------------------------------------- */
 .btn {
     display: inline-flex;
@@ -917,7 +914,7 @@ form textarea {
 }
 
 /* ---------------------------------------------------------------
-   Table — Glassmorphism Redesign
+   Table
 --------------------------------------------------------------- */
 .exercise-table {
     width: 100%;
@@ -1113,7 +1110,7 @@ form textarea {
 }
 
 /* ---------------------------------------------------------------
-   Footer — Glass
+   Footer
 --------------------------------------------------------------- */
 .footer {
     text-align: center;
@@ -1246,35 +1243,49 @@ form textarea {
     visibility: hidden;
     opacity: 0;
     position: absolute;
-    bottom: calc(100% + 8px);
-    left: 50%;
-    transform: translateX(-50%) translateY(4px);
+    /* Open downward and anchor to the right edge of the icon so the
+       tooltip always stays inside the card, which clips overflow. */
+    top: calc(100% + 8px);
+    bottom: auto;
+    right: 0;
+    left: auto;
+    transform: translateY(-4px);
     background: var(--gray-800);
     color: #fff;
     font-size: 11px;
     font-weight: 500;
-    padding: 6px 12px;
+    line-height: 1.5;
+    padding: 8px 12px;
     border-radius: 6px;
-    white-space: nowrap;
+    /* Allow the text to wrap onto several lines instead of being cut off */
+    white-space: normal;
+    width: max-content;
+    max-width: 220px;
+    text-align: left;
     z-index: 1000;
-    transition: all 0.2s ease;
+    transition: opacity 0.2s ease, transform 0.2s ease;
     pointer-events: none;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
 }
 
 .tooltip-wrapper .tooltip-text::after {
     content: '';
     position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
+    bottom: 100%;
+    top: auto;
+    right: 5px;
+    left: auto;
+    transform: none;
     border: 5px solid transparent;
-    border-top-color: var(--gray-800);
+    border-top-color: transparent;
+    border-bottom-color: var(--gray-800);
 }
 
-.tooltip-wrapper:hover .tooltip-text {
+.tooltip-wrapper:hover .tooltip-text,
+.tooltip-wrapper:focus-within .tooltip-text {
     visibility: visible;
     opacity: 1;
-    transform: translateX(-50%) translateY(0);
+    transform: translateY(0);
 }
 
 /* ---------------------------------------------------------------
