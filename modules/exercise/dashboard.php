@@ -23,7 +23,6 @@ $monthlyTrend  = getMonthlyTrend($conn, $logged_in_user_id);
 $distribution  = getExerciseDistribution($conn, $logged_in_user_id);
 $durationTrend = getDurationTrend($conn, $logged_in_user_id);
 $calTrend      = getCaloriesTrend($conn, $logged_in_user_id);
-$quote         = getMotivationalQuote();
 
 // Auto-award achievements
 checkAchievements($conn, $logged_in_user_id);
@@ -120,7 +119,6 @@ $page_title = "Fitness Dashboard";
         <a href="../../dashboard/dashboard.php">Home</a>
         <a href="dashboard.php" class="active">Fitness Dashboard</a>
         <a href="exercise_list.php">My Records</a>
-        <a href="add_exercise.php">+ Log Workout</a>
         <a href="export_report.php" target="_blank">Export PDF</a>
         <a href="../../authentication/logout.php">Logout</a>
     </div>
@@ -830,11 +828,6 @@ $page_title = "Fitness Dashboard";
     </div>
 
 </div><!-- end page-wrapper -->
-
-<footer class="footer">
-    <p class="motivational-quote">"<?php echo $quote; ?>"</p>
-    <p>© <?php echo date('Y'); ?> Student Routine Organizer — Exercise Tracker Module</p>
-</footer>
 
 <!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>

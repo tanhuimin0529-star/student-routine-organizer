@@ -8,12 +8,43 @@
 // replace this with the real Dashboard module once it is built.
 // ===================================================================
 
-session_start();
+require_once __DIR__ . "/../includes/session_start.php";
+require_once __DIR__ . "/../includes/cookie_consent.php";
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../authentication/login.php");
     exit();
 }
+
+$cookie_consent = getCookieConsentChoice();
+
+if (isset($_SESSION['role']) && $_SESSION['role'] === 'student' &&
+    $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cookie_choice'])) {
+    $choice = $_POST['cookie_choice'];
+
+    if (setCookieConsentChoice($choice)) {
+        if ($choice === 'accepted' && isset($_SESSION['pending_remembered_email'])) {
+            setOptionalPreferenceCookie('remembered_email', $_SESSION['pending_remembered_email']);
+        } elseif ($choice === 'denied') {
+            clearAllOptionalPreferenceCookies();
+        }
+
+        unset($_SESSION['pending_remembered_email']);
+    }
+
+    header("Location: dashboard.php");
+    exit();
+}
+
+if ($cookie_consent === 'accepted' && isset($_SESSION['pending_remembered_email'])) {
+    setOptionalPreferenceCookie('remembered_email', $_SESSION['pending_remembered_email']);
+    unset($_SESSION['pending_remembered_email']);
+} elseif ($cookie_consent === 'denied') {
+    unset($_SESSION['pending_remembered_email']);
+    clearAllOptionalPreferenceCookies();
+}
+
+$show_cookie_consent = isset($_SESSION['role']) && $_SESSION['role'] === 'student' && $cookie_consent === null;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -26,6 +57,22 @@ if (!isset($_SESSION['user_id'])) {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/exercise.css">
+    <style>
+        .cookie-consent-overlay {
+            position: fixed; inset: 0; z-index: 1000; display: flex;
+            align-items: flex-end; justify-content: center; padding: 24px;
+            background: rgba(15, 23, 42, 0.45);
+        }
+        .cookie-consent-card {
+            width: min(620px, 100%); padding: 22px; border: 1px solid rgba(255,255,255,.5);
+            border-radius: 16px; background: rgba(255,255,255,.96);
+            box-shadow: 0 18px 48px rgba(15,23,42,.24); color: var(--gray-800);
+        }
+        .cookie-consent-card h2 { margin: 0 0 8px; font-size: 20px; }
+        .cookie-consent-card p { margin: 0 0 18px; color: var(--gray-400); line-height: 1.6; }
+        .cookie-consent-actions { display: flex; justify-content: flex-end; gap: 10px; }
+        .cookie-consent-actions button { min-width: 100px; }
+    </style>
 </head>
 
 <body>
@@ -76,6 +123,22 @@ if (!isset($_SESSION['user_id'])) {
             </a>
         </div>
     </div>
+
+<?php if ($show_cookie_consent) { ?>
+<div class="cookie-consent-overlay" role="dialog" aria-modal="true" aria-labelledby="cookie-consent-title">
+    <div class="cookie-consent-card">
+        <h2 id="cookie-consent-title">Cookie preferences</h2>
+        <p>
+            This website uses an essential session cookie to keep you signed in. Optional cookies remember
+            simple preferences, such as your email, last activity, and preferred sort order, to improve usability.
+        </p>
+        <form method="POST" action="dashboard.php" class="cookie-consent-actions">
+            <button type="submit" name="cookie_choice" value="denied" class="btn btn-secondary">Deny</button>
+            <button type="submit" name="cookie_choice" value="accepted" class="btn btn-primary">Accept</button>
+        </form>
+    </div>
+</div>
+<?php } ?>
 
 </body>
 

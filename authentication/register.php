@@ -4,7 +4,7 @@
 // Shows the registration form and creates a new student account.
 // ===================================================================
 
-session_start();
+require_once __DIR__ . "/../includes/session_start.php";
 
 // If already logged in, no need to register again
 if (isset($_SESSION['user_id'])) {

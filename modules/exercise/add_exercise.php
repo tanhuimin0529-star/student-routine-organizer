@@ -6,13 +6,14 @@
 // ===================================================================
 
 require_once "../../includes/session_check.php";
+require_once "../../includes/cookie_consent.php";
 require_once "../../config/database.php";
 require_once "exercise_functions.php";
 
 $errors = array();
 
 // Cookie: remember the last activity type the user picked
-$last_activity = isset($_COOKIE['last_activity']) ? $_COOKIE['last_activity'] : "";
+$last_activity = optionalCookiesAllowed() && isset($_COOKIE['last_activity']) ? $_COOKIE['last_activity'] : "";
 
 // Default form values
 $activity_type   = $last_activity;
@@ -45,7 +46,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         );
 
         if ($inserted) {
-            setcookie("last_activity", $activity_type, time() + (30 * 24 * 60 * 60));
+            setOptionalPreferenceCookie('last_activity', $activity_type);
             header("Location: exercise_list.php?msg=added");
             exit();
         } else {

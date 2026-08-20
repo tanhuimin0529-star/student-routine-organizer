@@ -5,11 +5,16 @@
 // Styling lives in ../assets/css/auth.css (shared with register.php).
 // ===================================================================
 
-session_start();
+require_once __DIR__ . "/../includes/session_start.php";
+require_once __DIR__ . "/../includes/cookie_consent.php";
 
-// If already logged in, skip straight to the dashboard
+// If already logged in, return each role to its own area.
 if (isset($_SESSION['user_id'])) {
-    header("Location: ../dashboard/dashboard.php");
+    if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
+        header("Location: ../admin/index.php");
+    } else {
+        header("Location: ../dashboard/dashboard.php");
+    }
     exit();
 }
 
@@ -22,7 +27,7 @@ $errors = array();
 // Cookie feature: remember the email address on this browser
 // so the user does not have to retype it every time
 // -------------------------------------------------------------
-$email = isset($_COOKIE['remembered_email']) ? $_COOKIE['remembered_email'] : "";
+$email = optionalCookiesAllowed() && isset($_COOKIE['remembered_email']) ? $_COOKIE['remembered_email'] : "";
 
 // Message shown after a successful registration
 $success_message = "";
@@ -47,22 +52,36 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // password_verify() compares the typed password against the
         // hashed password stored in the database
         if ($user && password_verify($password, $user['password'])) {
-
-            // Save the important details in the session
-            $_SESSION['user_id'] = $user['user_id'];
-            $_SESSION['name']    = $user['name'];
-            $_SESSION['role']    = $user['role'];
-
-            // Remember (or forget) the email based on the checkbox
-            if ($remember) {
-                setcookie("remembered_email", $email, time() + (30 * 24 * 60 * 60));
+            if (!isset($user['role']) || $user['role'] !== 'student') {
+                $errors[] = "Administrator accounts must use the Admin Login page.";
             } else {
-                setcookie("remembered_email", "", time() - 3600);
+                // Replace the pre-login session id after authentication.
+                session_regenerate_id(true);
+
+                // Save the important details in the session
+                $_SESSION['user_id'] = $user['user_id'];
+                $_SESSION['name']    = $user['name'];
+                $_SESSION['role']    = $user['role'];
+
+                // Remember the email only after optional cookies are accepted.
+                if ($remember) {
+                    if (optionalCookiesAllowed()) {
+                        setOptionalPreferenceCookie('remembered_email', $email);
+                    } elseif (getCookieConsentChoice() === null) {
+                        // Keep the request server-side until the Dashboard choice.
+                        $_SESSION['pending_remembered_email'] = $email;
+                    } else {
+                        unset($_SESSION['pending_remembered_email']);
+                        clearOptionalPreferenceCookie('remembered_email');
+                    }
+                } else {
+                    unset($_SESSION['pending_remembered_email']);
+                    clearOptionalPreferenceCookie('remembered_email');
+                }
+
+                header("Location: ../dashboard/dashboard.php");
+                exit();
             }
-
-            header("Location: ../dashboard/dashboard.php");
-            exit();
-
         } else {
             $errors[] = "Incorrect email or password.";
         }
@@ -179,6 +198,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </form>
 
         <p class="auth-switch">Don't have an account? <a href="register.php">Register here</a></p>
+        <p class="auth-switch">Administrator? <a href="admin_login.php">Admin Login</a></p>
     </div>
 </div>
 

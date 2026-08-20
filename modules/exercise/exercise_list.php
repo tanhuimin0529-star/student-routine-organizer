@@ -107,7 +107,6 @@ require_once "../../includes/header.php";
         </p>
     </div>
     <div style="display:flex; gap:10px; flex-wrap:wrap;">
-        <a href="dashboard.php" class="btn btn-secondary">← Dashboard</a>
         <a href="add_exercise.php" class="btn btn-primary">+ Log Workout</a>
     </div>
 </div>
