@@ -114,11 +114,11 @@ $show_cookie_consent = isset($_SESSION['role']) && $_SESSION['role'] === 'studen
             <p>Coming soon</p>
         </div>
 
-        <div class="module-card disabled">
+        <a href="../modules/habit/index.php" class="module-card">
             <span class="module-icon">✅</span>
             <h3>Habit Tracker</h3>
-            <p>Coming soon</p>
-        </div>
+            <p>Build routines and track your progress</p>
+        </a>
     </div>
 </div>
 

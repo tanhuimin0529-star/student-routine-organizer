@@ -104,3 +104,44 @@ INSERT IGNORE INTO habit_categories (category_name, category_icon) VALUES
     ('Study', 'book'),
     ('Fitness', 'dumbbell'),
     ('Lifestyle', 'leaf');
+
+INSERT IGNORE INTO badge_types (
+    reward_code,
+    reward_name,
+    reward_description,
+    requirement,
+    tree_tier,
+    reward_type,
+    slot,
+    reward_asset
+) VALUES
+(
+    'streak_3',
+    '3-Day Streak',
+    'Complete the same habit for 3 consecutive days.',
+    3,
+    1,
+    'Badge',
+    NULL,
+    '🏅'
+),
+(
+    'streak_7',
+    '7-Day Streak',
+    'Complete the same habit for 7 consecutive days.',
+    7,
+    2,
+    'Badge',
+    NULL,
+    '🏆'
+),
+(
+    'checkins_10',
+    'Ten Check-ins',
+    'Complete any 10 habit check-ins.',
+    10,
+    2,
+    'Badge',
+    NULL,
+    '⭐'
+);
