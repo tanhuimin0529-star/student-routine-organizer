@@ -13,6 +13,16 @@ if ($load_error) {
 $entry_count = count($entries);
 $latest_entry_date = $entry_count > 0 ? $entries[0]['entry_date'] : null;
 $recent_entries = array_slice($entries, 0, 4);
+$search_term = isset($_GET['search']) && is_string($_GET['search'])
+    ? trim($_GET['search'])
+    : '';
+$allowed_mood_filters = array('Happy', 'Calm', 'Neutral', 'Sad', 'Stressed');
+$requested_mood_filter = isset($_GET['mood']) && is_string($_GET['mood'])
+    ? $_GET['mood']
+    : '';
+$mood_filter = in_array($requested_mood_filter, $allowed_mood_filters, true)
+    ? $requested_mood_filter
+    : '';
 
 $current_calendar_month = new DateTimeImmutable('first day of this month');
 $calendar_month = $current_calendar_month;
@@ -135,6 +145,40 @@ function diaryMoodEmoji($mood) {
 
     return isset($icons[$mood]) ? $icons[$mood] : '📝';
 }
+
+function diaryContainsSearch($value, $search_term) {
+    $value = (string) $value;
+
+    if (function_exists('mb_stripos')) {
+        return mb_stripos($value, $search_term, 0, 'UTF-8') !== false;
+    }
+
+    return stripos($value, $search_term) !== false;
+}
+
+$filter_results = array();
+$filters_active = $search_term !== '' || $mood_filter !== '';
+
+if ($filters_active) {
+    $filter_results = array_values(array_filter($entries, function ($entry) use ($search_term, $mood_filter) {
+        $title = isset($entry['title']) ? $entry['title'] : '';
+        $content = isset($entry['content']) ? $entry['content'] : '';
+        $entry_mood = isset($entry['mood']) ? $entry['mood'] : '';
+
+        $matches_search = $search_term === ''
+            || diaryContainsSearch($title, $search_term)
+            || diaryContainsSearch($content, $search_term);
+        $matches_mood = $mood_filter === '' || $entry_mood === $mood_filter;
+
+        return $matches_search && $matches_mood;
+    }));
+}
+
+$clear_search_parameters = array('month' => $calendar_month->format('Y-m'));
+if ($selected_date !== null) {
+    $clear_search_parameters['date'] = $selected_date;
+}
+$clear_search_url = 'index.php?' . http_build_query($clear_search_parameters);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -183,6 +227,91 @@ function diaryMoodEmoji($mood) {
             <?php endif; ?>
         </section>
 
+        <section class="diary-search-panel" aria-labelledby="diary-home-search-heading">
+            <form class="diary-search-form" action="index.php" method="get" role="search">
+                <label id="diary-home-search-heading" for="search">Search journal entries</label>
+                <input type="hidden" name="month" value="<?php echo diaryEscape($calendar_month->format('Y-m')); ?>">
+                <?php if ($selected_date !== null): ?>
+                    <input type="hidden" name="date" value="<?php echo diaryEscape($selected_date); ?>">
+                <?php endif; ?>
+                <div class="diary-search-controls diary-home-search-controls">
+                    <input
+                        type="search"
+                        id="search"
+                        name="search"
+                        value="<?php echo diaryEscape($search_term); ?>"
+                        placeholder="Search by title or content"
+                    >
+                    <select id="mood" name="mood" aria-label="Filter by mood">
+                        <option value="">All Moods</option>
+                        <?php foreach ($allowed_mood_filters as $mood_option): ?>
+                            <option value="<?php echo diaryEscape($mood_option); ?>"<?php echo $mood_filter === $mood_option ? ' selected' : ''; ?>>
+                                <?php echo diaryEscape($mood_option); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <button class="diary-button" type="submit">Search</button>
+                    <a class="diary-button diary-button-secondary" href="<?php echo diaryEscape($clear_search_url); ?>">Clear Filters</a>
+                </div>
+            </form>
+        </section>
+
+        <?php if ($filters_active && !$load_error): ?>
+            <section class="diary-search-results-section" aria-labelledby="diary-search-results-heading">
+                <div class="diary-section-heading">
+                    <div>
+                        <p class="diary-eyebrow">Search</p>
+                        <h2 id="diary-search-results-heading">Search Results</h2>
+                    </div>
+                    <?php if (!empty($filter_results)): ?>
+                        <p><?php echo diaryEscape(count($filter_results)); ?> <?php echo count($filter_results) === 1 ? 'entry' : 'entries'; ?></p>
+                    <?php endif; ?>
+                </div>
+
+                <?php if (empty($filter_results)): ?>
+                    <div class="diary-selected-date-empty">
+                        <p>No journal entries found.</p>
+                        <a class="diary-button diary-button-secondary" href="<?php echo diaryEscape($clear_search_url); ?>">Clear Filters</a>
+                    </div>
+                <?php else: ?>
+                    <div class="diary-entry-list diary-search-entry-list">
+                        <?php foreach ($filter_results as $entry): ?>
+                            <article class="diary-journal-card">
+                                <header class="diary-card-meta">
+                                    <span class="diary-card-mood">
+                                        <span aria-hidden="true"><?php echo diaryEscape(diaryMoodEmoji($entry['mood'])); ?></span>
+                                        <?php echo diaryEscape($entry['mood']); ?>
+                                    </span>
+                                    <time datetime="<?php echo diaryEscape($entry['entry_date']); ?>">
+                                        <?php echo diaryEscape(diaryCardDate($entry['entry_date'])); ?>
+                                    </time>
+                                </header>
+
+                                <h3><?php echo diaryEscape($entry['title']); ?></h3>
+                                <p class="diary-entry-preview">
+                                    <?php echo diaryEscape(diaryContentPreview($entry['content'])); ?>
+                                </p>
+
+                                <footer class="diary-card-actions">
+                                    <a class="diary-action-button diary-action-primary" href="view.php?id=<?php echo rawurlencode((string) $entry['diary_id']); ?>">Read Entry</a>
+                                    <a class="diary-action-button diary-action-secondary" href="edit.php?id=<?php echo rawurlencode((string) $entry['diary_id']); ?>">Edit</a>
+                                    <form action="delete_handler.php" method="post">
+                                        <input type="hidden" name="diary_id" value="<?php echo diaryEscape($entry['diary_id']); ?>">
+                                        <input
+                                            type="hidden"
+                                            name="csrf_token"
+                                            value="<?php echo diaryEscape($_SESSION['diary_delete_csrf_token']); ?>"
+                                        >
+                                        <button class="diary-action-button diary-action-delete" type="submit">Delete</button>
+                                    </form>
+                                </footer>
+                            </article>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </section>
+        <?php endif; ?>
+
         <section id="journal-calendar" class="diary-calendar-section" aria-labelledby="journal-calendar-heading">
             <header class="diary-calendar-header">
                 <div>
@@ -192,7 +321,7 @@ function diaryMoodEmoji($mood) {
                 <nav class="diary-calendar-navigation" aria-label="Calendar month navigation">
                     <a
                         class="diary-calendar-nav-button"
-                        href="index.php?month=<?php echo rawurlencode($previous_calendar_month->format('Y-m')); ?>#journal-calendar"
+                        href="index.php?month=<?php echo rawurlencode($previous_calendar_month->format('Y-m')); ?><?php echo $search_term !== '' ? '&amp;search=' . rawurlencode($search_term) : ''; ?><?php echo $mood_filter !== '' ? '&amp;mood=' . rawurlencode($mood_filter) : ''; ?>#journal-calendar"
                         aria-label="Previous month: <?php echo diaryEscape($previous_calendar_month->format('F Y')); ?>"
                     >
                         ← <?php echo diaryEscape($previous_calendar_month->format('F')); ?>
@@ -203,7 +332,7 @@ function diaryMoodEmoji($mood) {
                     </p>
                     <a
                         class="diary-calendar-nav-button"
-                        href="index.php?month=<?php echo rawurlencode($next_calendar_month->format('Y-m')); ?>#journal-calendar"
+                        href="index.php?month=<?php echo rawurlencode($next_calendar_month->format('Y-m')); ?><?php echo $search_term !== '' ? '&amp;search=' . rawurlencode($search_term) : ''; ?><?php echo $mood_filter !== '' ? '&amp;mood=' . rawurlencode($mood_filter) : ''; ?>#journal-calendar"
                         aria-label="Next month: <?php echo diaryEscape($next_calendar_month->format('F Y')); ?>"
                     >
                         <?php echo diaryEscape($next_calendar_month->format('F')); ?> →
@@ -230,7 +359,7 @@ function diaryMoodEmoji($mood) {
                     >
                         <a
                             class="diary-calendar-day-link"
-                            href="index.php?month=<?php echo rawurlencode($calendar_month->format('Y-m')); ?>&amp;date=<?php echo rawurlencode($calendar_date_key); ?>#selected-date-entries"
+                            href="index.php?month=<?php echo rawurlencode($calendar_month->format('Y-m')); ?>&amp;date=<?php echo rawurlencode($calendar_date_key); ?><?php echo $search_term !== '' ? '&amp;search=' . rawurlencode($search_term) : ''; ?><?php echo $mood_filter !== '' ? '&amp;mood=' . rawurlencode($mood_filter) : ''; ?>#selected-date-entries"
                             aria-label="<?php echo diaryEscape($calendar_day_label); ?>"
                             <?php echo $selected_date === $calendar_date_key ? 'aria-current="date"' : ''; ?>
                         >
@@ -365,6 +494,9 @@ function diaryMoodEmoji($mood) {
                             </footer>
                         </article>
                     <?php endforeach; ?>
+                </div>
+                <div class="diary-collection-footer">
+                    <a class="diary-button diary-button-secondary" href="all_entries.php">View All Entries</a>
                 </div>
             </section>
         <?php endif; ?>
