@@ -102,11 +102,11 @@ $show_cookie_consent = isset($_SESSION['role']) && $_SESSION['role'] === 'studen
             <p>Log workouts and track your progress</p>
         </a>
 
-        <div class="module-card disabled">
+        <a href="../modules/diary/index.php" class="module-card">
             <span class="module-icon">📔</span>
             <h3>Diary Journal</h3>
-            <p>Coming soon</p>
-        </div>
+            <p>Write and manage your personal journal</p>
+        </a>
 
         <div class="module-card disabled">
             <span class="module-icon">💰</span>

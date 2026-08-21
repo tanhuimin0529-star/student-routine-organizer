@@ -1,0 +1,253 @@
+:root {
+    --diary-background: #f5f2ed;
+    --diary-surface: #ffffff;
+    --diary-text: #2f2b27;
+    --diary-muted: #706960;
+    --diary-border: #ddd5ca;
+    --diary-accent: #5f6f52;
+    --diary-accent-dark: #46543d;
+    --diary-danger: #a53f3f;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body.diary-page {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--diary-background);
+    color: var(--diary-text);
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+}
+
+.diary-container {
+    width: min(960px, calc(100% - 32px));
+    margin: 0 auto;
+    padding: 48px 0;
+}
+
+.diary-list-header,
+.diary-page-header {
+    margin-bottom: 28px;
+}
+
+.diary-list-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.diary-list-header h1,
+.diary-page-header h1 {
+    margin: 0;
+    font-size: clamp(2rem, 5vw, 2.75rem);
+    line-height: 1.15;
+}
+
+.diary-list-header p,
+.diary-page-header p {
+    margin: 8px 0 0;
+    color: var(--diary-muted);
+}
+
+.diary-eyebrow {
+    color: var(--diary-accent) !important;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.diary-header-actions,
+.diary-form-actions,
+.diary-entry-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.diary-button,
+.diary-form-actions button {
+    display: inline-block;
+    border: 1px solid var(--diary-accent);
+    border-radius: 8px;
+    background: var(--diary-accent);
+    color: #ffffff;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 700;
+    padding: 10px 16px;
+    text-decoration: none;
+}
+
+.diary-button:hover,
+.diary-form-actions button:hover {
+    background: var(--diary-accent-dark);
+    border-color: var(--diary-accent-dark);
+}
+
+.diary-button-secondary {
+    background: transparent;
+    color: var(--diary-accent-dark);
+}
+
+.diary-entry-list {
+    display: grid;
+    gap: 18px;
+}
+
+.diary-entry-card,
+.diary-empty-state,
+.diary-form {
+    border: 1px solid var(--diary-border);
+    border-radius: 12px;
+    background: var(--diary-surface);
+    padding: 24px;
+}
+
+.diary-entry-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.diary-entry-heading h2,
+.diary-empty-state h2 {
+    margin: 0;
+    line-height: 1.3;
+}
+
+.diary-entry-date,
+.diary-entry-preview,
+.diary-empty-state p {
+    color: var(--diary-muted);
+}
+
+.diary-entry-date {
+    margin: 4px 0 0;
+    font-size: 0.9rem;
+}
+
+.diary-entry-preview {
+    margin: 18px 0;
+}
+
+.diary-mood {
+    border-radius: 999px;
+    background: #e9eee5;
+    color: var(--diary-accent-dark);
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 5px 10px;
+}
+
+.diary-entry-actions a,
+.diary-delete-button,
+.diary-form-actions a {
+    border: 0;
+    background: transparent;
+    color: var(--diary-accent-dark);
+    cursor: pointer;
+    font: inherit;
+    font-weight: 700;
+    padding: 0;
+    text-decoration: underline;
+}
+
+.diary-entry-actions form {
+    margin: 0;
+}
+
+.diary-delete-button {
+    color: var(--diary-danger);
+}
+
+.diary-empty-state {
+    padding: 48px 24px;
+    text-align: center;
+}
+
+.diary-empty-state .diary-button {
+    margin-top: 8px;
+}
+
+.diary-alert {
+    border-radius: 8px;
+    margin-bottom: 20px;
+    padding: 14px 16px;
+}
+
+.diary-alert p {
+    margin: 0;
+}
+
+.diary-alert-error {
+    border: 1px solid #e2b5b5;
+    background: #fff1f1;
+    color: #7d2929;
+}
+
+.diary-form {
+    display: grid;
+    gap: 20px;
+}
+
+.diary-form-group {
+    display: grid;
+    gap: 7px;
+}
+
+.diary-form-group label {
+    font-weight: 700;
+}
+
+.diary-form-group input,
+.diary-form-group textarea,
+.diary-form-group select {
+    width: 100%;
+    border: 1px solid var(--diary-border);
+    border-radius: 7px;
+    background: #ffffff;
+    color: var(--diary-text);
+    font: inherit;
+    padding: 10px 12px;
+}
+
+.diary-form-group textarea {
+    resize: vertical;
+}
+
+.diary-form-group input:focus,
+.diary-form-group textarea:focus,
+.diary-form-group select:focus {
+    border-color: var(--diary-accent);
+    outline: 2px solid rgba(95, 111, 82, 0.18);
+}
+
+@media (max-width: 700px) {
+    .diary-container {
+        padding: 28px 0;
+    }
+
+    .diary-list-header {
+        display: block;
+    }
+
+    .diary-header-actions {
+        margin-top: 20px;
+    }
+
+    .diary-entry-heading {
+        display: block;
+    }
+
+    .diary-mood {
+        display: inline-block;
+        margin-top: 12px;
+    }
+}
