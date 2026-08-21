@@ -14,7 +14,7 @@
  *                     database/statement failure.
  */
 function getDiaryEntriesForUser($conn, $user_id) {
-    $sql = "SELECT diary_id, user_id, title, content, mood, entry_date, created_at, updated_at
+    $sql = "SELECT diary_id, user_id, title, content, mood, entry_date, is_favorite, created_at, updated_at
             FROM diary_entries
             WHERE user_id = ?
             ORDER BY entry_date DESC, created_at DESC";
@@ -52,7 +52,7 @@ function getDiaryEntriesForUser($conn, $user_id) {
  *                          false on a database/statement failure.
  */
 function getDiaryEntryById($conn, $diary_id, $user_id) {
-    $sql = "SELECT diary_id, user_id, title, content, mood, entry_date, created_at, updated_at
+    $sql = "SELECT diary_id, user_id, title, content, mood, entry_date, is_favorite, created_at, updated_at
             FROM diary_entries
             WHERE diary_id = ? AND user_id = ?
             LIMIT 1";
@@ -123,6 +123,40 @@ function updateDiaryEntry($conn, $diary_id, $user_id, $title, $content, $mood, $
     }
 
     mysqli_stmt_bind_param($stmt, "ssssii", $title, $content, $mood, $entry_date, $diary_id, $user_id);
+    if (!mysqli_stmt_execute($stmt)) {
+        mysqli_stmt_close($stmt);
+        return false;
+    }
+
+    $affected_rows = mysqli_stmt_affected_rows($stmt);
+    mysqli_stmt_close($stmt);
+    return $affected_rows;
+}
+
+/**
+ * Set the favorite state of a diary entry owned by the given user.
+ *
+ * The updated_at assignment prevents a favorite-only change from being
+ * treated as an edit to the journal entry.
+ *
+ * @return int|false Number of affected rows (0 or 1), or false when the
+ *                   favorite value is invalid or the statement fails.
+ */
+function setDiaryEntryFavorite($conn, $diary_id, $user_id, $favorite) {
+    if ($favorite !== 0 && $favorite !== 1) {
+        return false;
+    }
+
+    $sql = "UPDATE diary_entries
+            SET is_favorite = ?, updated_at = updated_at
+            WHERE diary_id = ? AND user_id = ?";
+
+    $stmt = mysqli_prepare($conn, $sql);
+    if (!$stmt) {
+        return false;
+    }
+
+    mysqli_stmt_bind_param($stmt, "iii", $favorite, $diary_id, $user_id);
     if (!mysqli_stmt_execute($stmt)) {
         mysqli_stmt_close($stmt);
         return false;

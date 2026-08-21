@@ -46,7 +46,10 @@ $diary_id = filter_var(
     array('options' => array('min_range' => 1))
 );
 
-if (isset($_POST['diary_image_upload']) && $_POST['diary_image_upload'] === '1') {
+$is_image_upload = isset($_POST['diary_image_upload']) && $_POST['diary_image_upload'] === '1';
+$is_drawing_upload = isset($_POST['diary_drawing_upload']) && $_POST['diary_drawing_upload'] === '1';
+
+if ($is_image_upload || $is_drawing_upload) {
     $submitted_token = isset($_POST['csrf_token']) && is_string($_POST['csrf_token'])
         ? $_POST['csrf_token']
         : '';
@@ -84,7 +87,9 @@ if (isset($_POST['diary_image_upload']) && $_POST['diary_image_upload'] === '1')
 
     $upload_result = diaryImageStoreUploadedFile(
         isset($_FILES['diary_image']) ? $_FILES['diary_image'] : null,
-        $logged_in_user_id
+        $logged_in_user_id,
+        $is_drawing_upload ? 'Journal drawing' : 'Journal image',
+        $is_drawing_upload ? 'image/png' : ''
     );
 
     if (!$upload_result['valid']) {

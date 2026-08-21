@@ -58,6 +58,7 @@ CREATE TABLE `diary_entries` (
   `content` text NOT NULL,
   `mood` varchar(30) NOT NULL,
   `entry_date` date NOT NULL,
+  `is_favorite` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

@@ -238,6 +238,7 @@ $diary_js_version = filemtime(__DIR__ . '/../../assets/js/diary.js');
                                     hidden
                                 >
                                 <button class="diary-editor-tool diary-editor-emoji-tool" type="button" data-editor-emoji-toggle aria-expanded="false" aria-controls="diary-emoji-picker" aria-label="Insert emoji" title="Insert emoji">☺ Emoji</button>
+                                <button class="diary-editor-tool diary-editor-draw-tool" type="button" data-editor-draw aria-haspopup="dialog" aria-expanded="false" aria-label="Open drawing canvas" title="Draw">✎ Draw</button>
                             </div>
                             </div>
                         </div>

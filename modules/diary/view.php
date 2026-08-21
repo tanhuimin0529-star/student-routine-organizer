@@ -4,6 +4,11 @@ require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/diary_model.php';
 require_once __DIR__ . '/diary_content.php';
 
+$favorite_flash = isset($_SESSION['diary_favorite_flash']) && is_array($_SESSION['diary_favorite_flash'])
+    ? $_SESSION['diary_favorite_flash']
+    : null;
+unset($_SESSION['diary_favorite_flash']);
+
 $entry = null;
 $database_error = false;
 $requested_id = isset($_GET['id']) && is_string($_GET['id'])
@@ -26,6 +31,10 @@ if ($diary_id !== false) {
 
 if ($entry !== null && empty($_SESSION['diary_delete_csrf_token'])) {
     $_SESSION['diary_delete_csrf_token'] = bin2hex(random_bytes(32));
+}
+
+if ($entry !== null && empty($_SESSION['diary_favorite_csrf_token'])) {
+    $_SESSION['diary_favorite_csrf_token'] = bin2hex(random_bytes(32));
 }
 
 $previous_entry_id = null;
@@ -59,6 +68,9 @@ if ($entry !== null) {
     }
 }
 
+
+$entry_is_favorite = $entry !== null && isset($entry['is_favorite']) && (int) $entry['is_favorite'] === 1;
+$favorite_label = $entry_is_favorite ? 'Remove from favorites' : 'Add to favorites';
 $diary_css_version = filemtime(__DIR__ . '/../../assets/css/diary.css');
 $diary_js_version = filemtime(__DIR__ . '/../../assets/js/diary.js');
 
@@ -98,6 +110,16 @@ function diaryViewMoodEmoji($mood) {
 </head>
 <body class="diary-page diary-reader-page">
     <main class="diary-container diary-reader-container">
+        <?php if ($favorite_flash !== null): ?>
+            <?php $favorite_flash_type = isset($favorite_flash['type']) && $favorite_flash['type'] === 'success' ? 'success' : 'error'; ?>
+            <div
+                class="diary-alert diary-alert-<?php echo diaryViewEscape($favorite_flash_type); ?>"
+                role="<?php echo $favorite_flash_type === 'success' ? 'status' : 'alert'; ?>"
+            >
+                <?php echo diaryViewEscape(isset($favorite_flash['message']) ? $favorite_flash['message'] : 'Favorite could not be updated right now. Please try again.'); ?>
+            </div>
+        <?php endif; ?>
+
         <?php if ($database_error): ?>
             <header class="diary-page-header">
                 <p class="diary-eyebrow">Diary Entry</p>
@@ -125,6 +147,23 @@ function diaryViewMoodEmoji($mood) {
                 <article class="diary-reading-page">
                     <span class="diary-paper-binding" aria-hidden="true"></span>
                     <span class="diary-page-corner" aria-hidden="true"></span>
+                    <form class="diary-favorite-form diary-reader-favorite-form" action="favorite_handler.php" method="post">
+                        <input type="hidden" name="diary_id" value="<?php echo diaryViewEscape($entry['diary_id']); ?>">
+                        <input type="hidden" name="favorite" value="<?php echo $entry_is_favorite ? '0' : '1'; ?>">
+                        <input
+                            type="hidden"
+                            name="csrf_token"
+                            value="<?php echo diaryViewEscape($_SESSION['diary_favorite_csrf_token']); ?>"
+                        >
+                        <input type="hidden" name="return_to" value="view.php?id=<?php echo diaryViewEscape($entry['diary_id']); ?>">
+                        <button
+                            class="diary-favorite-button<?php echo $entry_is_favorite ? ' is-favorite' : ''; ?>"
+                            type="submit"
+                            aria-label="<?php echo diaryViewEscape($favorite_label); ?>"
+                            aria-pressed="<?php echo $entry_is_favorite ? 'true' : 'false'; ?>"
+                            title="<?php echo diaryViewEscape($favorite_label); ?>"
+                        ><?php echo $entry_is_favorite ? '★' : '☆'; ?></button>
+                    </form>
                     <header class="diary-reading-header">
                         <p class="diary-reading-label">Personal Journal</p>
                         <h1><?php echo diaryViewEscape($entry['title']); ?></h1>

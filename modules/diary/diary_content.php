@@ -132,7 +132,46 @@ function diaryContentAllowedImageWidth($value) {
     return $canonical_width . '%';
 }
 
-function diaryImageStoreUploadedFile($file, $user_id) {
+function diaryContentCanonicalDrawingNumber($value, $minimum, $maximum) {
+    $normalized = trim((string) $value);
+
+    if (!preg_match('/^-?(?:0|[1-9][0-9]{0,2})(?:\.[0-9])?$/', $normalized)) {
+        return null;
+    }
+
+    $numeric_value = (float) $normalized;
+    if ($numeric_value < $minimum || $numeric_value > $maximum) {
+        return null;
+    }
+
+    $canonical_value = rtrim(
+        rtrim(number_format($numeric_value, 1, '.', ''), '0'),
+        '.'
+    );
+
+    return $canonical_value === '-0' ? '0' : $canonical_value;
+}
+
+function diaryContentAllowedDrawingCoordinate($value) {
+    return diaryContentCanonicalDrawingNumber($value, 0, 100);
+}
+
+function diaryContentAllowedDrawingWidth($value) {
+    return diaryContentCanonicalDrawingNumber($value, 10, 100);
+}
+
+function diaryContentAllowedDrawingRotation($value) {
+    return diaryContentCanonicalDrawingNumber($value, -180, 180);
+}
+
+function diaryContentAllowedDrawingSrc($value, $expected_user_id = null) {
+    $safe_src = diaryContentAllowedImageSrc($value, $expected_user_id);
+
+    return $safe_src !== '' && substr($safe_src, -4) === '.png'
+        ? $safe_src
+        : '';
+}
+function diaryImageStoreUploadedFile($file, $user_id, $default_alt = 'Journal image', $required_mime = '') {
     $failure = array(
         'valid' => false,
         'src' => '',
@@ -149,6 +188,9 @@ function diaryImageStoreUploadedFile($file, $user_id) {
     if ($user_id === false || !is_array($file)) {
         return $failure;
     }
+
+    $default_alt = diaryContentAllowedImageAlt($default_alt);
+    $required_mime = is_string($required_mime) ? trim($required_mime) : '';
 
     $upload_error = isset($file['error']) ? (int) $file['error'] : UPLOAD_ERR_NO_FILE;
     if ($upload_error !== UPLOAD_ERR_OK) {
@@ -208,6 +250,11 @@ function diaryImageStoreUploadedFile($file, $user_id) {
         return $failure;
     }
 
+    if ($required_mime !== '' && $detected_mime !== $required_mime) {
+        $failure['error'] = 'The drawing could not be processed as a PNG.';
+        return $failure;
+    }
+
     if (
         !is_array($image_info)
         || !isset($image_info['mime'])
@@ -253,7 +300,7 @@ function diaryImageStoreUploadedFile($file, $user_id) {
         'valid' => true,
         'src' => diaryImagePublicPrefix()
             . 'user_' . $user_id . '/' . $safe_filename,
-        'alt' => 'Journal image',
+        'alt' => $default_alt,
         'error' => '',
         'status' => 200
     );
@@ -537,6 +584,52 @@ function diaryContentSanitizeNode($source_node, $clean_document, $image_user_id 
 
         if ($source_image === null) {
             return $clean_document->createDocumentFragment();
+        }
+
+        if ($source_node->getAttribute('data-diary-object') === 'drawing') {
+            $safe_src = diaryContentAllowedDrawingSrc(
+                $source_image->getAttribute('src'),
+                $image_user_id
+            );
+            $safe_x = diaryContentAllowedDrawingCoordinate(
+                $source_node->getAttribute('data-diary-x')
+            );
+            $safe_y = diaryContentAllowedDrawingCoordinate(
+                $source_node->getAttribute('data-diary-y')
+            );
+            $safe_width = diaryContentAllowedDrawingWidth(
+                $source_node->getAttribute('data-diary-width')
+            );
+            $safe_rotation = diaryContentAllowedDrawingRotation(
+                $source_node->getAttribute('data-diary-rotation')
+            );
+
+            if (
+                $safe_src === ''
+                || $safe_x === null
+                || $safe_y === null
+                || $safe_width === null
+                || $safe_rotation === null
+            ) {
+                return $clean_document->createDocumentFragment();
+            }
+
+            $clean_drawing = $clean_document->createElement('figure');
+            $clean_drawing->setAttribute('data-diary-object', 'drawing');
+            $clean_drawing->setAttribute('data-diary-x', $safe_x);
+            $clean_drawing->setAttribute('data-diary-y', $safe_y);
+            $clean_drawing->setAttribute('data-diary-width', $safe_width);
+            $clean_drawing->setAttribute('data-diary-rotation', $safe_rotation);
+
+            $clean_drawing_image = $clean_document->createElement('img');
+            $clean_drawing_image->setAttribute('src', $safe_src);
+            $clean_drawing_image->setAttribute(
+                'alt',
+                diaryContentAllowedImageAlt($source_image->getAttribute('alt'))
+            );
+            $clean_drawing->appendChild($clean_drawing_image);
+
+            return $clean_drawing;
         }
 
         $clean_image = diaryContentSanitizeNode(
@@ -841,6 +934,62 @@ function diaryContentLegacyToSafeHtml($plain_text) {
     return nl2br(htmlspecialchars((string) $plain_text, ENT_QUOTES, 'UTF-8'), false);
 }
 
+function diaryContentAddDrawingPresentationStyles($sanitized_html) {
+    $parsed = diaryContentParseHtmlFragment($sanitized_html);
+    if ($parsed === null) {
+        return '';
+    }
+
+    $document = $parsed[0];
+    $body = $parsed[1];
+    $figures = $body->getElementsByTagName('figure');
+
+    foreach ($figures as $figure) {
+        if ($figure->getAttribute('data-diary-object') !== 'drawing') {
+            continue;
+        }
+
+        $safe_x = diaryContentAllowedDrawingCoordinate(
+            $figure->getAttribute('data-diary-x')
+        );
+        $safe_y = diaryContentAllowedDrawingCoordinate(
+            $figure->getAttribute('data-diary-y')
+        );
+        $safe_width = diaryContentAllowedDrawingWidth(
+            $figure->getAttribute('data-diary-width')
+        );
+        $safe_rotation = diaryContentAllowedDrawingRotation(
+            $figure->getAttribute('data-diary-rotation')
+        );
+
+        if (
+            $safe_x === null
+            || $safe_y === null
+            || $safe_width === null
+            || $safe_rotation === null
+        ) {
+            continue;
+        }
+
+        // These declarations are generated only from the closed numeric
+        // allow-list above. Submitted style attributes are never copied.
+        $figure->setAttribute(
+            'style',
+            'left: ' . $safe_x . '%; '
+            . 'top: ' . $safe_y . '%; '
+            . 'width: ' . $safe_width . '%; '
+            . 'transform: translate(-50%, -50%) rotate(' . $safe_rotation . 'deg)'
+        );
+    }
+
+    $rendered = '';
+    foreach ($body->childNodes as $child_node) {
+        $rendered .= $document->saveHTML($child_node);
+    }
+
+    return trim($rendered);
+}
+
 function diaryContentRenderSafeHtml($stored_content) {
     $stored_content = (string) $stored_content;
 
@@ -848,6 +997,8 @@ function diaryContentRenderSafeHtml($stored_content) {
         return diaryContentLegacyToSafeHtml($stored_content);
     }
 
-    return diaryContentSanitizeRichHtml(diaryContentRichBody($stored_content));
+    $sanitized = diaryContentSanitizeRichHtml(diaryContentRichBody($stored_content));
+
+    return diaryContentAddDrawingPresentationStyles($sanitized);
 }
 ?>
