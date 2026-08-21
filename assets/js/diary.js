@@ -77,6 +77,9 @@
         var highlightButtons = richEditor.querySelectorAll('[data-editor-highlight]');
         var imageButton = richEditor.querySelector('[data-editor-image]');
         var imageInput = richEditor.querySelector('[data-editor-image-input]');
+        var emojiButton = richEditor.querySelector('[data-editor-emoji-toggle]');
+        var emojiPicker = richEditor.querySelector('[data-editor-emoji-picker]');
+        var emojiOptions = richEditor.querySelectorAll('[data-editor-emoji]');
         var imageStatus = richEditor.querySelector('[data-editor-image-status]');
         var imageControls = richEditor.querySelector('[data-editor-image-controls]');
         var imageSizeButtons = richEditor.querySelectorAll('[data-editor-image-size]');
@@ -736,6 +739,45 @@
             var selection = window.getSelection();
             selection.removeAllRanges();
             selection.addRange(savedRange);
+        }
+
+        function closeEmojiPicker() {
+            if (!emojiPicker || !emojiButton) {
+                return;
+            }
+
+            emojiPicker.hidden = true;
+            emojiButton.setAttribute('aria-expanded', 'false');
+        }
+
+        function insertEmojiAtCursor(emoji) {
+            restoreSelection();
+
+            var selection = window.getSelection();
+            var range;
+
+            if (!selection || selection.rangeCount === 0 || !selectionIsInsideEditor()) {
+                editor.focus();
+                range = document.createRange();
+                range.selectNodeContents(editor);
+                range.collapse(false);
+                selection = window.getSelection();
+                selection.removeAllRanges();
+                selection.addRange(range);
+            } else {
+                range = selection.getRangeAt(0);
+            }
+
+            range.deleteContents();
+            var emojiNode = document.createTextNode(emoji);
+            range.insertNode(emojiNode);
+            range.setStartAfter(emojiNode);
+            range.collapse(true);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            savedRange = range.cloneRange();
+            synchronizeContent();
+            updateToolbarState();
         }
 
         function editorHasVisibleContent() {
@@ -1410,6 +1452,41 @@
 
             imageInput.addEventListener('change', function () {
                 uploadDiaryImage(imageInput.files && imageInput.files[0]);
+            });
+        }
+
+        if (emojiButton && emojiPicker) {
+            emojiButton.addEventListener('mousedown', function (event) {
+                event.preventDefault();
+                rememberSelection();
+            });
+
+            emojiButton.addEventListener('click', function () {
+                var shouldOpen = emojiPicker.hidden;
+                emojiPicker.hidden = !shouldOpen;
+                emojiButton.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+            });
+
+            emojiOptions.forEach(function (emojiOption) {
+                emojiOption.addEventListener('mousedown', function (event) {
+                    event.preventDefault();
+                });
+
+                emojiOption.addEventListener('click', function () {
+                    insertEmojiAtCursor(emojiOption.getAttribute('data-editor-emoji') || '');
+                    closeEmojiPicker();
+                    editor.focus();
+                });
+            });
+
+            document.addEventListener('click', function (event) {
+                if (
+                    !emojiPicker.hidden
+                    && !emojiPicker.contains(event.target)
+                    && !emojiButton.contains(event.target)
+                ) {
+                    closeEmojiPicker();
+                }
             });
         }
 

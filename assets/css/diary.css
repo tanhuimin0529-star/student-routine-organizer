@@ -2759,6 +2759,42 @@ a.diary-entry-sequence-link:focus-visible {
     background: #d9e3cd;
 }
 
+.diary-editor-emoji-tool {
+    border-color: rgba(102, 118, 83, 0.5);
+    background: #f8f3e8;
+    color: var(--diary-accent-dark);
+}
+
+.diary-editor-emoji-picker {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(36px, 1fr));
+    gap: 6px;
+    border-bottom: 1px solid rgba(130, 105, 79, 0.18);
+    background: #f8f3e8;
+    padding: 10px;
+}
+
+.diary-editor-emoji-picker[hidden] {
+    display: none;
+}
+
+.diary-editor-emoji-picker button {
+    min-width: 36px;
+    min-height: 36px;
+    border: 1px solid #d5c8b5;
+    border-radius: 8px;
+    background: var(--diary-surface);
+    cursor: pointer;
+    font-size: 1.2rem;
+}
+
+.diary-editor-emoji-picker button:hover,
+.diary-editor-emoji-picker button:focus-visible {
+    border-color: var(--diary-accent);
+    background: #e8eedf;
+    outline: none;
+}
+
 .diary-editor-image-controls {
     display: block;
     padding: 0;

@@ -229,7 +229,7 @@ $diary_js_version = filemtime(__DIR__ . '/../../assets/js/diary.js');
                                 <button class="diary-editor-tool diary-editor-clear-tool" type="button" data-editor-command="removeFormat" aria-label="Clear formatting" title="Clear formatting">T×</button>
                             </div>
 
-                            <div class="diary-editor-tool-group" aria-label="Insert image">
+                            <div class="diary-editor-tool-group" aria-label="Insert media">
                                 <button class="diary-editor-tool diary-editor-image-tool" type="button" data-editor-image aria-label="Insert image" title="Insert JPG, PNG, or WebP image">▧ Image</button>
                                 <input
                                     type="file"
@@ -237,8 +237,15 @@ $diary_js_version = filemtime(__DIR__ . '/../../assets/js/diary.js');
                                     accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
                                     hidden
                                 >
+                                <button class="diary-editor-tool diary-editor-emoji-tool" type="button" data-editor-emoji-toggle aria-expanded="false" aria-controls="diary-emoji-picker" aria-label="Insert emoji" title="Insert emoji">☺ Emoji</button>
                             </div>
                             </div>
+                        </div>
+
+                        <div class="diary-editor-emoji-picker" id="diary-emoji-picker" data-editor-emoji-picker aria-label="Choose an emoji" hidden>
+                            <?php foreach (array('😀', '😂', '🥰', '😭', '😴', '❤️', '⭐', '🌸', '☕', '🎓', '👍', '🎉', '🌈', '💭', '🍀') as $emoji): ?>
+                                <button type="button" data-editor-emoji="<?php echo diaryEditEscape($emoji); ?>" aria-label="Insert <?php echo diaryEditEscape($emoji); ?> emoji"><?php echo diaryEditEscape($emoji); ?></button>
+                            <?php endforeach; ?>
                         </div>
 
                         <p class="diary-editor-image-status" data-editor-image-status role="status" aria-live="polite" hidden></p>
