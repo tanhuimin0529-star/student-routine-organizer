@@ -81,10 +81,15 @@
         var imageControls = richEditor.querySelector('[data-editor-image-controls]');
         var imageSizeButtons = richEditor.querySelectorAll('[data-editor-image-size]');
         var imageAlignButtons = richEditor.querySelectorAll('[data-editor-image-align]');
+        var imageWrapButtons = richEditor.querySelectorAll('[data-editor-image-wrap]');
+        var imageAltInput = richEditor.querySelector('[data-editor-image-alt]');
+        var imageCaptionInput = richEditor.querySelector('[data-editor-image-caption]');
+        var imageRemoveButton = richEditor.querySelector('[data-editor-image-remove]');
         var imageResizeOverlay = richEditor.querySelector('[data-editor-image-resize-overlay]');
         var imageResizeHandles = richEditor.querySelectorAll('[data-editor-image-resize]');
         var selectedImage = null;
         var draggedImage = null;
+        var draggedMedia = null;
         var imageDropIndicator = null;
         var imageResizeState = null;
         var savedRange = null;
@@ -111,7 +116,9 @@
             BLOCKQUOTE: true,
             DIV: true,
             FONT: true,
-            IMG: true
+            IMG: true,
+            FIGURE: true,
+            FIGCAPTION: true
         };
         var removedEditorTags = {
             SCRIPT: true,
@@ -166,6 +173,23 @@
             center: true,
             right: true
         };
+        var allowedImageWrapModes = {
+            none: true,
+            left: true,
+            right: true
+        };
+        var statefulEditorCommands = {
+            bold: true,
+            italic: true,
+            underline: true,
+            strikethrough: true,
+            justifyleft: true,
+            justifycenter: true,
+            justifyright: true,
+            justifyfull: true,
+            insertunorderedlist: true,
+            insertorderedlist: true
+        };
 
         function normalizeColor(value, allowedColors) {
             var colorProbe = document.createElement('span');
@@ -180,6 +204,7 @@
 
         function normalizeFontFamily(value) {
             var normalizedFamily = (value || '')
+                .split(',')[0]
                 .replace(/["']/g, '')
                 .trim()
                 .toLowerCase();
@@ -232,7 +257,15 @@
                 .replace(/\s+/g, ' ')
                 .trim();
 
-            return (alt || 'Journal image').slice(0, 160);
+            return (alt || 'Journal image').slice(0, 150);
+        }
+
+        function normalizeImageCaption(value) {
+            return (value || '')
+                .replace(/[\u0000-\u001F\u007F]+/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim()
+                .slice(0, 250);
         }
 
         function normalizeImageSize(value) {
@@ -243,6 +276,11 @@
         function normalizeImageAlignment(value) {
             var alignment = (value || '').trim().toLowerCase();
             return allowedImageAlignments[alignment] ? alignment : '';
+        }
+
+        function normalizeImageWrap(value) {
+            var wrapMode = (value || '').trim().toLowerCase();
+            return allowedImageWrapModes[wrapMode] ? wrapMode : '';
         }
 
         function normalizeImageWidth(value) {
@@ -258,6 +296,83 @@
             }
 
             return String(Math.round(numericWidth * 10) / 10) + '%';
+        }
+
+        function imageFigure(image) {
+            return image && image.parentElement && image.parentElement.tagName === 'FIGURE'
+                ? image.parentElement
+                : null;
+        }
+
+        function imageLayoutElement(image) {
+            return imageFigure(image) || image;
+        }
+
+        function removeImageLayoutAttributes(element) {
+            if (!element) {
+                return;
+            }
+
+            element.removeAttribute('data-diary-size');
+            element.removeAttribute('data-diary-align');
+            element.removeAttribute('data-diary-wrap');
+            element.style.removeProperty('width');
+            if (!element.getAttribute('style')) {
+                element.removeAttribute('style');
+            }
+        }
+
+        function copySafeImageLayout(sourceElement, targetElement, fallbackElement) {
+            var size = normalizeImageSize(sourceElement.getAttribute('data-diary-size'))
+                || (fallbackElement
+                    ? normalizeImageSize(fallbackElement.getAttribute('data-diary-size'))
+                    : '');
+            var alignment = normalizeImageAlignment(sourceElement.getAttribute('data-diary-align'))
+                || (fallbackElement
+                    ? normalizeImageAlignment(fallbackElement.getAttribute('data-diary-align'))
+                    : '');
+            var wrapMode = normalizeImageWrap(sourceElement.getAttribute('data-diary-wrap'))
+                || (fallbackElement
+                    ? normalizeImageWrap(fallbackElement.getAttribute('data-diary-wrap'))
+                    : '');
+            var width = normalizeImageWidth(sourceElement.style.width)
+                || (fallbackElement ? normalizeImageWidth(fallbackElement.style.width) : '');
+
+            if (width) {
+                targetElement.style.width = width;
+            } else if (size) {
+                targetElement.setAttribute('data-diary-size', size);
+            } else {
+                targetElement.setAttribute('data-diary-size', 'medium');
+            }
+
+            targetElement.setAttribute('data-diary-align', alignment || 'center');
+            targetElement.setAttribute('data-diary-wrap', wrapMode || 'none');
+        }
+
+        function ensureImageFigure(image) {
+            var existingFigure = imageFigure(image);
+            if (existingFigure) {
+                return existingFigure;
+            }
+
+            var figure = document.createElement('figure');
+            copySafeImageLayout(image, figure, null);
+            image.parentNode.insertBefore(figure, image);
+            figure.appendChild(image);
+            removeImageLayoutAttributes(image);
+            return figure;
+        }
+
+        function imageCaptionElement(image) {
+            var figure = imageFigure(image);
+            if (!figure) {
+                return null;
+            }
+
+            return Array.prototype.find.call(figure.children, function (child) {
+                return child.tagName === 'FIGCAPTION';
+            }) || null;
         }
 
         function applySafeEditorStyles(sourceElement, cleanElement) {
@@ -330,6 +445,52 @@
                 return unwrappedContent;
             }
 
+            if (sourceTag === 'FIGCAPTION') {
+                return document.createDocumentFragment();
+            }
+
+            if (sourceTag === 'FIGURE') {
+                var sourceFigureImage = Array.prototype.find.call(
+                    sourceNode.children,
+                    function (child) {
+                        return child.tagName === 'IMG';
+                    }
+                );
+
+                if (!sourceFigureImage) {
+                    return document.createDocumentFragment();
+                }
+
+                var cleanFigureImage = sanitizeEditorNode(sourceFigureImage);
+                if (!cleanFigureImage || cleanFigureImage.tagName !== 'IMG') {
+                    return document.createDocumentFragment();
+                }
+
+                var cleanFigure = document.createElement('figure');
+                copySafeImageLayout(sourceNode, cleanFigure, sourceFigureImage);
+                removeImageLayoutAttributes(cleanFigureImage);
+                cleanFigure.appendChild(cleanFigureImage);
+
+                var sourceFigureCaption = Array.prototype.find.call(
+                    sourceNode.children,
+                    function (child) {
+                        return child.tagName === 'FIGCAPTION';
+                    }
+                );
+                var cleanCaptionText = sourceFigureCaption
+                    ? normalizeImageCaption(sourceFigureCaption.textContent)
+                    : '';
+
+                if (cleanCaptionText) {
+                    var cleanFigureCaption = document.createElement('figcaption');
+                    cleanFigureCaption.textContent = cleanCaptionText;
+                    cleanFigureCaption.setAttribute('contenteditable', 'false');
+                    cleanFigure.appendChild(cleanFigureCaption);
+                }
+
+                return cleanFigure;
+            }
+
             if (sourceTag === 'IMG') {
                 var safeImageSrc = normalizeDiaryImageSrc(sourceNode.getAttribute('src'));
 
@@ -347,12 +508,18 @@
                 var imageAlignment = normalizeImageAlignment(
                     sourceNode.getAttribute('data-diary-align')
                 );
+                var imageWrapMode = normalizeImageWrap(
+                    sourceNode.getAttribute('data-diary-wrap')
+                );
 
                 if (imageSize) {
                     cleanImage.setAttribute('data-diary-size', imageSize);
                 }
                 if (imageAlignment) {
                     cleanImage.setAttribute('data-diary-align', imageAlignment);
+                }
+                if (imageWrapMode) {
+                    cleanImage.setAttribute('data-diary-wrap', imageWrapMode);
                 }
 
                 var imageWidth = normalizeImageWidth(sourceNode.style.width);
@@ -394,7 +561,7 @@
         }
 
         function contentLooksFormatted(content) {
-            return /<\/?(?:p|br|strong|b|em|i|u|s|strike|span|ul|ol|li|blockquote|div|font|img)\b/i.test(content);
+            return /<\/?(?:p|br|strong|b|em|i|u|s|strike|span|ul|ol|li|blockquote|div|font|img|figure|figcaption)\b/i.test(content);
         }
 
         function loadInitialContent(content) {
@@ -442,6 +609,124 @@
             }
         }
 
+        function selectionStyleNodes(range) {
+            var styleNodes = [];
+
+            if (range.collapsed) {
+                var cursorNode = range.startContainer;
+                if (cursorNode.nodeType !== Node.ELEMENT_NODE) {
+                    cursorNode = cursorNode.parentElement;
+                }
+                return cursorNode ? [cursorNode] : [];
+            }
+
+            var walker = document.createTreeWalker(
+                editor,
+                NodeFilter.SHOW_TEXT,
+                {
+                    acceptNode: function (textNode) {
+                        if (!textNode.nodeValue || textNode.nodeValue.trim() === '') {
+                            return NodeFilter.FILTER_REJECT;
+                        }
+
+                        try {
+                            return range.intersectsNode(textNode)
+                                ? NodeFilter.FILTER_ACCEPT
+                                : NodeFilter.FILTER_REJECT;
+                        } catch (error) {
+                            return NodeFilter.FILTER_REJECT;
+                        }
+                    }
+                }
+            );
+            var currentNode;
+
+            while ((currentNode = walker.nextNode())) {
+                if (currentNode.parentElement) {
+                    styleNodes.push(currentNode.parentElement);
+                }
+            }
+
+            if (styleNodes.length === 0) {
+                var commonNode = range.commonAncestorContainer;
+                if (commonNode.nodeType !== Node.ELEMENT_NODE) {
+                    commonNode = commonNode.parentElement;
+                }
+                if (commonNode) {
+                    styleNodes.push(commonNode);
+                }
+            }
+
+            return styleNodes;
+        }
+
+        function selectedStyleState(range, propertyName, normalizer) {
+            var values = [];
+
+            selectionStyleNodes(range).forEach(function (styleNode) {
+                var normalizedValue = normalizer(
+                    window.getComputedStyle(styleNode)[propertyName]
+                );
+
+                if (normalizedValue && values.indexOf(normalizedValue) === -1) {
+                    values.push(normalizedValue);
+                }
+            });
+
+            return {
+                value: values.length === 1 ? values[0] : '',
+                mixed: values.length > 1
+            };
+        }
+
+        function updateSelectState(selectElement, state, placeholder) {
+            if (!selectElement || selectElement.options.length === 0) {
+                return;
+            }
+
+            selectElement.options[0].textContent = state.mixed ? 'Mixed' : placeholder;
+            selectElement.value = state.value || '';
+        }
+
+        function editorCommandIsActive(commandName) {
+            try {
+                return document.queryCommandState(commandName);
+            } catch (error) {
+                return false;
+            }
+        }
+
+        function updateToolbarState() {
+            var selection = window.getSelection();
+            if (!selectionIsInsideEditor() || !selection || selection.rangeCount === 0) {
+                return;
+            }
+
+            var range = selection.getRangeAt(0);
+            var fontState = selectedStyleState(range, 'fontFamily', normalizeFontFamily);
+            var sizeState = selectedStyleState(range, 'fontSize', function (fontSize) {
+                return allowedFontSizes[fontSize] ? fontSize.slice(0, -2) : '';
+            });
+
+            updateSelectState(fontFamilySelect, fontState, 'Font');
+            updateSelectState(fontSizeSelect, sizeState, 'Size');
+
+            commandButtons.forEach(function (button) {
+                var commandName = (button.getAttribute('data-editor-command') || '').toLowerCase();
+                if (!statefulEditorCommands[commandName]) {
+                    return;
+                }
+
+                var isActive = editorCommandIsActive(commandName);
+                button.classList.toggle('is-active', isActive);
+                button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+            });
+        }
+
+        function scheduleToolbarStateUpdate() {
+            window.requestAnimationFrame(updateToolbarState);
+        }
+
         function restoreSelection() {
             if (!savedRange) {
                 editor.focus();
@@ -465,8 +750,11 @@
             }
 
             var storageEditor = editor.cloneNode(true);
-            storageEditor.querySelectorAll('img.is-selected, img.is-dragging').forEach(function (image) {
-                image.classList.remove('is-selected', 'is-dragging');
+            storageEditor.querySelectorAll('.is-selected, .is-dragging, .is-resizing').forEach(function (element) {
+                element.classList.remove('is-selected', 'is-dragging', 'is-resizing');
+                if (!element.getAttribute('class')) {
+                    element.removeAttribute('class');
+                }
             });
             storageEditor.querySelectorAll('img[draggable], img[aria-grabbed]').forEach(function (image) {
                 image.removeAttribute('draggable');
@@ -589,14 +877,18 @@
         }
 
         function updateImageControlState() {
-            var selectedWidth = selectedImage
-                ? normalizeImageWidth(selectedImage.style.width)
+            var layoutElement = selectedImage ? imageLayoutElement(selectedImage) : null;
+            var selectedWidth = layoutElement
+                ? normalizeImageWidth(layoutElement.style.width)
                 : '';
-            var selectedSize = selectedImage && !selectedWidth
-                ? normalizeImageSize(selectedImage.getAttribute('data-diary-size')) || 'medium'
+            var selectedSize = layoutElement && !selectedWidth
+                ? normalizeImageSize(layoutElement.getAttribute('data-diary-size')) || 'medium'
                 : '';
-            var selectedAlignment = selectedImage
-                ? normalizeImageAlignment(selectedImage.getAttribute('data-diary-align')) || 'center'
+            var selectedAlignment = layoutElement
+                ? normalizeImageAlignment(layoutElement.getAttribute('data-diary-align')) || 'center'
+                : '';
+            var selectedWrapMode = layoutElement
+                ? normalizeImageWrap(layoutElement.getAttribute('data-diary-wrap')) || 'none'
                 : '';
 
             imageSizeButtons.forEach(function (button) {
@@ -610,6 +902,25 @@
                 button.classList.toggle('is-active', isActive);
                 button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
             });
+
+            imageWrapButtons.forEach(function (button) {
+                var isActive = button.getAttribute('data-editor-image-wrap') === selectedWrapMode;
+                button.classList.toggle('is-active', isActive);
+                button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+            });
+
+            if (imageAltInput && document.activeElement !== imageAltInput) {
+                imageAltInput.value = selectedImage
+                    ? normalizeImageAlt(selectedImage.getAttribute('alt'))
+                    : '';
+            }
+
+            if (imageCaptionInput && document.activeElement !== imageCaptionInput) {
+                var caption = selectedImage ? imageCaptionElement(selectedImage) : null;
+                imageCaptionInput.value = caption
+                    ? normalizeImageCaption(caption.textContent)
+                    : '';
+            }
         }
 
         function positionImageResizeOverlay() {
@@ -668,6 +979,11 @@
         function prepareEditorImages() {
             editor.querySelectorAll('img').forEach(function (image) {
                 if (normalizeDiaryImageSrc(image.getAttribute('src'))) {
+                    var figure = ensureImageFigure(image);
+                    var caption = imageCaptionElement(image);
+                    if (caption) {
+                        caption.setAttribute('contenteditable', 'false');
+                    }
                     image.setAttribute('draggable', 'true');
                     image.addEventListener('load', function () {
                         if (selectedImage === image) {
@@ -762,8 +1078,9 @@
                 return;
             }
 
-            selectedImage.style.width = safeWidth;
-            selectedImage.removeAttribute('data-diary-size');
+            var layoutElement = imageLayoutElement(selectedImage);
+            layoutElement.style.width = safeWidth;
+            layoutElement.removeAttribute('data-diary-size');
             updateImageControlState();
             positionImageResizeOverlay();
         }
@@ -824,7 +1141,7 @@
         function findImageDropReference(pointerY) {
             var candidates = Array.prototype.filter.call(editor.childNodes, function (node) {
                 if (
-                    node === draggedImage
+                    node === draggedMedia
                     || node === imageDropIndicator
                     || (node.nodeType === Node.TEXT_NODE && !node.nodeValue.trim())
                 ) {
@@ -886,12 +1203,15 @@
 
         function finishImageDrag() {
             if (draggedImage) {
-                draggedImage.classList.remove('is-dragging');
                 draggedImage.setAttribute('aria-grabbed', 'false');
+            }
+            if (draggedMedia) {
+                draggedMedia.classList.remove('is-dragging');
             }
 
             removeImageDropIndicator();
             draggedImage = null;
+            draggedMedia = null;
             positionImageResizeOverlay();
         }
 
@@ -921,16 +1241,20 @@
             var image = document.createElement('img');
             image.src = safeSrc;
             image.alt = normalizeImageAlt(alt);
-            image.setAttribute('data-diary-size', 'medium');
-            image.setAttribute('data-diary-align', 'center');
             image.setAttribute('draggable', 'true');
             image.addEventListener('load', positionImageResizeOverlay);
 
+            var figure = document.createElement('figure');
+            figure.setAttribute('data-diary-size', 'medium');
+            figure.setAttribute('data-diary-align', 'center');
+            figure.setAttribute('data-diary-wrap', 'none');
+            figure.appendChild(image);
+
             range.deleteContents();
-            range.insertNode(image);
+            range.insertNode(figure);
 
             var lineBreak = document.createElement('br');
-            range.setStartAfter(image);
+            range.setStartAfter(figure);
             range.collapse(true);
             range.insertNode(lineBreak);
             range.setStartAfter(lineBreak);
@@ -1028,6 +1352,7 @@
             synchronizeContent();
             positionImageResizeOverlay();
             editor.focus();
+            updateToolbarState();
             return commandApplied;
         }
 
@@ -1097,8 +1422,12 @@
                     return;
                 }
 
-                selectedImage.setAttribute('data-diary-size', size);
-                selectedImage.style.removeProperty('width');
+                var layoutElement = imageLayoutElement(selectedImage);
+                layoutElement.setAttribute('data-diary-size', size);
+                layoutElement.style.removeProperty('width');
+                if (!layoutElement.getAttribute('style')) {
+                    layoutElement.removeAttribute('style');
+                }
                 updateImageControlState();
                 positionImageResizeOverlay();
                 synchronizeContent();
@@ -1119,12 +1448,97 @@
                     return;
                 }
 
-                selectedImage.setAttribute('data-diary-align', alignment);
+                imageLayoutElement(selectedImage).setAttribute('data-diary-align', alignment);
                 updateImageControlState();
                 positionImageResizeOverlay();
                 synchronizeContent();
             });
         });
+
+        imageWrapButtons.forEach(function (button) {
+            button.addEventListener('click', function () {
+                if (!selectedImage || !editor.contains(selectedImage)) {
+                    clearDiaryImageSelection();
+                    return;
+                }
+
+                var wrapMode = normalizeImageWrap(
+                    button.getAttribute('data-editor-image-wrap')
+                );
+                if (!wrapMode) {
+                    return;
+                }
+
+                imageLayoutElement(selectedImage).setAttribute('data-diary-wrap', wrapMode);
+                updateImageControlState();
+                positionImageResizeOverlay();
+                synchronizeContent();
+            });
+        });
+
+        if (imageAltInput) {
+            imageAltInput.addEventListener('input', function () {
+                if (!selectedImage || !editor.contains(selectedImage)) {
+                    return;
+                }
+
+                var safeAlt = imageAltInput.value
+                    .replace(/[\u0000-\u001F\u007F]+/g, ' ')
+                    .slice(0, 150);
+                if (imageAltInput.value !== safeAlt) {
+                    imageAltInput.value = safeAlt;
+                }
+                selectedImage.setAttribute('alt', safeAlt);
+                synchronizeContent();
+            });
+        }
+
+        if (imageCaptionInput) {
+            imageCaptionInput.addEventListener('input', function () {
+                if (!selectedImage || !editor.contains(selectedImage)) {
+                    return;
+                }
+
+                var safeCaption = imageCaptionInput.value
+                    .replace(/[\u0000-\u001F\u007F]+/g, ' ')
+                    .slice(0, 250);
+                if (imageCaptionInput.value !== safeCaption) {
+                    imageCaptionInput.value = safeCaption;
+                }
+
+                var figure = ensureImageFigure(selectedImage);
+                var caption = imageCaptionElement(selectedImage);
+                if (safeCaption.trim() === '') {
+                    if (caption) {
+                        caption.remove();
+                    }
+                } else {
+                    if (!caption) {
+                        caption = document.createElement('figcaption');
+                        caption.setAttribute('contenteditable', 'false');
+                        figure.appendChild(caption);
+                    }
+                    caption.textContent = safeCaption;
+                }
+
+                synchronizeContent();
+            });
+        }
+
+        if (imageRemoveButton) {
+            imageRemoveButton.addEventListener('click', function () {
+                if (!selectedImage || !editor.contains(selectedImage)) {
+                    clearDiaryImageSelection();
+                    return;
+                }
+
+                var removedMedia = imageLayoutElement(selectedImage);
+                clearDiaryImageSelection();
+                removedMedia.remove();
+                synchronizeContent();
+                editor.focus();
+            });
+        }
 
         imageResizeHandles.forEach(function (handle) {
             handle.addEventListener('pointerdown', function (event) {
@@ -1137,9 +1551,16 @@
         document.addEventListener('pointercancel', finishImageResize);
 
         editor.addEventListener('click', function (event) {
-            if (event.target && event.target.tagName === 'IMG') {
+            var clickedFigure = event.target && event.target.closest
+                ? event.target.closest('figure')
+                : null;
+            var clickedImage = event.target && event.target.tagName === 'IMG'
+                ? event.target
+                : (clickedFigure ? clickedFigure.querySelector('img') : null);
+
+            if (clickedImage && editor.contains(clickedImage)) {
                 event.preventDefault();
-                selectDiaryImage(event.target);
+                selectDiaryImage(clickedImage);
                 return;
             }
 
@@ -1170,8 +1591,9 @@
             }
 
             draggedImage = image;
+            draggedMedia = imageLayoutElement(image);
             selectDiaryImage(image);
-            image.classList.add('is-dragging');
+            draggedMedia.classList.add('is-dragging');
             image.setAttribute('aria-grabbed', 'true');
 
             if (imageResizeOverlay) {
@@ -1185,7 +1607,7 @@
         });
 
         editor.addEventListener('dragover', function (event) {
-            if (draggedImage && editor.contains(draggedImage)) {
+            if (draggedImage && draggedMedia && editor.contains(draggedMedia)) {
                 event.preventDefault();
                 event.dataTransfer.dropEffect = 'move';
                 positionImageDropIndicator(event.clientY);
@@ -1219,12 +1641,13 @@
                     positionImageDropIndicator(event.clientY);
                 }
 
-                imageDropIndicator.parentNode.insertBefore(draggedImage, imageDropIndicator);
+                imageDropIndicator.parentNode.insertBefore(draggedMedia, imageDropIndicator);
                 removeImageDropIndicator();
-                draggedImage.classList.remove('is-dragging');
+                draggedMedia.classList.remove('is-dragging');
                 draggedImage.setAttribute('aria-grabbed', 'false');
                 var droppedImage = draggedImage;
                 draggedImage = null;
+                draggedMedia = null;
                 selectDiaryImage(droppedImage);
                 synchronizeContent();
                 return;
@@ -1244,7 +1667,6 @@
             fontFamilySelect.addEventListener('change', function () {
                 if (fontFamilySelect.value !== '') {
                     runCommand('fontName', fontFamilySelect.value);
-                    fontFamilySelect.value = '';
                 }
             });
         }
@@ -1253,7 +1675,6 @@
             fontSizeSelect.addEventListener('change', function () {
                 if (fontSizeSelect.value !== '') {
                     runCommand('fontSize', '7', fontSizeSelect.value);
-                    fontSizeSelect.value = '';
                 }
             });
         }
@@ -1262,11 +1683,28 @@
             rememberSelection();
             synchronizeContent();
             positionImageResizeOverlay();
+            updateToolbarState();
         });
 
-        editor.addEventListener('keyup', rememberSelection);
-        editor.addEventListener('mouseup', rememberSelection);
-        editor.addEventListener('focus', rememberSelection);
+        editor.addEventListener('keyup', function () {
+            rememberSelection();
+            updateToolbarState();
+        });
+        editor.addEventListener('mouseup', function () {
+            rememberSelection();
+            scheduleToolbarStateUpdate();
+        });
+        editor.addEventListener('focus', function () {
+            rememberSelection();
+            updateToolbarState();
+        });
+        editor.addEventListener('click', scheduleToolbarStateUpdate);
+        document.addEventListener('selectionchange', function () {
+            if (selectionIsInsideEditor()) {
+                rememberSelection();
+                updateToolbarState();
+            }
+        });
 
         editor.addEventListener('paste', function (event) {
             var clipboard = event.clipboardData || window.clipboardData;
@@ -1287,6 +1725,7 @@
         loadInitialContent(contentField.value);
         prepareEditorImages();
         synchronizeContent();
+        updateToolbarState();
     });
 }());
 

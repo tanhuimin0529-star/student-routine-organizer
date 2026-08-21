@@ -71,10 +71,28 @@ function diaryContentAllowedImageAlt($value) {
     }
 
     if (function_exists('mb_substr')) {
-        return mb_substr($alt, 0, 160, 'UTF-8');
+        return mb_substr($alt, 0, 150, 'UTF-8');
     }
 
-    return substr($alt, 0, 160);
+    return substr($alt, 0, 150);
+}
+
+function diaryContentAllowedImageCaption($value) {
+    $caption = preg_replace('/[\x00-\x1F\x7F]+/u', ' ', (string) $value);
+    if ($caption === null) {
+        return '';
+    }
+
+    $caption = trim(preg_replace('/\s+/u', ' ', $caption));
+    if ($caption === '') {
+        return '';
+    }
+
+    if (function_exists('mb_substr')) {
+        return mb_substr($caption, 0, 250, 'UTF-8');
+    }
+
+    return substr($caption, 0, 250);
 }
 
 function diaryContentAllowedImageSize($value) {
@@ -87,6 +105,13 @@ function diaryContentAllowedImageSize($value) {
 function diaryContentAllowedImageAlign($value) {
     $normalized = trim((string) $value);
     $allowed = array('left', 'center', 'right');
+
+    return in_array($normalized, $allowed, true) ? $normalized : '';
+}
+
+function diaryContentAllowedImageWrap($value) {
+    $normalized = trim((string) $value);
+    $allowed = array('none', 'left', 'right');
 
     return in_array($normalized, $allowed, true) ? $normalized : '';
 }
@@ -454,7 +479,7 @@ function diaryContentSanitizeNode($source_node, $clean_document, $image_user_id 
         : $source_tag;
     $allowed_tags = array(
         'p', 'br', 'strong', 'b', 'em', 'i', 'u', 's',
-        'ul', 'ol', 'li', 'span', 'blockquote', 'img'
+        'ul', 'ol', 'li', 'span', 'blockquote', 'figure', 'figcaption', 'img'
     );
 
     if (!in_array($output_tag, $allowed_tags, true)) {
@@ -468,6 +493,115 @@ function diaryContentSanitizeNode($source_node, $clean_document, $image_user_id 
         }
 
         return $unwrapped;
+    }
+
+    // Captions are accepted only as plain text inside an approved image figure.
+    // A standalone figcaption is discarded so it cannot be used as a generic
+    // container to bypass the normal rich-text allow-list.
+    if ($output_tag === 'figcaption') {
+        return $clean_document->createDocumentFragment();
+    }
+
+    if ($output_tag === 'figure') {
+        $source_image = null;
+        $source_caption = null;
+
+        foreach ($source_node->childNodes as $figure_child) {
+            if ($figure_child->nodeType !== XML_ELEMENT_NODE) {
+                continue;
+            }
+
+            $figure_child_tag = strtolower($figure_child->nodeName);
+            if ($figure_child_tag === 'img' && $source_image === null) {
+                $source_image = $figure_child;
+            } elseif ($figure_child_tag === 'figcaption' && $source_caption === null) {
+                $source_caption = $figure_child;
+            }
+        }
+
+        if ($source_image === null) {
+            return $clean_document->createDocumentFragment();
+        }
+
+        $clean_image = diaryContentSanitizeNode(
+            $source_image,
+            $clean_document,
+            $image_user_id
+        );
+
+        if (!($clean_image instanceof DOMElement) || strtolower($clean_image->nodeName) !== 'img') {
+            return $clean_document->createDocumentFragment();
+        }
+
+        $clean_figure = $clean_document->createElement('figure');
+        $safe_size = diaryContentAllowedImageSize(
+            $source_node->getAttribute('data-diary-size')
+        );
+        $safe_alignment = diaryContentAllowedImageAlign(
+            $source_node->getAttribute('data-diary-align')
+        );
+        $safe_wrap = diaryContentAllowedImageWrap(
+            $source_node->getAttribute('data-diary-wrap')
+        );
+
+        // Accept the previous standalone-image representation as a fallback so
+        // existing saved entries can be wrapped without losing their layout.
+        if ($safe_size === '') {
+            $safe_size = diaryContentAllowedImageSize(
+                $source_image->getAttribute('data-diary-size')
+            );
+        }
+        if ($safe_alignment === '') {
+            $safe_alignment = diaryContentAllowedImageAlign(
+                $source_image->getAttribute('data-diary-align')
+            );
+        }
+        if ($safe_wrap === '') {
+            $safe_wrap = diaryContentAllowedImageWrap(
+                $source_image->getAttribute('data-diary-wrap')
+            );
+        }
+
+        if ($safe_size !== '') {
+            $clean_figure->setAttribute('data-diary-size', $safe_size);
+        }
+        if ($safe_alignment !== '') {
+            $clean_figure->setAttribute('data-diary-align', $safe_alignment);
+        }
+        if ($safe_wrap !== '') {
+            $clean_figure->setAttribute('data-diary-wrap', $safe_wrap);
+        }
+
+        $figure_style = diaryContentParseInlineStyle($source_node->getAttribute('style'));
+        $safe_width = diaryContentAllowedImageWidth(
+            isset($figure_style['width']) ? $figure_style['width'] : ''
+        );
+        if ($safe_width === '') {
+            $image_style = diaryContentParseInlineStyle($source_image->getAttribute('style'));
+            $safe_width = diaryContentAllowedImageWidth(
+                isset($image_style['width']) ? $image_style['width'] : ''
+            );
+        }
+        if ($safe_width !== '') {
+            $clean_figure->setAttribute('style', 'width: ' . $safe_width);
+        }
+
+        $clean_image->removeAttribute('data-diary-size');
+        $clean_image->removeAttribute('data-diary-align');
+        $clean_image->removeAttribute('data-diary-wrap');
+        $clean_image->removeAttribute('style');
+        $clean_figure->appendChild($clean_image);
+
+        if ($source_caption !== null) {
+            $safe_caption = diaryContentAllowedImageCaption($source_caption->textContent);
+            if ($safe_caption !== '') {
+                $clean_caption = $clean_document->createElement('figcaption');
+                $clean_caption->appendChild($clean_document->createTextNode($safe_caption));
+                $clean_figure->appendChild($clean_caption);
+            }
+        }
+
+        return $clean_figure;
     }
 
     if ($output_tag === 'img') {
@@ -493,12 +627,18 @@ function diaryContentSanitizeNode($source_node, $clean_document, $image_user_id 
         $safe_alignment = diaryContentAllowedImageAlign(
             $source_node->getAttribute('data-diary-align')
         );
+        $safe_wrap = diaryContentAllowedImageWrap(
+            $source_node->getAttribute('data-diary-wrap')
+        );
 
         if ($safe_size !== '') {
             $clean_image->setAttribute('data-diary-size', $safe_size);
         }
         if ($safe_alignment !== '') {
             $clean_image->setAttribute('data-diary-align', $safe_alignment);
+        }
+        if ($safe_wrap !== '') {
+            $clean_image->setAttribute('data-diary-wrap', $safe_wrap);
         }
 
         $image_style = diaryContentParseInlineStyle($source_node->getAttribute('style'));
@@ -583,7 +723,7 @@ function diaryContentCollectPlainText($node, &$plain_text) {
     }
 
     $tag = strtolower($node->nodeName);
-    $block_tags = array('p', 'div', 'li', 'ul', 'ol', 'blockquote');
+    $block_tags = array('p', 'div', 'li', 'ul', 'ol', 'blockquote', 'figure', 'figcaption');
 
     if ($tag === 'br') {
         $plain_text .= "\n";

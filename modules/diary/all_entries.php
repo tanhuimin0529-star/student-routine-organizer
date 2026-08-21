@@ -31,6 +31,14 @@ $mood_filter = in_array($requested_mood_filter, $allowed_mood_filters, true)
     ? $requested_mood_filter
     : '';
 
+$allowed_sort_values = array('newest', 'oldest', 'updated');
+$requested_sort = isset($_GET['sort']) && is_string($_GET['sort'])
+    ? $_GET['sort']
+    : 'newest';
+$sort_value = in_array($requested_sort, $allowed_sort_values, true)
+    ? $requested_sort
+    : 'newest';
+
 if (empty($_SESSION['diary_delete_csrf_token'])) {
     $_SESSION['diary_delete_csrf_token'] = bin2hex(random_bytes(32));
 }
@@ -90,22 +98,59 @@ function allEntriesContainsSearch($value, $search_term) {
 $filtered_entries = $entries;
 $filters_active = $search_term !== '' || $mood_filter !== '';
 
-if ($filters_active) {
-    $filtered_entries = array_values(array_filter($entries, function ($entry) use ($search_term, $mood_filter) {
+if ($search_term !== '') {
+    $filtered_entries = array_values(array_filter($filtered_entries, function ($entry) use ($search_term) {
         $title = isset($entry['title']) ? $entry['title'] : '';
         $content = isset($entry['content'])
             ? diaryContentToPlainText($entry['content'])
             : '';
-        $entry_mood = isset($entry['mood']) ? $entry['mood'] : '';
 
-        $matches_search = $search_term === ''
-            || allEntriesContainsSearch($title, $search_term)
+        return allEntriesContainsSearch($title, $search_term)
             || allEntriesContainsSearch($content, $search_term);
-        $matches_mood = $mood_filter === '' || $entry_mood === $mood_filter;
-
-        return $matches_search && $matches_mood;
     }));
 }
+
+if ($mood_filter !== '') {
+    $filtered_entries = array_values(array_filter($filtered_entries, function ($entry) use ($mood_filter) {
+        $entry_mood = isset($entry['mood']) ? $entry['mood'] : '';
+
+        return $entry_mood === $mood_filter;
+    }));
+}
+
+usort($filtered_entries, function ($first_entry, $second_entry) use ($sort_value) {
+    $first_entry_date = isset($first_entry['entry_date']) ? (string) $first_entry['entry_date'] : '';
+    $second_entry_date = isset($second_entry['entry_date']) ? (string) $second_entry['entry_date'] : '';
+    $first_created_at = isset($first_entry['created_at']) ? (string) $first_entry['created_at'] : '';
+    $second_created_at = isset($second_entry['created_at']) ? (string) $second_entry['created_at'] : '';
+
+    if ($sort_value === 'updated') {
+        $first_updated_at = isset($first_entry['updated_at']) ? (string) $first_entry['updated_at'] : '';
+        $second_updated_at = isset($second_entry['updated_at']) ? (string) $second_entry['updated_at'] : '';
+        $updated_comparison = strcmp($second_updated_at, $first_updated_at);
+
+        if ($updated_comparison !== 0) {
+            return $updated_comparison;
+        }
+
+        $date_comparison = strcmp($second_entry_date, $first_entry_date);
+        return $date_comparison !== 0
+            ? $date_comparison
+            : strcmp($second_created_at, $first_created_at);
+    }
+
+    if ($sort_value === 'oldest') {
+        $date_comparison = strcmp($first_entry_date, $second_entry_date);
+        return $date_comparison !== 0
+            ? $date_comparison
+            : strcmp($first_created_at, $second_created_at);
+    }
+
+    $date_comparison = strcmp($second_entry_date, $first_entry_date);
+    return $date_comparison !== 0
+        ? $date_comparison
+        : strcmp($second_created_at, $first_created_at);
+});
 
 $result_count = count($filtered_entries);
 ?>
@@ -147,10 +192,12 @@ $result_count = count($filtered_entries);
                         value="<?php echo allEntriesEscape($search_term); ?>"
                         placeholder="Search by title or content"
                     >
+
                     <button class="diary-button" type="submit">Search</button>
-                    <a class="diary-button diary-button-secondary" href="all_entries.php">Clear Filters</a>
+                    <a class="diary-button diary-button-secondary diary-all-entries-clear" href="all_entries.php">Clear Filters</a>
                 </div>
-                <div class="diary-mood-filter-toolbar" role="group" aria-label="Filter journal entries by mood">
+                <div class="diary-all-entries-filter-row">
+                    <div class="diary-mood-filter-toolbar" role="group" aria-label="Filter journal entries by mood">
                     <?php foreach ($mood_filter_options as $mood_value => $mood_option): ?>
                         <?php
                         $mood_link_parameters = array();
@@ -159,6 +206,9 @@ $result_count = count($filtered_entries);
                         }
                         if ($mood_value !== '') {
                             $mood_link_parameters['mood'] = $mood_value;
+                        }
+                        if ($sort_value !== 'newest') {
+                            $mood_link_parameters['sort'] = $sort_value;
                         }
                         $mood_link_url = 'all_entries.php';
                         if (!empty($mood_link_parameters)) {
@@ -175,6 +225,15 @@ $result_count = count($filtered_entries);
                             <span><?php echo allEntriesEscape($mood_option['label']); ?></span>
                         </a>
                     <?php endforeach; ?>
+                    </div>
+                    <label class="diary-all-entries-sort-control" for="sort">
+                        <span>Sort</span>
+                        <select id="sort" name="sort" aria-label="Sort journal entries">
+                            <option value="newest"<?php echo $sort_value === 'newest' ? ' selected' : ''; ?>>Newest Entry</option>
+                            <option value="oldest"<?php echo $sort_value === 'oldest' ? ' selected' : ''; ?>>Oldest Entry</option>
+                            <option value="updated"<?php echo $sort_value === 'updated' ? ' selected' : ''; ?>>Recently Updated</option>
+                        </select>
+                    </label>
                 </div>
             </form>
         </section>

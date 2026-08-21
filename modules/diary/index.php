@@ -32,6 +32,13 @@ $requested_mood_filter = isset($_GET['mood']) && is_string($_GET['mood'])
 $mood_filter = in_array($requested_mood_filter, $allowed_mood_filters, true)
     ? $requested_mood_filter
     : '';
+$allowed_sort_values = array('newest', 'oldest', 'updated');
+$requested_sort = isset($_GET['sort']) && is_string($_GET['sort'])
+    ? $_GET['sort']
+    : 'newest';
+$sort_value = in_array($requested_sort, $allowed_sort_values, true)
+    ? $requested_sort
+    : 'newest';
 
 $current_calendar_month = new DateTimeImmutable('first day of this month');
 $calendar_month = $current_calendar_month;
@@ -167,7 +174,7 @@ function diaryContainsSearch($value, $search_term) {
 }
 
 $filter_results = array();
-$filters_active = $search_term !== '' || $mood_filter !== '';
+$filters_active = $search_term !== '' || $mood_filter !== '' || $sort_value !== 'newest';
 
 if ($filters_active) {
     $filter_results = array_values(array_filter($entries, function ($entry) use ($search_term, $mood_filter) {
@@ -184,6 +191,40 @@ if ($filters_active) {
 
         return $matches_search && $matches_mood;
     }));
+
+    usort($filter_results, function ($first_entry, $second_entry) use ($sort_value) {
+        $first_entry_date = isset($first_entry['entry_date']) ? (string) $first_entry['entry_date'] : '';
+        $second_entry_date = isset($second_entry['entry_date']) ? (string) $second_entry['entry_date'] : '';
+        $first_created_at = isset($first_entry['created_at']) ? (string) $first_entry['created_at'] : '';
+        $second_created_at = isset($second_entry['created_at']) ? (string) $second_entry['created_at'] : '';
+
+        if ($sort_value === 'updated') {
+            $first_updated_at = isset($first_entry['updated_at']) ? (string) $first_entry['updated_at'] : '';
+            $second_updated_at = isset($second_entry['updated_at']) ? (string) $second_entry['updated_at'] : '';
+            $updated_comparison = strcmp($second_updated_at, $first_updated_at);
+
+            if ($updated_comparison !== 0) {
+                return $updated_comparison;
+            }
+
+            $date_comparison = strcmp($second_entry_date, $first_entry_date);
+            return $date_comparison !== 0
+                ? $date_comparison
+                : strcmp($second_created_at, $first_created_at);
+        }
+
+        if ($sort_value === 'oldest') {
+            $date_comparison = strcmp($first_entry_date, $second_entry_date);
+            return $date_comparison !== 0
+                ? $date_comparison
+                : strcmp($first_created_at, $second_created_at);
+        }
+
+        $date_comparison = strcmp($second_entry_date, $first_entry_date);
+        return $date_comparison !== 0
+            ? $date_comparison
+            : strcmp($second_created_at, $first_created_at);
+    });
 }
 
 $clear_search_parameters = array('month' => $calendar_month->format('Y-m'));
@@ -260,7 +301,8 @@ $clear_search_url = 'index.php?' . http_build_query($clear_search_parameters);
                     <button class="diary-button" type="submit">Search</button>
                     <a class="diary-button diary-button-secondary" href="<?php echo diaryEscape($clear_search_url); ?>">Clear Filters</a>
                 </div>
-                <div class="diary-mood-filter-toolbar" role="group" aria-label="Filter journal entries by mood">
+                <div class="diary-all-entries-filter-row">
+                    <div class="diary-mood-filter-toolbar" role="group" aria-label="Filter journal entries by mood">
                     <?php foreach ($mood_filter_options as $mood_value => $mood_option): ?>
                         <?php
                         $mood_link_parameters = array('month' => $calendar_month->format('Y-m'));
@@ -272,6 +314,9 @@ $clear_search_url = 'index.php?' . http_build_query($clear_search_parameters);
                         }
                         if ($mood_value !== '') {
                             $mood_link_parameters['mood'] = $mood_value;
+                        }
+                        if ($sort_value !== 'newest') {
+                            $mood_link_parameters['sort'] = $sort_value;
                         }
                         $mood_link_url = 'index.php?' . http_build_query($mood_link_parameters);
                         $mood_is_active = $mood_filter === $mood_value;
@@ -285,6 +330,15 @@ $clear_search_url = 'index.php?' . http_build_query($clear_search_parameters);
                             <span><?php echo diaryEscape($mood_option['label']); ?></span>
                         </a>
                     <?php endforeach; ?>
+                    </div>
+                    <label class="diary-all-entries-sort-control" for="sort">
+                        <span>Sort</span>
+                        <select id="sort" name="sort" aria-label="Sort journal search results">
+                            <option value="newest"<?php echo $sort_value === 'newest' ? ' selected' : ''; ?>>Newest Entry</option>
+                            <option value="oldest"<?php echo $sort_value === 'oldest' ? ' selected' : ''; ?>>Oldest Entry</option>
+                            <option value="updated"<?php echo $sort_value === 'updated' ? ' selected' : ''; ?>>Recently Updated</option>
+                        </select>
+                    </label>
                 </div>
             </form>
         </section>

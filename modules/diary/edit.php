@@ -138,6 +138,7 @@ $diary_js_version = filemtime(__DIR__ . '/../../assets/js/diary.js');
                     <label id="diary-content-label" for="diary-content-editor">Content</label>
                     <div class="diary-rich-editor" data-diary-rich-editor>
                         <div class="diary-editor-toolbar" role="toolbar" aria-label="Journal text formatting">
+                            <div class="diary-editor-toolbar-row diary-editor-toolbar-row-primary">
                             <div class="diary-editor-tool-group" aria-label="Text formatting">
                                 <button class="diary-editor-tool" type="button" data-editor-command="bold" aria-label="Bold" title="Bold">
                                     <strong aria-hidden="true">B</strong>
@@ -195,6 +196,9 @@ $diary_js_version = filemtime(__DIR__ . '/../../assets/js/diary.js');
                                 <button class="diary-editor-highlight" type="button" data-editor-highlight="#d8e7f3" aria-label="Blue highlight" title="Blue highlight" style="--editor-highlight: #d8e7f3;"></button>
                             </div>
 
+                            </div>
+                            <div class="diary-editor-toolbar-row diary-editor-toolbar-row-secondary">
+
                             <div class="diary-editor-tool-group" aria-label="Text alignment">
                                 <button class="diary-editor-tool diary-editor-align-tool" type="button" data-editor-command="justifyLeft" aria-label="Align left" title="Align left">≡</button>
                                 <button class="diary-editor-tool diary-editor-align-tool is-centered" type="button" data-editor-command="justifyCenter" aria-label="Align center" title="Align center">≡</button>
@@ -203,8 +207,8 @@ $diary_js_version = filemtime(__DIR__ . '/../../assets/js/diary.js');
                             </div>
 
                             <div class="diary-editor-tool-group" aria-label="Lists">
-                                <button class="diary-editor-tool diary-editor-list-tool" type="button" data-editor-command="insertUnorderedList" aria-label="Bullet list" title="Bullet list">• List</button>
-                                <button class="diary-editor-tool diary-editor-list-tool" type="button" data-editor-command="insertOrderedList" aria-label="Numbered list" title="Numbered list">1. List</button>
+                                <button class="diary-editor-tool diary-editor-list-tool" type="button" data-editor-command="insertUnorderedList" aria-label="Bullet list" title="Bullet list">•≡</button>
+                                <button class="diary-editor-tool diary-editor-list-tool" type="button" data-editor-command="insertOrderedList" aria-label="Numbered list" title="Numbered list">1≡</button>
                             </div>
 
                             <div class="diary-editor-tool-group" aria-label="Indentation">
@@ -234,23 +238,43 @@ $diary_js_version = filemtime(__DIR__ . '/../../assets/js/diary.js');
                                     hidden
                                 >
                             </div>
+                            </div>
                         </div>
 
                         <p class="diary-editor-image-status" data-editor-image-status role="status" aria-live="polite" hidden></p>
 
                         <div class="diary-editor-image-controls" data-editor-image-controls aria-label="Selected image controls" hidden>
-                            <span class="diary-editor-image-controls-label">Selected image · drag to move</span>
-                            <div class="diary-editor-image-control-group" role="group" aria-label="Image size">
-                                <span>Size</span>
-                                <button type="button" data-editor-image-size="small" aria-pressed="false">Small</button>
-                                <button type="button" data-editor-image-size="medium" aria-pressed="false">Medium</button>
-                                <button type="button" data-editor-image-size="large" aria-pressed="false">Large</button>
+                            <div class="diary-editor-image-options-row">
+                                <span class="diary-editor-image-controls-label">Image</span>
+                                <div class="diary-editor-image-control-group" role="group" aria-label="Image size">
+                                    <span>Size</span>
+                                    <button type="button" data-editor-image-size="small" aria-pressed="false">Small</button>
+                                    <button type="button" data-editor-image-size="medium" aria-pressed="false">Medium</button>
+                                    <button type="button" data-editor-image-size="large" aria-pressed="false">Large</button>
+                                </div>
+                                <div class="diary-editor-image-control-group" role="group" aria-label="Image alignment">
+                                    <span>Align</span>
+                                    <button type="button" data-editor-image-align="left" aria-pressed="false">Left</button>
+                                    <button type="button" data-editor-image-align="center" aria-pressed="false">Center</button>
+                                    <button type="button" data-editor-image-align="right" aria-pressed="false">Right</button>
+                                </div>
+                                <div class="diary-editor-image-control-group" role="group" aria-label="Image text wrapping">
+                                    <span>Text Wrap</span>
+                                    <button type="button" data-editor-image-wrap="none" aria-pressed="false">No Wrap</button>
+                                    <button type="button" data-editor-image-wrap="left" aria-pressed="false">Wrap Left</button>
+                                    <button type="button" data-editor-image-wrap="right" aria-pressed="false">Wrap Right</button>
+                                </div>
                             </div>
-                            <div class="diary-editor-image-control-group" role="group" aria-label="Image alignment">
-                                <span>Align</span>
-                                <button type="button" data-editor-image-align="left" aria-pressed="false">Left</button>
-                                <button type="button" data-editor-image-align="center" aria-pressed="false">Center</button>
-                                <button type="button" data-editor-image-align="right" aria-pressed="false">Right</button>
+                            <div class="diary-editor-image-details-row">
+                                <label class="diary-editor-image-text-field">
+                                    <span>Alt Text</span>
+                                    <input type="text" data-editor-image-alt maxlength="150" autocomplete="off" placeholder="Describe the image for accessibility.">
+                                </label>
+                                <label class="diary-editor-image-text-field">
+                                    <span>Caption</span>
+                                    <input type="text" data-editor-image-caption maxlength="250" autocomplete="off" placeholder="Add a caption (optional)">
+                                </label>
+                                <button class="diary-editor-image-remove" type="button" data-editor-image-remove>Remove Image</button>
                             </div>
                         </div>
 
