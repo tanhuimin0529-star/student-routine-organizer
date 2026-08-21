@@ -4,6 +4,11 @@ require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/diary_model.php';
 require_once __DIR__ . '/diary_content.php';
 
+$delete_flash = isset($_SESSION['diary_delete_flash']) && is_array($_SESSION['diary_delete_flash'])
+    ? $_SESSION['diary_delete_flash']
+    : null;
+unset($_SESSION['diary_delete_flash']);
+
 $entries = getDiaryEntriesForUser($conn, $logged_in_user_id);
 $load_error = $entries === false;
 
@@ -44,6 +49,7 @@ if (empty($_SESSION['diary_delete_csrf_token'])) {
 }
 
 $diary_css_version = filemtime(__DIR__ . '/../../assets/css/diary.css');
+$diary_js_version = filemtime(__DIR__ . '/../../assets/js/diary.js');
 
 function allEntriesEscape($value) {
     return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
@@ -161,6 +167,7 @@ $result_count = count($filtered_entries);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>All Journal Entries</title>
     <link rel="stylesheet" href="../../assets/css/diary.css?v=<?php echo rawurlencode((string) $diary_css_version); ?>">
+    <script src="../../assets/js/diary.js?v=<?php echo rawurlencode((string) $diary_js_version); ?>" defer></script>
 </head>
 <body class="diary-page diary-home-page diary-all-entries-page">
     <main class="diary-container">
@@ -177,6 +184,16 @@ $result_count = count($filtered_entries);
                 </div>
             </header>
         </section>
+
+        <?php if ($delete_flash !== null): ?>
+            <?php $delete_flash_type = isset($delete_flash['type']) && $delete_flash['type'] === 'success' ? 'success' : 'error'; ?>
+            <div
+                class="diary-alert diary-alert-<?php echo allEntriesEscape($delete_flash_type); ?>"
+                role="<?php echo $delete_flash_type === 'success' ? 'status' : 'alert'; ?>"
+            >
+                <?php echo allEntriesEscape(isset($delete_flash['message']) ? $delete_flash['message'] : 'Journal entry could not be deleted.'); ?>
+            </div>
+        <?php endif; ?>
 
         <section class="diary-search-panel" aria-labelledby="diary-search-heading">
             <form class="diary-search-form" action="all_entries.php" method="get" role="search">
@@ -299,6 +316,7 @@ $result_count = count($filtered_entries);
                                     <a class="diary-action-button diary-action-secondary" href="edit.php?id=<?php echo rawurlencode((string) $entry['diary_id']); ?>">Edit</a>
                                     <form action="delete_handler.php" method="post">
                                         <input type="hidden" name="diary_id" value="<?php echo allEntriesEscape($entry['diary_id']); ?>">
+                                        <input type="hidden" name="return_to" value="all_entries.php">
                                         <input
                                             type="hidden"
                                             name="csrf_token"

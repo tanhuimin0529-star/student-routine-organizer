@@ -4,6 +4,11 @@ require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/diary_model.php';
 require_once __DIR__ . '/diary_content.php';
 
+$delete_flash = isset($_SESSION['diary_delete_flash']) && is_array($_SESSION['diary_delete_flash'])
+    ? $_SESSION['diary_delete_flash']
+    : null;
+unset($_SESSION['diary_delete_flash']);
+
 $entries = getDiaryEntriesForUser($conn, $logged_in_user_id);
 $load_error = $entries === false;
 
@@ -115,6 +120,7 @@ if (empty($_SESSION['diary_delete_csrf_token'])) {
 }
 
 $diary_css_version = filemtime(__DIR__ . '/../../assets/css/diary.css');
+$diary_js_version = filemtime(__DIR__ . '/../../assets/js/diary.js');
 
 function diaryEscape($value) {
     return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
@@ -240,6 +246,7 @@ $clear_search_url = 'index.php?' . http_build_query($clear_search_parameters);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Diary Journal</title>
     <link rel="stylesheet" href="../../assets/css/diary.css?v=<?php echo rawurlencode((string) $diary_css_version); ?>">
+    <script src="../../assets/js/diary.js?v=<?php echo rawurlencode((string) $diary_js_version); ?>" defer></script>
 </head>
 <body class="diary-page diary-home-page">
     <main class="diary-container">
@@ -255,6 +262,16 @@ $clear_search_url = 'index.php?' . http_build_query($clear_search_parameters);
                     <a class="diary-button diary-new-entry-button" href="add.php">+ New Journal Entry</a>
                 </div>
             </header>
+
+            <?php if ($delete_flash !== null): ?>
+                <?php $delete_flash_type = isset($delete_flash['type']) && $delete_flash['type'] === 'success' ? 'success' : 'error'; ?>
+                <div
+                    class="diary-alert diary-alert-<?php echo diaryEscape($delete_flash_type); ?>"
+                    role="<?php echo $delete_flash_type === 'success' ? 'status' : 'alert'; ?>"
+                >
+                    <?php echo diaryEscape(isset($delete_flash['message']) ? $delete_flash['message'] : 'Journal entry could not be deleted.'); ?>
+                </div>
+            <?php endif; ?>
 
             <?php if (!$load_error): ?>
                 <div class="diary-summary" aria-label="Journal summary">
@@ -384,6 +401,7 @@ $clear_search_url = 'index.php?' . http_build_query($clear_search_parameters);
                                     <a class="diary-action-button diary-action-secondary" href="edit.php?id=<?php echo rawurlencode((string) $entry['diary_id']); ?>">Edit</a>
                                     <form action="delete_handler.php" method="post">
                                         <input type="hidden" name="diary_id" value="<?php echo diaryEscape($entry['diary_id']); ?>">
+                                        <input type="hidden" name="return_to" value="index.php">
                                         <input
                                             type="hidden"
                                             name="csrf_token"
@@ -512,6 +530,7 @@ $clear_search_url = 'index.php?' . http_build_query($clear_search_parameters);
                                     <a class="diary-action-button diary-action-secondary" href="edit.php?id=<?php echo rawurlencode((string) $entry['diary_id']); ?>">Edit</a>
                                     <form action="delete_handler.php" method="post">
                                         <input type="hidden" name="diary_id" value="<?php echo diaryEscape($entry['diary_id']); ?>">
+                                        <input type="hidden" name="return_to" value="index.php">
                                         <input
                                             type="hidden"
                                             name="csrf_token"
@@ -571,6 +590,7 @@ $clear_search_url = 'index.php?' . http_build_query($clear_search_parameters);
                                 <a class="diary-action-button diary-action-secondary" href="edit.php?id=<?php echo rawurlencode((string) $entry['diary_id']); ?>">Edit</a>
                                 <form action="delete_handler.php" method="post">
                                     <input type="hidden" name="diary_id" value="<?php echo diaryEscape($entry['diary_id']); ?>">
+                                    <input type="hidden" name="return_to" value="index.php">
                                     <input
                                         type="hidden"
                                         name="csrf_token"

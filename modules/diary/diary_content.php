@@ -152,8 +152,19 @@ function diaryImageStoreUploadedFile($file, $user_id) {
 
     $upload_error = isset($file['error']) ? (int) $file['error'] : UPLOAD_ERR_NO_FILE;
     if ($upload_error !== UPLOAD_ERR_OK) {
-        if ($upload_error === UPLOAD_ERR_INI_SIZE || $upload_error === UPLOAD_ERR_FORM_SIZE) {
-            $failure['error'] = 'The image is too large. The maximum size is 5 MB.';
+        switch ($upload_error) {
+            case UPLOAD_ERR_PARTIAL:
+                $failure['error'] = 'The image upload was incomplete. Please try again.';
+                break;
+            case UPLOAD_ERR_NO_FILE:
+                $failure['error'] = 'No image was selected.';
+                break;
+            case UPLOAD_ERR_INI_SIZE:
+            case UPLOAD_ERR_FORM_SIZE:
+                $failure['error'] = 'The image is too large.';
+                break;
+            default:
+                $failure['error'] = 'Image upload failed. Please try again.';
         }
         return $failure;
     }
@@ -163,16 +174,18 @@ function diaryImageStoreUploadedFile($file, $user_id) {
         : '';
     $file_size = isset($file['size']) ? (int) $file['size'] : 0;
 
-    if (
-        $temporary_path === ''
-        || !is_uploaded_file($temporary_path)
-        || $file_size < 1
-    ) {
+    if ($temporary_path === '' || !is_uploaded_file($temporary_path)) {
+        $failure['error'] = 'Image upload failed. Please try again.';
+        return $failure;
+    }
+
+    if ($file_size < 1) {
+        $failure['error'] = 'The selected image is invalid or corrupted.';
         return $failure;
     }
 
     if ($file_size > diaryImageMaxUploadBytes()) {
-        $failure['error'] = 'The image is too large. The maximum size is 5 MB.';
+        $failure['error'] = 'The image is too large.';
         return $failure;
     }
 
@@ -191,15 +204,18 @@ function diaryImageStoreUploadedFile($file, $user_id) {
     $detected_mime = $file_info->file($temporary_path);
     $image_info = @getimagesize($temporary_path);
 
+    if (!is_string($detected_mime) || !isset($mime_to_extension[$detected_mime])) {
+        return $failure;
+    }
+
     if (
-        !is_string($detected_mime)
-        || !isset($mime_to_extension[$detected_mime])
-        || !is_array($image_info)
+        !is_array($image_info)
         || !isset($image_info['mime'])
         || $image_info['mime'] !== $detected_mime
         || empty($image_info[0])
         || empty($image_info[1])
     ) {
+        $failure['error'] = 'The selected image is invalid or corrupted.';
         return $failure;
     }
 

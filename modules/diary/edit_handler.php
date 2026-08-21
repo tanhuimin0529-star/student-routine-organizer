@@ -31,6 +31,10 @@ function diaryEditJsonResponse($status, $payload) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    $_SESSION['diary_delete_flash'] = array(
+        'type' => 'error',
+        'message' => 'Please use the Edit Journal Entry form to update an entry.'
+    );
     header('Location: index.php', true, 303);
     exit();
 }

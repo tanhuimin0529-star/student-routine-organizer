@@ -1275,8 +1275,13 @@
                 return;
             }
 
-            if (file.size < 1 || file.size > maximumBytes) {
-                setImageStatus('Choose an image smaller than 5 MB.', true);
+            if (file.size < 1) {
+                setImageStatus('The selected image is invalid or corrupted.', true);
+                return;
+            }
+
+            if (file.size > maximumBytes) {
+                setImageStatus('The image is too large.', true);
                 return;
             }
 
@@ -1321,7 +1326,7 @@
                         })
                         .then(function (payload) {
                             if (!response.ok || !payload.ok) {
-                                throw new Error(payload.error || 'The image could not be uploaded.');
+                                throw new Error(payload.error || 'Image upload failed. Please try again.');
                             }
 
                             return payload;
@@ -1332,7 +1337,7 @@
                     setImageStatus('Image inserted into your journal entry.', false);
                 })
                 .catch(function (error) {
-                    setImageStatus(error.message || 'The image could not be uploaded.', true);
+                    setImageStatus(error.message || 'Image upload failed. Please try again.', true);
                 })
                 .then(function () {
                     imageButton.disabled = false;
@@ -1805,5 +1810,119 @@
 
             moodButtons[0].focus();
         });
+    });
+}());
+(function () {
+    'use strict';
+
+    var deleteForms = Array.prototype.slice.call(
+        document.querySelectorAll('form[action="delete_handler.php"][method="post"]')
+    );
+
+    if (deleteForms.length === 0) {
+        return;
+    }
+
+    var activeForm = null;
+    var confirmedForm = null;
+    var previousFocus = null;
+    var style = document.createElement('style');
+    var overlay = document.createElement('div');
+
+    style.textContent = [
+        '.diary-delete-confirmation-overlay{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(52,46,40,.52);}',
+        '.diary-delete-confirmation-overlay[hidden]{display:none;}',
+        '.diary-delete-confirmation-dialog{width:min(440px,100%);padding:28px;border:1px solid var(--diary-border);border-radius:18px;background:var(--diary-paper);box-shadow:var(--diary-shadow);color:var(--diary-text);text-align:center;}',
+        '.diary-delete-confirmation-dialog h2{margin:0 0 10px;color:var(--diary-accent-dark);font-size:1.4rem;}',
+        '.diary-delete-confirmation-dialog p{margin:0;color:var(--diary-muted);line-height:1.65;}',
+        '.diary-delete-confirmation-actions{display:flex;justify-content:center;gap:12px;margin-top:24px;flex-wrap:wrap;}',
+        '.diary-delete-confirmation-actions button{min-width:110px;}',
+        'body.diary-confirmation-open{overflow:hidden;}'
+    ].join('');
+    document.head.appendChild(style);
+
+    overlay.className = 'diary-delete-confirmation-overlay';
+    overlay.hidden = true;
+    overlay.innerHTML = [
+        '<section class="diary-delete-confirmation-dialog" role="dialog" aria-modal="true" aria-labelledby="diary-delete-confirmation-title" aria-describedby="diary-delete-confirmation-message">',
+        '<h2 id="diary-delete-confirmation-title">Delete Journal Entry?</h2>',
+        '<p id="diary-delete-confirmation-message">Are you sure you want to delete this journal entry?</p>',
+        '<div class="diary-delete-confirmation-actions">',
+        '<button class="diary-action-button diary-action-secondary" type="button" data-diary-delete-cancel>Cancel</button>',
+        '<button class="diary-action-button diary-action-delete" type="button" data-diary-delete-confirm>Delete</button>',
+        '</div>',
+        '</section>'
+    ].join('');
+    document.body.appendChild(overlay);
+
+    var cancelButton = overlay.querySelector('[data-diary-delete-cancel]');
+    var confirmButton = overlay.querySelector('[data-diary-delete-confirm]');
+
+    function closeConfirmation() {
+        overlay.hidden = true;
+        document.body.classList.remove('diary-confirmation-open');
+        activeForm = null;
+
+        if (previousFocus && typeof previousFocus.focus === 'function') {
+            previousFocus.focus();
+        }
+        previousFocus = null;
+    }
+
+    function openConfirmation(form) {
+        activeForm = form;
+        previousFocus = document.activeElement;
+        overlay.hidden = false;
+        document.body.classList.add('diary-confirmation-open');
+        cancelButton.focus();
+    }
+
+    deleteForms.forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            if (confirmedForm === form) {
+                confirmedForm = null;
+                return;
+            }
+
+            event.preventDefault();
+            openConfirmation(form);
+        });
+    });
+
+    cancelButton.addEventListener('click', closeConfirmation);
+
+    confirmButton.addEventListener('click', function () {
+        var formToSubmit = activeForm;
+
+        if (!formToSubmit) {
+            closeConfirmation();
+            return;
+        }
+
+        confirmedForm = formToSubmit;
+        closeConfirmation();
+
+        if (typeof formToSubmit.requestSubmit === 'function') {
+            formToSubmit.requestSubmit();
+        } else {
+            formToSubmit.submit();
+        }
+    });
+
+    overlay.addEventListener('click', function (event) {
+        if (event.target === overlay) {
+            closeConfirmation();
+        }
+    });
+
+    document.addEventListener('keydown', function (event) {
+        if (overlay.hidden) {
+            return;
+        }
+
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            closeConfirmation();
+        }
     });
 }());

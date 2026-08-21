@@ -765,6 +765,12 @@ a.diary-action-secondary:visited {
     color: #7d2929;
 }
 
+.diary-alert-success {
+    border: 1px solid #b8cba8;
+    background: #f1f7eb;
+    color: #3f5d32;
+}
+
 .diary-form {
     display: grid;
     gap: 20px;
