@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../../includes/session_check.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/diary_model.php';
+require_once __DIR__ . '/diary_content.php';
 
 $entries = getDiaryEntriesForUser($conn, $logged_in_user_id);
 $load_error = $entries === false;
@@ -15,6 +16,14 @@ $search_term = isset($_GET['search']) && is_string($_GET['search'])
     : '';
 
 $allowed_mood_filters = array('Happy', 'Calm', 'Neutral', 'Sad', 'Stressed');
+$mood_filter_options = array(
+    '' => array('label' => 'All', 'emoji' => '🌿'),
+    'Happy' => array('label' => 'Happy', 'emoji' => '😊'),
+    'Calm' => array('label' => 'Calm', 'emoji' => '😌'),
+    'Neutral' => array('label' => 'Neutral', 'emoji' => '😐'),
+    'Sad' => array('label' => 'Sad', 'emoji' => '😢'),
+    'Stressed' => array('label' => 'Stressed', 'emoji' => '😣')
+);
 $requested_mood_filter = isset($_GET['mood']) && is_string($_GET['mood'])
     ? $_GET['mood']
     : '';
@@ -33,7 +42,8 @@ function allEntriesEscape($value) {
 }
 
 function allEntriesContentPreview($content, $limit = 180) {
-    $content = trim(preg_replace('/\s+/', ' ', (string) $content));
+    $content = diaryContentToPlainText($content);
+    $content = trim(preg_replace('/\s+/', ' ', $content));
 
     if (function_exists('mb_strlen') && function_exists('mb_substr')) {
         return mb_strlen($content, 'UTF-8') > $limit
@@ -83,7 +93,9 @@ $filters_active = $search_term !== '' || $mood_filter !== '';
 if ($filters_active) {
     $filtered_entries = array_values(array_filter($entries, function ($entry) use ($search_term, $mood_filter) {
         $title = isset($entry['title']) ? $entry['title'] : '';
-        $content = isset($entry['content']) ? $entry['content'] : '';
+        $content = isset($entry['content'])
+            ? diaryContentToPlainText($entry['content'])
+            : '';
         $entry_mood = isset($entry['mood']) ? $entry['mood'] : '';
 
         $matches_search = $search_term === ''
@@ -124,6 +136,9 @@ $result_count = count($filtered_entries);
         <section class="diary-search-panel" aria-labelledby="diary-search-heading">
             <form class="diary-search-form" action="all_entries.php" method="get" role="search">
                 <label id="diary-search-heading" for="search">Search journal entries</label>
+                <?php if ($mood_filter !== ''): ?>
+                    <input type="hidden" name="mood" value="<?php echo allEntriesEscape($mood_filter); ?>">
+                <?php endif; ?>
                 <div class="diary-search-controls diary-all-entries-search-controls">
                     <input
                         type="search"
@@ -132,19 +147,34 @@ $result_count = count($filtered_entries);
                         value="<?php echo allEntriesEscape($search_term); ?>"
                         placeholder="Search by title or content"
                     >
-                    <select id="mood" name="mood" aria-label="Filter by mood">
-                        <option value="">All Moods</option>
-                        <?php foreach ($allowed_mood_filters as $allowed_mood): ?>
-                            <option
-                                value="<?php echo allEntriesEscape($allowed_mood); ?>"
-                                <?php echo $mood_filter === $allowed_mood ? 'selected' : ''; ?>
-                            >
-                                <?php echo allEntriesEscape($allowed_mood); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                    <button class="diary-button" type="submit">Apply Filters</button>
+                    <button class="diary-button" type="submit">Search</button>
                     <a class="diary-button diary-button-secondary" href="all_entries.php">Clear Filters</a>
+                </div>
+                <div class="diary-mood-filter-toolbar" role="group" aria-label="Filter journal entries by mood">
+                    <?php foreach ($mood_filter_options as $mood_value => $mood_option): ?>
+                        <?php
+                        $mood_link_parameters = array();
+                        if ($search_term !== '') {
+                            $mood_link_parameters['search'] = $search_term;
+                        }
+                        if ($mood_value !== '') {
+                            $mood_link_parameters['mood'] = $mood_value;
+                        }
+                        $mood_link_url = 'all_entries.php';
+                        if (!empty($mood_link_parameters)) {
+                            $mood_link_url .= '?' . http_build_query($mood_link_parameters);
+                        }
+                        $mood_is_active = $mood_filter === $mood_value;
+                        ?>
+                        <a
+                            class="diary-mood-filter-option<?php echo $mood_is_active ? ' is-active' : ''; ?>"
+                            href="<?php echo allEntriesEscape($mood_link_url); ?>"
+                            <?php echo $mood_is_active ? 'aria-current="true"' : ''; ?>
+                        >
+                            <span class="diary-mood-filter-emoji" aria-hidden="true"><?php echo allEntriesEscape($mood_option['emoji']); ?></span>
+                            <span><?php echo allEntriesEscape($mood_option['label']); ?></span>
+                        </a>
+                    <?php endforeach; ?>
                 </div>
             </form>
         </section>

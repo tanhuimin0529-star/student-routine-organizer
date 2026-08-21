@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../../includes/session_check.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/diary_model.php';
+require_once __DIR__ . '/diary_content.php';
 
 $entry = null;
 $database_error = false;
@@ -141,7 +142,7 @@ function diaryViewMoodEmoji($mood) {
                     </header>
 
                     <div class="diary-reading-content">
-                        <?php echo nl2br(diaryViewEscape($entry['content'])); ?>
+                        <?php echo diaryContentRenderSafeHtml($entry['content']); ?>
                     </div>
 
                     <div class="diary-reading-page-mark">— Personal Journal —</div>

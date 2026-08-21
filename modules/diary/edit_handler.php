@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../../includes/session_check.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/diary_model.php';
+require_once __DIR__ . '/diary_content.php';
 
 function returnToDiaryEdit($diary_id, $errors, $old = array()) {
     $_SESSION['diary_edit_errors'] = $errors;
@@ -22,6 +23,13 @@ function diaryEditPostString($key) {
         : '';
 }
 
+function diaryEditJsonResponse($status, $payload) {
+    http_response_code((int) $status);
+    header('Content-Type: application/json; charset=UTF-8');
+    echo json_encode($payload, JSON_UNESCAPED_SLASHES);
+    exit();
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: index.php', true, 303);
     exit();
@@ -34,14 +42,70 @@ $diary_id = filter_var(
     array('options' => array('min_range' => 1))
 );
 
+if (isset($_POST['diary_image_upload']) && $_POST['diary_image_upload'] === '1') {
+    $submitted_token = isset($_POST['csrf_token']) && is_string($_POST['csrf_token'])
+        ? $_POST['csrf_token']
+        : '';
+    $session_token = isset($_SESSION['diary_edit_csrf_token'])
+        ? $_SESSION['diary_edit_csrf_token']
+        : '';
+
+    if ($session_token === '' || !hash_equals($session_token, $submitted_token)) {
+        diaryEditJsonResponse(403, array(
+            'ok' => false,
+            'error' => 'Your form session expired. Refresh the page and try again.'
+        ));
+    }
+
+    if ($diary_id === false) {
+        diaryEditJsonResponse(404, array(
+            'ok' => false,
+            'error' => 'Journal entry not found.'
+        ));
+    }
+
+    $upload_entry = getDiaryEntryById($conn, $diary_id, $logged_in_user_id);
+    if ($upload_entry === null) {
+        diaryEditJsonResponse(404, array(
+            'ok' => false,
+            'error' => 'Journal entry not found.'
+        ));
+    }
+    if ($upload_entry === false) {
+        diaryEditJsonResponse(500, array(
+            'ok' => false,
+            'error' => 'The image could not be uploaded right now. Please try again.'
+        ));
+    }
+
+    $upload_result = diaryImageStoreUploadedFile(
+        isset($_FILES['diary_image']) ? $_FILES['diary_image'] : null,
+        $logged_in_user_id
+    );
+
+    if (!$upload_result['valid']) {
+        diaryEditJsonResponse($upload_result['status'], array(
+            'ok' => false,
+            'error' => $upload_result['error']
+        ));
+    }
+
+    diaryEditJsonResponse(200, array(
+        'ok' => true,
+        'src' => $upload_result['src'],
+        'alt' => $upload_result['alt']
+    ));
+}
+
 $title = diaryEditPostString('title');
-$content = diaryEditPostString('content');
+$submitted_content = diaryEditPostString('content');
 $mood = diaryEditPostString('mood');
 $entry_date = diaryEditPostString('entry_date');
+$content_result = diaryContentPrepareForStorage($submitted_content, $logged_in_user_id);
 
 $old = array(
     'title' => $title,
-    'content' => $content,
+    'content' => $content_result['sanitized'],
     'mood' => $mood,
     'entry_date' => $entry_date
 );
@@ -86,8 +150,8 @@ if ($title === '') {
     $errors[] = 'Title is required.';
 }
 
-if ($content === '') {
-    $errors[] = 'Content is required.';
+if (!$content_result['valid']) {
+    $errors[] = $content_result['error'];
 }
 
 if (!in_array($mood, $valid_moods, true)) {
@@ -112,7 +176,7 @@ $updated = updateDiaryEntry(
     $diary_id,
     $logged_in_user_id,
     $title,
-    $content,
+    $content_result['stored'],
     $mood,
     $entry_date
 );

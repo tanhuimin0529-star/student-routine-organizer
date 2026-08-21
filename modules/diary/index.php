@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../../includes/session_check.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/diary_model.php';
+require_once __DIR__ . '/diary_content.php';
 
 $entries = getDiaryEntriesForUser($conn, $logged_in_user_id);
 $load_error = $entries === false;
@@ -17,6 +18,14 @@ $search_term = isset($_GET['search']) && is_string($_GET['search'])
     ? trim($_GET['search'])
     : '';
 $allowed_mood_filters = array('Happy', 'Calm', 'Neutral', 'Sad', 'Stressed');
+$mood_filter_options = array(
+    '' => array('label' => 'All', 'emoji' => '🌿'),
+    'Happy' => array('label' => 'Happy', 'emoji' => '😊'),
+    'Calm' => array('label' => 'Calm', 'emoji' => '😌'),
+    'Neutral' => array('label' => 'Neutral', 'emoji' => '😐'),
+    'Sad' => array('label' => 'Sad', 'emoji' => '😢'),
+    'Stressed' => array('label' => 'Stressed', 'emoji' => '😣')
+);
 $requested_mood_filter = isset($_GET['mood']) && is_string($_GET['mood'])
     ? $_GET['mood']
     : '';
@@ -105,7 +114,8 @@ function diaryEscape($value) {
 }
 
 function diaryContentPreview($content, $limit = 180) {
-    $content = trim(preg_replace('/\s+/', ' ', (string) $content));
+    $content = diaryContentToPlainText($content);
+    $content = trim(preg_replace('/\s+/', ' ', $content));
 
     if (function_exists('mb_strlen') && function_exists('mb_substr')) {
         return mb_strlen($content, 'UTF-8') > $limit
@@ -162,7 +172,9 @@ $filters_active = $search_term !== '' || $mood_filter !== '';
 if ($filters_active) {
     $filter_results = array_values(array_filter($entries, function ($entry) use ($search_term, $mood_filter) {
         $title = isset($entry['title']) ? $entry['title'] : '';
-        $content = isset($entry['content']) ? $entry['content'] : '';
+        $content = isset($entry['content'])
+            ? diaryContentToPlainText($entry['content'])
+            : '';
         $entry_mood = isset($entry['mood']) ? $entry['mood'] : '';
 
         $matches_search = $search_term === ''
@@ -234,6 +246,9 @@ $clear_search_url = 'index.php?' . http_build_query($clear_search_parameters);
                 <?php if ($selected_date !== null): ?>
                     <input type="hidden" name="date" value="<?php echo diaryEscape($selected_date); ?>">
                 <?php endif; ?>
+                <?php if ($mood_filter !== ''): ?>
+                    <input type="hidden" name="mood" value="<?php echo diaryEscape($mood_filter); ?>">
+                <?php endif; ?>
                 <div class="diary-search-controls diary-home-search-controls">
                     <input
                         type="search"
@@ -242,16 +257,34 @@ $clear_search_url = 'index.php?' . http_build_query($clear_search_parameters);
                         value="<?php echo diaryEscape($search_term); ?>"
                         placeholder="Search by title or content"
                     >
-                    <select id="mood" name="mood" aria-label="Filter by mood">
-                        <option value="">All Moods</option>
-                        <?php foreach ($allowed_mood_filters as $mood_option): ?>
-                            <option value="<?php echo diaryEscape($mood_option); ?>"<?php echo $mood_filter === $mood_option ? ' selected' : ''; ?>>
-                                <?php echo diaryEscape($mood_option); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
                     <button class="diary-button" type="submit">Search</button>
                     <a class="diary-button diary-button-secondary" href="<?php echo diaryEscape($clear_search_url); ?>">Clear Filters</a>
+                </div>
+                <div class="diary-mood-filter-toolbar" role="group" aria-label="Filter journal entries by mood">
+                    <?php foreach ($mood_filter_options as $mood_value => $mood_option): ?>
+                        <?php
+                        $mood_link_parameters = array('month' => $calendar_month->format('Y-m'));
+                        if ($selected_date !== null) {
+                            $mood_link_parameters['date'] = $selected_date;
+                        }
+                        if ($search_term !== '') {
+                            $mood_link_parameters['search'] = $search_term;
+                        }
+                        if ($mood_value !== '') {
+                            $mood_link_parameters['mood'] = $mood_value;
+                        }
+                        $mood_link_url = 'index.php?' . http_build_query($mood_link_parameters);
+                        $mood_is_active = $mood_filter === $mood_value;
+                        ?>
+                        <a
+                            class="diary-mood-filter-option<?php echo $mood_is_active ? ' is-active' : ''; ?>"
+                            href="<?php echo diaryEscape($mood_link_url); ?>"
+                            <?php echo $mood_is_active ? 'aria-current="true"' : ''; ?>
+                        >
+                            <span class="diary-mood-filter-emoji" aria-hidden="true"><?php echo diaryEscape($mood_option['emoji']); ?></span>
+                            <span><?php echo diaryEscape($mood_option['label']); ?></span>
+                        </a>
+                    <?php endforeach; ?>
                 </div>
             </form>
         </section>
