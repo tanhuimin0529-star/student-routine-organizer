@@ -12,6 +12,31 @@ $old = isset($_SESSION['diary_add_old']) && is_array($_SESSION['diary_add_old'])
     ? $_SESSION['diary_add_old']
     : array();
 
+if (!isset($_SESSION['diary_upload_batches']) || !is_array($_SESSION['diary_upload_batches'])) {
+    $_SESSION['diary_upload_batches'] = array();
+}
+
+$upload_batch_token = '';
+$old_upload_batch_token = isset($old['upload_batch_token']) && is_string($old['upload_batch_token'])
+    ? $old['upload_batch_token']
+    : '';
+
+if (
+    preg_match('/\A[a-f0-9]{64}\z/D', $old_upload_batch_token) === 1
+    && isset($_SESSION['diary_upload_batches'][$old_upload_batch_token])
+    && is_array($_SESSION['diary_upload_batches'][$old_upload_batch_token])
+) {
+    $upload_batch_token = $old_upload_batch_token;
+}
+
+if ($upload_batch_token === '') {
+    do {
+        $upload_batch_token = bin2hex(random_bytes(32));
+    } while (isset($_SESSION['diary_upload_batches'][$upload_batch_token]));
+
+    $_SESSION['diary_upload_batches'][$upload_batch_token] = array();
+}
+
 unset($_SESSION['diary_add_errors'], $_SESSION['diary_add_old']);
 
 function diaryFormValue($old, $key, $default = '') {
@@ -61,6 +86,11 @@ $diary_js_version = filemtime(__DIR__ . '/../../assets/js/diary.js');
         <?php endif; ?>
 
         <form class="diary-form" action="add_handler.php" method="post" enctype="multipart/form-data">
+            <input
+                type="hidden"
+                name="upload_batch_token"
+                value="<?php echo htmlspecialchars($upload_batch_token, ENT_QUOTES, 'UTF-8'); ?>"
+            >
             <input
                 type="hidden"
                 name="csrf_token"

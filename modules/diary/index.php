@@ -17,6 +17,11 @@ $reflection_flash = isset($_SESSION['diary_reflection_flash']) && is_array($_SES
     ? $_SESSION['diary_reflection_flash']
     : null;
 unset($_SESSION['diary_reflection_flash']);
+$today_memory_flash = isset($_SESSION['diary_today_memory_flash'])
+    && is_string($_SESSION['diary_today_memory_flash'])
+    ? $_SESSION['diary_today_memory_flash']
+    : null;
+unset($_SESSION['diary_today_memory_flash']);
 
 
 $entries = getDiaryEntriesForUser($conn, $logged_in_user_id);
@@ -26,12 +31,128 @@ if ($load_error) {
     $entries = array();
 }
 
-$entry_count = count($entries);
-$latest_entry_date = $entry_count > 0 ? $entries[0]['entry_date'] : null;
 $recent_entries = array_slice($entries, 0, 4);
 $favorite_entries = array_slice(array_values(array_filter($entries, function ($entry) {
     return isset($entry['is_favorite']) && (int) $entry['is_favorite'] === 1;
 })), 0, 4);
+$today_corner_date = new DateTimeImmutable('today');
+$today_corner_date_key = $today_corner_date->format('Y-m-d');
+$today_corner_prompts = array(
+    'What is one small moment from today that you want to remember?',
+    'What made you feel most like yourself today?',
+    'What is something kind you can say to yourself right now?',
+    'Which part of today felt calm, meaningful, or unexpectedly good?',
+    'What is one thing you learned about yourself today?',
+    'What are you grateful for in this season of your life?',
+    'If today had a title, what would it be and why?',
+    'What would you like to carry forward from today?',
+    'What feeling has stayed with you today, and what might it need?',
+    'Describe one ordinary detail that made today uniquely yours.'
+);
+$today_prompt_seed = (int) hexdec(substr(hash('sha256', $today_corner_date_key), 0, 6));
+$today_corner_prompt = $today_corner_prompts[$today_prompt_seed % count($today_corner_prompts)];
+$today_memory_candidates = array_slice($entries, 4);
+$today_memory_candidates_by_id = array();
+$today_memory = null;
+
+if (empty($_SESSION['diary_today_memory_csrf_token'])
+    || !is_string($_SESSION['diary_today_memory_csrf_token'])
+) {
+    $_SESSION['diary_today_memory_csrf_token'] = bin2hex(random_bytes(32));
+}
+
+$today_memory_change_requested = isset($_SERVER['REQUEST_METHOD'])
+    && $_SERVER['REQUEST_METHOD'] === 'POST'
+    && isset($_POST['diary_memory_action'])
+    && is_string($_POST['diary_memory_action'])
+    && $_POST['diary_memory_action'] === 'show_another';
+$submitted_today_memory_csrf = isset($_POST['csrf_token']) && is_string($_POST['csrf_token'])
+    ? $_POST['csrf_token']
+    : '';
+$today_memory_csrf_is_valid = $today_memory_change_requested
+    && hash_equals($_SESSION['diary_today_memory_csrf_token'], $submitted_today_memory_csrf);
+
+foreach ($today_memory_candidates as $memory_candidate) {
+    $memory_candidate_id = isset($memory_candidate['diary_id'])
+        ? filter_var(
+            $memory_candidate['diary_id'],
+            FILTER_VALIDATE_INT,
+            array('options' => array('min_range' => 1))
+        )
+        : false;
+
+    if ($memory_candidate_id !== false) {
+        $today_memory_candidates_by_id[(int) $memory_candidate_id] = $memory_candidate;
+    }
+}
+
+$stored_today_memory = isset($_SESSION['diary_today_memory'])
+    && is_array($_SESSION['diary_today_memory'])
+    ? $_SESSION['diary_today_memory']
+    : array();
+$stored_today_memory_id = isset($stored_today_memory['diary_id'])
+    ? (int) $stored_today_memory['diary_id']
+    : 0;
+$stored_today_memory_is_valid = isset($stored_today_memory['date'], $stored_today_memory['user_id'])
+    && hash_equals($today_corner_date_key, (string) $stored_today_memory['date'])
+    && (int) $stored_today_memory['user_id'] === (int) $logged_in_user_id
+    && isset($today_memory_candidates_by_id[$stored_today_memory_id]);
+
+if ($stored_today_memory_is_valid) {
+    $today_memory = $today_memory_candidates_by_id[$stored_today_memory_id];
+} elseif (!$today_memory_change_requested && !empty($today_memory_candidates_by_id)) {
+    $today_memory_candidate_ids = array_keys($today_memory_candidates_by_id);
+
+    try {
+        $today_memory_index = random_int(0, count($today_memory_candidate_ids) - 1);
+    } catch (Throwable $exception) {
+        $today_memory_index = $today_prompt_seed % count($today_memory_candidate_ids);
+    }
+
+    $today_memory_id = $today_memory_candidate_ids[$today_memory_index];
+    $today_memory = $today_memory_candidates_by_id[$today_memory_id];
+    $_SESSION['diary_today_memory'] = array(
+        'date' => $today_corner_date_key,
+        'user_id' => (int) $logged_in_user_id,
+        'diary_id' => (int) $today_memory_id
+    );
+} elseif (empty($today_memory_candidates_by_id)) {
+    unset($_SESSION['diary_today_memory']);
+}
+
+if ($today_memory_change_requested
+    && $today_memory_csrf_is_valid
+    && !empty($today_memory_candidates_by_id)
+) {
+    $today_memory_candidate_ids = array_keys($today_memory_candidates_by_id);
+    $current_today_memory_id = $stored_today_memory_is_valid
+        ? $stored_today_memory_id
+        : 0;
+    $next_memory_candidate_ids = $today_memory_candidate_ids;
+
+    if (count($today_memory_candidate_ids) > 1 && $current_today_memory_id > 0) {
+        $next_memory_candidate_ids = array_values(array_filter(
+            $today_memory_candidate_ids,
+            function ($candidate_id) use ($current_today_memory_id) {
+                return (int) $candidate_id !== $current_today_memory_id;
+            }
+        ));
+    }
+
+    try {
+        $next_memory_index = random_int(0, count($next_memory_candidate_ids) - 1);
+    } catch (Throwable $exception) {
+        $next_memory_index = $today_prompt_seed % count($next_memory_candidate_ids);
+    }
+
+    $today_memory_id = $next_memory_candidate_ids[$next_memory_index];
+    $today_memory = $today_memory_candidates_by_id[$today_memory_id];
+    $_SESSION['diary_today_memory'] = array(
+        'date' => $today_corner_date_key,
+        'user_id' => (int) $logged_in_user_id,
+        'diary_id' => (int) $today_memory_id
+    );
+}
 $search_term = isset($_GET['search']) && is_string($_GET['search'])
     ? trim($_GET['search'])
     : '';
@@ -364,6 +485,31 @@ if ($selected_date !== null) {
     $clear_search_parameters['date'] = $selected_date;
 }
 $clear_search_url = 'index.php?' . http_build_query($clear_search_parameters);
+$today_corner_return_parameters = array('month' => $calendar_month->format('Y-m'));
+if ($selected_date !== null) {
+    $today_corner_return_parameters['date'] = $selected_date;
+}
+if ($search_term !== '') {
+    $today_corner_return_parameters['search'] = $search_term;
+}
+if ($mood_filter !== '') {
+    $today_corner_return_parameters['mood'] = $mood_filter;
+}
+if ($sort_value !== 'newest') {
+    $today_corner_return_parameters['sort'] = $sort_value;
+}
+$today_corner_action_url = 'index.php?'
+    . http_build_query($today_corner_return_parameters)
+    . '#diary-today-corner';
+
+if ($today_memory_change_requested) {
+    if (!$today_memory_csrf_is_valid) {
+        $_SESSION['diary_today_memory_flash'] = 'Your form session expired. Please try again.';
+    }
+
+    header('Location: ' . $today_corner_action_url);
+    exit();
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -410,28 +556,83 @@ $clear_search_url = 'index.php?' . http_build_query($clear_search_parameters);
                 </div>
             <?php endif; ?>
 
-            <?php if (!$load_error): ?>
-                <div class="diary-summary" aria-label="Journal summary">
-                    <div class="diary-summary-item">
-                        <span class="diary-summary-icon" aria-hidden="true">📚</span>
-                        <div>
-                            <span class="diary-summary-label">Total Entries</span>
-                            <strong><?php echo diaryEscape($entry_count); ?> <?php echo $entry_count === 1 ? 'Entry' : 'Entries'; ?></strong>
-                        </div>
-                    </div>
-                    <div class="diary-summary-item">
-                        <span class="diary-summary-icon" aria-hidden="true">✒️</span>
-                        <div>
-                            <span class="diary-summary-label">Latest Entry Date</span>
-                            <?php if ($latest_entry_date !== null): ?>
-                                <strong>Last written: <?php echo diaryEscape(diaryDisplayDate($latest_entry_date)); ?></strong>
-                            <?php else: ?>
-                                <strong>Your first page starts here</strong>
-                            <?php endif; ?>
-                        </div>
-                    </div>
+        <section id="diary-today-corner" class="diary-today-corner" aria-labelledby="diary-today-corner-heading">
+            <div class="diary-section-heading diary-today-corner-heading">
+                <div>
+                    <p class="diary-eyebrow">A Page for Today</p>
+                    <h2 id="diary-today-corner-heading">Today's Corner</h2>
+                </div>
+                <p>A quiet pause for today and a memory from before</p>
+            </div>
+
+            <?php if ($today_memory_flash !== null): ?>
+                <div class="diary-alert diary-alert-error diary-today-memory-flash" role="alert">
+                    <?php echo diaryEscape($today_memory_flash); ?>
                 </div>
             <?php endif; ?>
+
+            <div class="diary-today-corner-grid">
+                <article class="diary-today-note">
+                    <span class="diary-today-note-pin" aria-hidden="true"></span>
+                    <p class="diary-today-note-label">Today</p>
+                    <time class="diary-today-date" datetime="<?php echo diaryEscape($today_corner_date_key); ?>">
+                        <span><?php echo diaryEscape($today_corner_date->format('l')); ?></span>
+                        <strong><?php echo diaryEscape($today_corner_date->format('F j, Y')); ?></strong>
+                    </time>
+                    <div class="diary-today-prompt">
+                        <span>Journaling Prompt</span>
+                        <p><?php echo diaryEscape($today_corner_prompt); ?></p>
+                    </div>
+                </article>
+
+                <article class="diary-memory-corner">
+                    <header class="diary-memory-corner-header">
+                        <span class="diary-memory-corner-icon" aria-hidden="true">&#128220;</span>
+                        <div>
+                            <p class="diary-eyebrow">A Page from the Past</p>
+                            <h3>Memory Corner</h3>
+                        </div>
+                    </header>
+
+                    <?php if ($today_memory === null): ?>
+                        <div class="diary-memory-corner-empty">
+                            <p>Write a few more journal entries and a past memory will appear here.</p>
+                        </div>
+                    <?php else: ?>
+                        <div class="diary-memory-corner-meta">
+                            <time datetime="<?php echo diaryEscape($today_memory['entry_date']); ?>">
+                                <?php echo diaryEscape(diaryDisplayDate($today_memory['entry_date'])); ?>
+                            </time>
+                            <span>
+                                <span aria-hidden="true"><?php echo diaryEscape(diaryMoodEmoji($today_memory['mood'])); ?></span>
+                                <?php echo diaryEscape($today_memory['mood']); ?>
+                            </span>
+                        </div>
+                        <h4><?php echo diaryEscape($today_memory['title']); ?></h4>
+                        <p class="diary-memory-corner-preview">
+                            <?php echo diaryEscape(diaryContentPreview($today_memory['content'], 150)); ?>
+                        </p>
+                        <div class="diary-memory-corner-actions">
+                            <a
+                                class="diary-action-button diary-action-primary diary-memory-corner-button"
+                                href="view.php?id=<?php echo rawurlencode((string) $today_memory['diary_id']); ?>"
+                            >View Memory</a>
+                            <form action="<?php echo diaryEscape($today_corner_action_url); ?>" method="post">
+                                <input type="hidden" name="diary_memory_action" value="show_another">
+                                <input
+                                    type="hidden"
+                                    name="csrf_token"
+                                    value="<?php echo diaryEscape($_SESSION['diary_today_memory_csrf_token']); ?>"
+                                >
+                                <button class="diary-action-button diary-action-secondary diary-memory-corner-more-button" type="submit">
+                                    Show Another Memory
+                                </button>
+                            </form>
+                        </div>
+                    <?php endif; ?>
+                </article>
+            </div>
+        </section>
         </section>
 
         <section class="diary-search-panel" aria-labelledby="diary-home-search-heading">

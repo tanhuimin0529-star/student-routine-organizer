@@ -4,7 +4,6 @@ config/db_config.php
 # PHP & dependency files
 vendor/
 node_modules/
-composer.lock
 package-lock.json
 
 # XAMPP / Apache / PHP local logs and cache

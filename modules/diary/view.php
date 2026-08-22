@@ -222,6 +222,10 @@ function diaryViewMoodEmoji($mood) {
                 <nav class="diary-reading-actions" aria-label="Journal entry actions">
                     <a class="diary-action-button diary-action-secondary" href="index.php">Back to Diary Home</a>
                     <a class="diary-action-button diary-action-primary" href="edit.php?id=<?php echo rawurlencode((string) $entry['diary_id']); ?>">Edit Entry</a>
+                    <a
+                        class="diary-action-button diary-action-export"
+                        href="export_pdf.php?id=<?php echo rawurlencode((string) $entry['diary_id']); ?>"
+                    ><span class="diary-action-icon" aria-hidden="true">&#8595;</span> Export PDF</a>
                     <form action="delete_handler.php" method="post">
                         <input type="hidden" name="diary_id" value="<?php echo diaryViewEscape($entry['diary_id']); ?>">
                         <input

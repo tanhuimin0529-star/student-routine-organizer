@@ -1806,6 +1806,7 @@
             }
 
             var csrfInput = form.querySelector('input[name="csrf_token"]');
+            var uploadBatchInput = form.querySelector('input[name="upload_batch_token"]');
             var diaryIdInput = form.querySelector('input[name="id"]');
             var formData = new FormData();
 
@@ -1816,6 +1817,10 @@
                 isDrawingUpload ? 'journal-drawing.png' : (file.name || 'journal-image')
             );
             formData.append('csrf_token', csrfInput ? csrfInput.value : '');
+            formData.append(
+                'upload_batch_token',
+                uploadBatchInput ? uploadBatchInput.value : ''
+            );
 
             if (diaryIdInput) {
                 formData.append('id', diaryIdInput.value);

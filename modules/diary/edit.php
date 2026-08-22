@@ -54,6 +54,34 @@ if (empty($_SESSION['diary_edit_csrf_token'])) {
     $_SESSION['diary_edit_csrf_token'] = bin2hex(random_bytes(32));
 }
 
+if (!isset($_SESSION['diary_upload_batches']) || !is_array($_SESSION['diary_upload_batches'])) {
+    $_SESSION['diary_upload_batches'] = array();
+}
+
+$upload_batch_token = '';
+$old_upload_batch_token = $use_flash
+    && isset($form_values['upload_batch_token'])
+    && is_string($form_values['upload_batch_token'])
+        ? $form_values['upload_batch_token']
+        : '';
+
+if (
+    $entry !== null
+    && preg_match('/\A[a-f0-9]{64}\z/D', $old_upload_batch_token) === 1
+    && isset($_SESSION['diary_upload_batches'][$old_upload_batch_token])
+    && is_array($_SESSION['diary_upload_batches'][$old_upload_batch_token])
+) {
+    $upload_batch_token = $old_upload_batch_token;
+}
+
+if ($entry !== null && $upload_batch_token === '') {
+    do {
+        $upload_batch_token = bin2hex(random_bytes(32));
+    } while (isset($_SESSION['diary_upload_batches'][$upload_batch_token]));
+
+    $_SESSION['diary_upload_batches'][$upload_batch_token] = array();
+}
+
 function diaryEditEscape($value) {
     return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
 }
@@ -116,6 +144,11 @@ $diary_js_version = filemtime(__DIR__ . '/../../assets/js/diary.js');
 
             <form class="diary-form" action="edit_handler.php" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="id" value="<?php echo diaryEditEscape($diary_id); ?>">
+                <input
+                    type="hidden"
+                    name="upload_batch_token"
+                    value="<?php echo diaryEditEscape($upload_batch_token); ?>"
+                >
                 <input
                     type="hidden"
                     name="csrf_token"
