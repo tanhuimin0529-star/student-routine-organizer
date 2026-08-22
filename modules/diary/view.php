@@ -125,6 +125,7 @@ function diaryViewMoodEmoji($mood) {
             <?php $favorite_flash_type = isset($favorite_flash['type']) && $favorite_flash['type'] === 'success' ? 'success' : 'error'; ?>
             <div
                 class="diary-alert diary-alert-<?php echo diaryViewEscape($favorite_flash_type); ?>"
+                data-diary-flash="<?php echo diaryViewEscape($favorite_flash_type); ?>"
                 role="<?php echo $favorite_flash_type === 'success' ? 'status' : 'alert'; ?>"
             >
                 <?php echo diaryViewEscape(isset($favorite_flash['message']) ? $favorite_flash['message'] : 'Favorite could not be updated right now. Please try again.'); ?>
@@ -149,10 +150,30 @@ function diaryViewMoodEmoji($mood) {
                 <a class="diary-button" href="<?php echo diaryViewEscape($return_to); ?>">Back to Diary</a>
             </section>
         <?php else: ?>
-            <nav class="diary-reader-nav" aria-label="Diary navigation">
-                <a href="<?php echo diaryViewEscape($return_to); ?>">← Back to Journal Collection</a>
-                <span>Personal Journal</span>
-            </nav>
+            <div class="diary-reader-toolbar">
+                <a
+                    class="diary-reader-back-link"
+                    href="<?php echo diaryViewEscape($return_to); ?>"
+                    aria-label="Back to journal collection"
+                >← Back</a>
+                <nav class="diary-reader-toolbar-actions" aria-label="Journal entry actions">
+                    <a
+                        class="diary-action-button diary-action-export"
+                        href="export_pdf.php?id=<?php echo rawurlencode((string) $entry['diary_id']); ?>"
+                    >Export PDF</a>
+                    <a class="diary-action-button diary-action-primary" href="<?php echo diaryViewEscape($current_edit_url); ?>">Edit</a>
+                    <form action="delete_handler.php" method="post">
+                        <input type="hidden" name="diary_id" value="<?php echo diaryViewEscape($entry['diary_id']); ?>">
+                        <input type="hidden" name="return_to" value="<?php echo diaryViewEscape($return_to); ?>">
+                        <input
+                            type="hidden"
+                            name="csrf_token"
+                            value="<?php echo diaryViewEscape($_SESSION['diary_delete_csrf_token']); ?>"
+                        >
+                        <button class="diary-action-button diary-action-delete" type="submit">Delete</button>
+                    </form>
+                </nav>
+            </div>
 
             <div class="diary-book-shell">
                 <article class="diary-reading-page">
@@ -198,57 +219,40 @@ function diaryViewMoodEmoji($mood) {
                     <div class="diary-reading-page-mark">— Personal Journal —</div>
                 </article>
 
-                <nav class="diary-entry-sequence-navigation" aria-label="Previous and next journal entries">
-                    <?php if ($previous_entry_id !== null): ?>
-                        <a
-                            class="diary-entry-sequence-link diary-entry-sequence-previous"
-                            href="<?php echo diaryViewEscape(diaryNavigationViewUrl($previous_entry_id, $return_to)); ?>"
-                            aria-label="Previous journal entry"
-                        >←</a>
-                    <?php else: ?>
-                        <span
-                            class="diary-entry-sequence-link diary-entry-sequence-previous is-disabled"
-                            aria-label="No previous journal entry"
-                            aria-disabled="true"
-                        >←</span>
-                    <?php endif; ?>
 
-                    <?php if ($next_entry_id !== null): ?>
-                        <a
-                            class="diary-entry-sequence-link diary-entry-sequence-next"
-                            href="<?php echo diaryViewEscape(diaryNavigationViewUrl($next_entry_id, $return_to)); ?>"
-                            aria-label="Next journal entry"
-                        >→</a>
-                    <?php else: ?>
-                        <span
-                            class="diary-entry-sequence-link diary-entry-sequence-next is-disabled"
-                            aria-label="No next journal entry"
-                            aria-disabled="true"
-                        >→</span>
-                    <?php endif; ?>
-                </nav>
             </div>
 
-            <footer class="diary-reader-external-actions">
-                <nav class="diary-reading-actions" aria-label="Journal entry actions">
-                    <a class="diary-action-button diary-action-secondary" href="<?php echo diaryViewEscape($return_to); ?>">Back to Journal Collection</a>
-                    <a class="diary-action-button diary-action-primary" href="<?php echo diaryViewEscape($current_edit_url); ?>">Edit Entry</a>
+            <nav class="diary-entry-sequence-navigation" aria-label="Previous and next journal entries">
+                <?php if ($previous_entry_id !== null): ?>
                     <a
-                        class="diary-action-button diary-action-export"
-                        href="export_pdf.php?id=<?php echo rawurlencode((string) $entry['diary_id']); ?>"
-                    ><span class="diary-action-icon" aria-hidden="true">&#8595;</span> Export PDF</a>
-                    <form action="delete_handler.php" method="post">
-                        <input type="hidden" name="diary_id" value="<?php echo diaryViewEscape($entry['diary_id']); ?>">
-                        <input type="hidden" name="return_to" value="<?php echo diaryViewEscape($return_to); ?>">
-                        <input
-                            type="hidden"
-                            name="csrf_token"
-                            value="<?php echo diaryViewEscape($_SESSION['diary_delete_csrf_token']); ?>"
-                        >
-                        <button class="diary-action-button diary-action-delete" type="submit">Delete</button>
-                    </form>
-                </nav>
-            </footer>
+                        class="diary-entry-sequence-link diary-entry-sequence-previous"
+                        href="<?php echo diaryViewEscape(diaryNavigationViewUrl($previous_entry_id, $return_to)); ?>"
+                        aria-label="Previous journal entry"
+                    >←</a>
+                <?php else: ?>
+                    <span
+                        class="diary-entry-sequence-link diary-entry-sequence-previous is-disabled"
+                        aria-label="No previous journal entry"
+                        aria-disabled="true"
+                    >←</span>
+                <?php endif; ?>
+
+                <?php if ($next_entry_id !== null): ?>
+                    <a
+                        class="diary-entry-sequence-link diary-entry-sequence-next"
+                        href="<?php echo diaryViewEscape(diaryNavigationViewUrl($next_entry_id, $return_to)); ?>"
+                        aria-label="Next journal entry"
+                    >→</a>
+                <?php else: ?>
+                    <span
+                        class="diary-entry-sequence-link diary-entry-sequence-next is-disabled"
+                        aria-label="No next journal entry"
+                        aria-disabled="true"
+                    >→</span>
+                <?php endif; ?>
+            </nav>
+
+
         <?php endif; ?>
     </main>
 </body>

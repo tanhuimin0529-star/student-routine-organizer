@@ -67,6 +67,10 @@ $today_memory_change_requested = isset($_SERVER['REQUEST_METHOD'])
     && isset($_POST['diary_memory_action'])
     && is_string($_POST['diary_memory_action'])
     && $_POST['diary_memory_action'] === 'show_another';
+$today_memory_ajax_requested = $today_memory_change_requested
+    && isset($_SERVER['HTTP_X_REQUESTED_WITH'])
+    && is_string($_SERVER['HTTP_X_REQUESTED_WITH'])
+    && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 $submitted_today_memory_csrf = isset($_POST['csrf_token']) && is_string($_POST['csrf_token'])
     ? $_POST['csrf_token']
     : '';
@@ -302,6 +306,34 @@ if ($monthly_mood_maximum > 0) {
             $monthly_most_common_moods[] = $mood;
         }
     }
+}
+
+$monthly_mood_insights = array();
+$monthly_distinct_mood_count = count(array_filter($monthly_mood_counts, function ($count) {
+    return $count > 0;
+}));
+
+if ($monthly_mood_total > 0 && !empty($monthly_most_common_moods)) {
+    if (count($monthly_most_common_moods) === 1) {
+        $leading_mood = $monthly_most_common_moods[0];
+        $monthly_mood_insights[] = $leading_mood . ' appeared most often this month.';
+        $monthly_mood_insights[] = $monthly_mood_maximum . ' of your ' . $monthly_mood_total
+            . ($monthly_mood_total === 1 ? ' journal entry ' : ' journal entries ')
+            . ($monthly_mood_maximum === 1 ? 'was' : 'were') . ' marked ' . $leading_mood . '.';
+    } else {
+        $tied_mood_names = $monthly_most_common_moods;
+        $last_tied_mood = array_pop($tied_mood_names);
+        $tied_mood_label = count($tied_mood_names) === 1
+            ? $tied_mood_names[0] . ' and ' . $last_tied_mood
+            : implode(', ', $tied_mood_names) . ', and ' . $last_tied_mood;
+        $monthly_mood_insights[] = $tied_mood_label . ' were tied as your most common moods this month.';
+        $monthly_mood_insights[] = 'Each appeared in ' . $monthly_mood_maximum . ' of your '
+            . $monthly_mood_total . ($monthly_mood_total === 1 ? ' journal entry.' : ' journal entries.');
+    }
+
+    $monthly_mood_insights[] = $monthly_distinct_mood_count === 1
+        ? 'You recorded 1 mood this month.'
+        : 'You recorded ' . $monthly_distinct_mood_count . ' different moods this month.';
 }
 
 $selected_date = null;
@@ -548,6 +580,46 @@ $today_corner_action_url = 'index.php?'
     . '#diary-today-corner';
 
 if ($today_memory_change_requested) {
+    if ($today_memory_ajax_requested) {
+        header('Content-Type: application/json; charset=UTF-8');
+
+        if (!$today_memory_csrf_is_valid) {
+            http_response_code(403);
+            $today_memory_response = array(
+                'success' => false,
+                'message' => 'Your form session expired. Please try again.',
+                'csrf_token' => $_SESSION['diary_today_memory_csrf_token']
+            );
+        } elseif ($today_memory === null) {
+            http_response_code(404);
+            $today_memory_response = array(
+                'success' => false,
+                'message' => 'No older journal memory is available right now.',
+                'csrf_token' => $_SESSION['diary_today_memory_csrf_token']
+            );
+        } else {
+            $today_memory_response = array(
+                'success' => true,
+                'csrf_token' => $_SESSION['diary_today_memory_csrf_token'],
+                'memory' => array(
+                    'entry_date' => (string) $today_memory['entry_date'],
+                    'display_date' => diaryDisplayDate($today_memory['entry_date']),
+                    'mood' => (string) $today_memory['mood'],
+                    'mood_emoji' => diaryMoodEmoji($today_memory['mood']),
+                    'title' => (string) $today_memory['title'],
+                    'preview' => diaryContentPreview($today_memory['content'], 150),
+                    'view_url' => diaryNavigationViewUrl($today_memory['diary_id'], $diary_today_context)
+                )
+            );
+        }
+
+        echo json_encode(
+            $today_memory_response,
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE
+        );
+        exit();
+    }
+
     if (!$today_memory_csrf_is_valid) {
         $_SESSION['diary_today_memory_flash'] = 'Your form session expired. Please try again.';
     }
@@ -578,7 +650,6 @@ if ($today_memory_change_requested) {
                     <a class="diary-button diary-button-secondary" href="../../dashboard/dashboard.php">Back to Dashboard</a>
                     <a class="diary-button diary-button-secondary diary-favorites-jump" href="#favorite-entries">★ Favorites</a>
                     <a class="diary-button diary-button-secondary diary-memory-album-link" href="memory_album.php">
-                        <span class="diary-memory-album-link-icon" aria-hidden="true">📷</span>
                         <span>Memory Album</span>
                     </a>
                     <a class="diary-button diary-new-entry-button" href="add.php">+ New Journal Entry</a>
@@ -589,6 +660,7 @@ if ($today_memory_change_requested) {
                 <?php $delete_flash_type = isset($delete_flash['type']) && $delete_flash['type'] === 'success' ? 'success' : 'error'; ?>
                 <div
                     class="diary-alert diary-alert-<?php echo diaryEscape($delete_flash_type); ?>"
+                    data-diary-flash="<?php echo diaryEscape($delete_flash_type); ?>"
                     role="<?php echo $delete_flash_type === 'success' ? 'status' : 'alert'; ?>"
                 >
                     <?php echo diaryEscape(isset($delete_flash['message']) ? $delete_flash['message'] : 'Journal entry could not be deleted.'); ?>
@@ -599,6 +671,7 @@ if ($today_memory_change_requested) {
                 <?php $favorite_flash_type = isset($favorite_flash['type']) && $favorite_flash['type'] === 'success' ? 'success' : 'error'; ?>
                 <div
                     class="diary-alert diary-alert-<?php echo diaryEscape($favorite_flash_type); ?>"
+                    data-diary-flash="<?php echo diaryEscape($favorite_flash_type); ?>"
                     role="<?php echo $favorite_flash_type === 'success' ? 'status' : 'alert'; ?>"
                 >
                     <?php echo diaryEscape(isset($favorite_flash['message']) ? $favorite_flash['message'] : 'Favorite could not be updated right now. Please try again.'); ?>
@@ -607,11 +680,7 @@ if ($today_memory_change_requested) {
 
         <section id="diary-today-corner" class="diary-today-corner" aria-labelledby="diary-today-corner-heading">
             <div class="diary-section-heading diary-today-corner-heading">
-                <div>
-                    <p class="diary-eyebrow">A Page for Today</p>
-                    <h2 id="diary-today-corner-heading">Today's Corner</h2>
-                </div>
-                <p>A quiet pause for today and a memory from before</p>
+                <h2 id="diary-today-corner-heading">Today's Corner</h2>
             </div>
 
             <?php if ($today_memory_flash !== null): ?>
@@ -634,7 +703,7 @@ if ($today_memory_change_requested) {
                     </div>
                 </article>
 
-                <article class="diary-memory-corner">
+                <article class="diary-memory-corner" data-diary-memory-corner>
                     <header class="diary-memory-corner-header">
                         <span class="diary-memory-corner-icon" aria-hidden="true">&#128220;</span>
                         <div>
@@ -649,24 +718,32 @@ if ($today_memory_change_requested) {
                         </div>
                     <?php else: ?>
                         <div class="diary-memory-corner-meta">
-                            <time datetime="<?php echo diaryEscape($today_memory['entry_date']); ?>">
+                            <time data-diary-memory-date datetime="<?php echo diaryEscape($today_memory['entry_date']); ?>">
                                 <?php echo diaryEscape(diaryDisplayDate($today_memory['entry_date'])); ?>
                             </time>
-                            <span>
-                                <span aria-hidden="true"><?php echo diaryEscape(diaryMoodEmoji($today_memory['mood'])); ?></span>
-                                <?php echo diaryEscape($today_memory['mood']); ?>
+                            <span data-diary-memory-mood>
+                                <span data-diary-memory-mood-emoji aria-hidden="true"><?php echo diaryEscape(diaryMoodEmoji($today_memory['mood'])); ?></span>
+                                <span data-diary-memory-mood-label><?php echo diaryEscape($today_memory['mood']); ?></span>
                             </span>
                         </div>
-                        <h4><?php echo diaryEscape($today_memory['title']); ?></h4>
-                        <p class="diary-memory-corner-preview">
+                        <h4 data-diary-memory-title><?php echo diaryEscape($today_memory['title']); ?></h4>
+                        <p class="diary-memory-corner-preview" data-diary-memory-preview>
                             <?php echo diaryEscape(diaryContentPreview($today_memory['content'], 150)); ?>
                         </p>
+                        <p
+                            class="diary-memory-corner-ajax-message"
+                            data-diary-memory-message
+                            role="status"
+                            aria-live="polite"
+                            hidden
+                        ></p>
                         <div class="diary-memory-corner-actions">
                             <a
                                 class="diary-action-button diary-action-primary diary-memory-corner-button"
+                                data-diary-memory-view
                                 href="<?php echo diaryEscape(diaryNavigationViewUrl($today_memory['diary_id'], $diary_today_context)); ?>"
                             >View Memory</a>
-                            <form action="<?php echo diaryEscape($today_corner_action_url); ?>" method="post">
+                            <form action="<?php echo diaryEscape($today_corner_action_url); ?>" method="post" data-diary-memory-form>
                                 <input type="hidden" name="diary_memory_action" value="show_another">
                                 <input
                                     type="hidden"
@@ -846,194 +923,206 @@ if ($today_memory_change_requested) {
                 <?php endfor; ?>
             </div>
         </section>
-        <?php if (!$load_error): ?>
-            <section class="diary-mood-summary-section" aria-labelledby="monthly-mood-summary-heading">
-                <div class="diary-section-heading">
+
+        <div class="diary-monthly-features-grid">
+            <?php if (!$load_error): ?>
+                <section class="diary-mood-summary-section" aria-labelledby="monthly-mood-summary-heading">
+                    <div class="diary-section-heading">
+                        <div>
+                            <p class="diary-eyebrow">Monthly Reflection</p>
+                            <h2 id="monthly-mood-summary-heading">Monthly Mood Summary</h2>
+                        </div>
+                        <p><?php echo diaryEscape($calendar_month->format('F Y')); ?></p>
+                    </div>
+
+                    <?php if ($monthly_mood_total === 0): ?>
+                        <div class="diary-mood-summary-empty">
+                            <p>No mood data for this month.</p>
+                        </div>
+                    <?php else: ?>
+                        <?php
+                        $monthly_mood_chart_label_parts = array();
+                        foreach ($monthly_mood_counts as $mood => $count) {
+                            $monthly_mood_chart_label_parts[] = $mood . ': ' . $count
+                                . ' (' . diaryPercentageLabel($monthly_mood_percentages[$mood]) . ')';
+                        }
+                        ?>
+                        <div class="diary-mood-summary-layout">
+                            <div class="diary-mood-chart-wrap">
+                                <div
+                                    class="diary-mood-chart"
+                                    role="img"
+                                    aria-label="<?php echo diaryEscape($calendar_month->format('F Y') . ' mood distribution. ' . implode(', ', $monthly_mood_chart_label_parts)); ?>"
+                                    style="--diary-mood-chart: <?php echo diaryEscape($monthly_mood_chart); ?>;"
+                                ></div>
+                                <strong><?php echo diaryEscape($monthly_mood_total); ?></strong>
+                                <span><?php echo $monthly_mood_total === 1 ? 'Entry' : 'Entries'; ?></span>
+                            </div>
+
+                            <ul class="diary-mood-summary-list" aria-label="Monthly mood counts and percentages">
+                                <?php foreach ($monthly_mood_counts as $mood => $count): ?>
+                                    <li>
+                                        <span class="diary-mood-summary-name">
+                                            <span aria-hidden="true"><?php echo diaryEscape(diaryMoodEmoji($mood)); ?></span>
+                                            <?php echo diaryEscape($mood); ?>
+                                        </span>
+                                        <span class="diary-mood-summary-values">
+                                            <strong><?php echo diaryEscape($count); ?></strong>
+                                            <span><?php echo diaryEscape(diaryPercentageLabel($monthly_mood_percentages[$mood])); ?></span>
+                                        </span>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </div>
+
+                        <aside class="diary-monthly-insight" aria-labelledby="monthly-insight-heading">
+                            <h3 id="monthly-insight-heading">Monthly Insight</h3>
+                            <ul>
+                                <?php foreach ($monthly_mood_insights as $monthly_mood_insight): ?>
+                                    <li><?php echo diaryEscape($monthly_mood_insight); ?></li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </aside>
+
+                        <div class="diary-most-common-mood">
+                            <span>Most Common Mood</span>
+                            <div>
+                                <?php foreach ($monthly_most_common_moods as $mood): ?>
+                                    <strong>
+                                        <span aria-hidden="true"><?php echo diaryEscape(diaryMoodEmoji($mood)); ?></span>
+                                        <?php echo diaryEscape($mood); ?>
+                                    </strong>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                </section>
+            <?php endif; ?>
+
+            <section id="monthly-reflection" class="diary-reflection-section" aria-labelledby="monthly-reflection-heading" data-diary-reflection-section>
+                <div class="diary-section-heading diary-reflection-heading">
                     <div>
-                        <p class="diary-eyebrow">Monthly Reflection</p>
-                        <h2 id="monthly-mood-summary-heading">Monthly Mood Summary</h2>
+                        <p class="diary-eyebrow">Pause and Look Back</p>
+                        <h2 id="monthly-reflection-heading">Monthly Reflection</h2>
                     </div>
                     <p><?php echo diaryEscape($calendar_month->format('F Y')); ?></p>
                 </div>
 
-                <?php if ($monthly_mood_total === 0): ?>
-                    <div class="diary-mood-summary-empty">
-                        <p>No mood data for this month.</p>
-                    </div>
-                <?php else: ?>
-                    <?php
-                    $monthly_mood_chart_label_parts = array();
-                    foreach ($monthly_mood_counts as $mood => $count) {
-                        $monthly_mood_chart_label_parts[] = $mood . ': ' . $count
-                            . ' (' . diaryPercentageLabel($monthly_mood_percentages[$mood]) . ')';
-                    }
-                    ?>
-                    <div class="diary-mood-summary-layout">
-                        <div class="diary-mood-chart-wrap">
-                            <div
-                                class="diary-mood-chart"
-                                role="img"
-                                aria-label="<?php echo diaryEscape($calendar_month->format('F Y') . ' mood distribution. ' . implode(', ', $monthly_mood_chart_label_parts)); ?>"
-                                style="--diary-mood-chart: <?php echo diaryEscape($monthly_mood_chart); ?>;"
-                            ></div>
-                            <strong><?php echo diaryEscape($monthly_mood_total); ?></strong>
-                            <span><?php echo $monthly_mood_total === 1 ? 'Entry' : 'Entries'; ?></span>
-                        </div>
+                <p class="diary-reflection-intro">
+                    Capture what stood out, what you learned, and what you want to carry into the next month.
+                </p>
 
-                        <ul class="diary-mood-summary-list" aria-label="Monthly mood counts and percentages">
-                            <?php foreach ($monthly_mood_counts as $mood => $count): ?>
-                                <li>
-                                    <span class="diary-mood-summary-name">
-                                        <span aria-hidden="true"><?php echo diaryEscape(diaryMoodEmoji($mood)); ?></span>
-                                        <?php echo diaryEscape($mood); ?>
-                                    </span>
-                                    <span class="diary-mood-summary-values">
-                                        <strong><?php echo diaryEscape($count); ?></strong>
-                                        <span><?php echo diaryEscape(diaryPercentageLabel($monthly_mood_percentages[$mood])); ?></span>
-                                    </span>
-                                </li>
-                            <?php endforeach; ?>
-                        </ul>
-                    </div>
-
-                    <div class="diary-most-common-mood">
-                        <span>Most Common Mood</span>
-                        <div>
-                            <?php foreach ($monthly_most_common_moods as $mood): ?>
-                                <strong>
-                                    <span aria-hidden="true"><?php echo diaryEscape(diaryMoodEmoji($mood)); ?></span>
-                                    <?php echo diaryEscape($mood); ?>
-                                </strong>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
-                <?php endif; ?>
-            </section>
-        <?php endif; ?>
-
-
-        <section id="monthly-reflection" class="diary-reflection-section" aria-labelledby="monthly-reflection-heading" data-diary-reflection-section>
-            <div class="diary-section-heading diary-reflection-heading">
-                <div>
-                    <p class="diary-eyebrow">Pause and Look Back</p>
-                    <h2 id="monthly-reflection-heading">Monthly Reflection</h2>
-                </div>
-                <p><?php echo diaryEscape($calendar_month->format('F Y')); ?></p>
-            </div>
-
-            <p class="diary-reflection-intro">
-                Capture what stood out, what you learned, and what you want to carry into the next month.
-            </p>
-
-            <?php if ($reflection_flash !== null): ?>
-                <?php $reflection_flash_type = isset($reflection_flash['type']) && $reflection_flash['type'] === 'success' ? 'success' : 'error'; ?>
-                <div
-                    class="diary-alert diary-alert-<?php echo diaryEscape($reflection_flash_type); ?> diary-reflection-flash"
-                    role="<?php echo $reflection_flash_type === 'success' ? 'status' : 'alert'; ?>"
-                >
-                    <?php echo diaryEscape(isset($reflection_flash['message']) ? $reflection_flash['message'] : 'Your monthly reflection could not be saved right now. Please try again.'); ?>
-                </div>
-            <?php endif; ?>
-
-            <?php if ($reflection_load_error): ?>
-                <div class="diary-alert diary-alert-error diary-reflection-flash" role="alert">
-                    Your monthly reflection could not be loaded right now. You can still try saving it again.
-                </div>
-            <?php endif; ?>
-
-            <div class="diary-reflection-display" data-reflection-display>
-                <?php if ($reflection_exists): ?>
-                    <div class="diary-reflection-readonly" aria-label="Saved monthly reflection">
-                        <?php echo $reflection_editor_content; // Sanitized by the strict reflection allow-list. ?>
-                    </div>
-                    <div class="diary-reflection-view-actions">
-                        <button class="diary-button diary-button-secondary" type="button" data-reflection-open>
-                            Edit Reflection
-                        </button>
-                    </div>
-                <?php else: ?>
-                    <div class="diary-reflection-empty-state">
-                        <span class="diary-reflection-empty-icon" aria-hidden="true">&#9997;&#65039;</span>
-                        <h3>No reflection for <?php echo diaryEscape($calendar_month->format('F Y')); ?> yet.</h3>
-                        <p>Take a quiet moment to capture what this month has meant to you.</p>
-                        <button class="diary-button diary-new-entry-button" type="button" data-reflection-open>
-                            Write Reflection
-                        </button>
-                    </div>
-                <?php endif; ?>
-            </div>
-
-            <form class="diary-reflection-form" action="reflection_handler.php" method="post" data-diary-reflection-editor hidden>
-                <input type="hidden" name="month" value="<?php echo diaryEscape($displayed_month_key); ?>">
-                <input
-                    type="hidden"
-                    name="csrf_token"
-                    value="<?php echo diaryEscape($_SESSION['diary_reflection_csrf_token']); ?>"
-                >
-                <input
-                    type="hidden"
-                    name="content"
-                    value="<?php echo diaryEscape($reflection_editor_content); ?>"
-                    data-reflection-content
-                >
-
-                <div class="diary-reflection-editor-shell">
-                    <div class="diary-reflection-toolbar" role="toolbar" aria-label="Monthly reflection formatting">
-                        <div class="diary-reflection-tool-group" aria-label="Text formatting">
-                            <button type="button" data-reflection-command="bold" aria-label="Bold" title="Bold"><strong>B</strong></button>
-                            <button type="button" data-reflection-command="italic" aria-label="Italic" title="Italic"><em>I</em></button>
-                            <button type="button" data-reflection-command="underline" aria-label="Underline" title="Underline"><u>U</u></button>
-                        </div>
-                        <div class="diary-reflection-tool-group" aria-label="Lists">
-                            <button type="button" data-reflection-command="insertUnorderedList" aria-label="Bullet list" title="Bullet list">• List</button>
-                            <button type="button" data-reflection-command="insertOrderedList" aria-label="Numbered list" title="Numbered list">1. List</button>
-                        </div>
-                        <div class="diary-reflection-tool-group" aria-label="Emoji">
-                            <button
-                                type="button"
-                                data-reflection-emoji-toggle
-                                aria-label="Insert emoji"
-                                title="Insert emoji"
-                                aria-expanded="false"
-                                aria-controls="diary-reflection-emoji-picker"
-                            >☺ Emoji</button>
-                        </div>
-                    </div>
-
+                <?php if ($reflection_flash !== null): ?>
+                    <?php $reflection_flash_type = isset($reflection_flash['type']) && $reflection_flash['type'] === 'success' ? 'success' : 'error'; ?>
                     <div
-                        class="diary-reflection-emoji-picker"
-                        id="diary-reflection-emoji-picker"
-                        data-reflection-emoji-picker
-                        aria-label="Choose an emoji"
-                        hidden
+                        class="diary-alert diary-alert-<?php echo diaryEscape($reflection_flash_type); ?> diary-reflection-flash"
+                        data-diary-flash="<?php echo diaryEscape($reflection_flash_type); ?>"
+                        role="<?php echo $reflection_flash_type === 'success' ? 'status' : 'alert'; ?>"
                     >
-                        <?php foreach (array('😀', '😂', '🥰', '😭', '😴', '❤️', '⭐', '🌸', '☕', '🎓', '👍', '🎉', '🌈', '💭', '🍀') as $emoji): ?>
-                            <button type="button" data-reflection-emoji="<?php echo diaryEscape($emoji); ?>" aria-label="Insert <?php echo diaryEscape($emoji); ?> emoji"><?php echo diaryEscape($emoji); ?></button>
-                        <?php endforeach; ?>
+                        <?php echo diaryEscape(isset($reflection_flash['message']) ? $reflection_flash['message'] : 'Your monthly reflection could not be saved right now. Please try again.'); ?>
+                    </div>
+                <?php endif; ?>
+
+                <?php if ($reflection_load_error): ?>
+                    <div class="diary-alert diary-alert-error diary-reflection-flash" role="alert">
+                        Your monthly reflection could not be loaded right now. You can still try saving it again.
+                    </div>
+                <?php endif; ?>
+
+                <div class="diary-reflection-display" data-reflection-display>
+                    <?php if ($reflection_exists): ?>
+                        <div class="diary-reflection-readonly" aria-label="Saved monthly reflection">
+                            <?php echo $reflection_editor_content; // Sanitized by the strict reflection allow-list. ?>
+                        </div>
+                        <div class="diary-reflection-view-actions">
+                            <button class="diary-button diary-button-secondary" type="button" data-reflection-open>
+                                Edit Reflection
+                            </button>
+                        </div>
+                    <?php else: ?>
+                        <div class="diary-reflection-empty-state">
+                            <span class="diary-reflection-empty-icon" aria-hidden="true">&#9997;&#65039;</span>
+                            <h3>No reflection for <?php echo diaryEscape($calendar_month->format('F Y')); ?> yet.</h3>
+                            <p>Take a quiet moment to capture what this month has meant to you.</p>
+                            <button class="diary-button diary-new-entry-button" type="button" data-reflection-open>
+                                Write Reflection
+                            </button>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+                <form class="diary-reflection-form" action="reflection_handler.php" method="post" data-diary-reflection-editor hidden>
+                    <input type="hidden" name="month" value="<?php echo diaryEscape($displayed_month_key); ?>">
+                    <input
+                        type="hidden"
+                        name="csrf_token"
+                        value="<?php echo diaryEscape($_SESSION['diary_reflection_csrf_token']); ?>"
+                    >
+                    <input
+                        type="hidden"
+                        name="content"
+                        value="<?php echo diaryEscape($reflection_editor_content); ?>"
+                        data-reflection-content
+                    >
+
+                    <div class="diary-reflection-editor-shell">
+                        <div class="diary-reflection-toolbar" role="toolbar" aria-label="Monthly reflection formatting">
+                            <div class="diary-reflection-tool-group" aria-label="Text formatting">
+                                <button type="button" data-reflection-command="bold" aria-label="Bold" title="Bold"><strong>B</strong></button>
+                                <button type="button" data-reflection-command="italic" aria-label="Italic" title="Italic"><em>I</em></button>
+                                <button type="button" data-reflection-command="underline" aria-label="Underline" title="Underline"><u>U</u></button>
+                            </div>
+                            <div class="diary-reflection-tool-group" aria-label="Lists">
+                                <button type="button" data-reflection-command="insertUnorderedList" aria-label="Bullet list" title="Bullet list">• List</button>
+                                <button type="button" data-reflection-command="insertOrderedList" aria-label="Numbered list" title="Numbered list">1. List</button>
+                            </div>
+                            <div class="diary-reflection-tool-group" aria-label="Emoji">
+                                <button
+                                    type="button"
+                                    data-reflection-emoji-toggle
+                                    aria-label="Insert emoji"
+                                    title="Insert emoji"
+                                    aria-expanded="false"
+                                    aria-controls="diary-reflection-emoji-picker"
+                                >☺ Emoji</button>
+                            </div>
+                        </div>
+
+                        <div
+                            class="diary-reflection-emoji-picker"
+                            id="diary-reflection-emoji-picker"
+                            data-reflection-emoji-picker
+                            aria-label="Choose an emoji"
+                            hidden
+                        >
+                            <?php foreach (array('😀', '😂', '🥰', '😭', '😴', '❤️', '⭐', '🌸', '☕', '🎓', '👍', '🎉', '🌈', '💭', '🍀') as $emoji): ?>
+                                <button type="button" data-reflection-emoji="<?php echo diaryEscape($emoji); ?>" aria-label="Insert <?php echo diaryEscape($emoji); ?> emoji"><?php echo diaryEscape($emoji); ?></button>
+                            <?php endforeach; ?>
+                        </div>
+
+                        <div
+                            class="diary-reflection-editor"
+                            contenteditable="true"
+                            role="textbox"
+                            aria-label="Monthly reflection content"
+                            aria-multiline="true"
+                            aria-required="true"
+                            data-reflection-surface
+                            data-placeholder="Write your reflection for <?php echo diaryEscape($calendar_month->format('F Y')); ?>..."
+                        ><?php echo $reflection_editor_content; // Sanitized by the strict reflection allow-list. ?></div>
                     </div>
 
-                    <div
-                        class="diary-reflection-editor"
-                        contenteditable="true"
-                        role="textbox"
-                        aria-label="Monthly reflection content"
-                        aria-multiline="true"
-                        aria-required="true"
-                        data-reflection-surface
-                        data-placeholder="Write your reflection for <?php echo diaryEscape($calendar_month->format('F Y')); ?>..."
-                    ><?php echo $reflection_editor_content; // Sanitized by the strict reflection allow-list. ?></div>
-                </div>
-
-                <div class="diary-reflection-actions">
-                    <button class="diary-button diary-button-secondary" type="button" data-reflection-cancel>
-                        Cancel
-                    </button>
-                    <button class="diary-button diary-new-entry-button" type="submit">
-                        <?php echo $reflection_exists ? 'Update Reflection' : 'Save Reflection'; ?>
-                    </button>
-                </div>
-            </form>
-        </section>
+                    <div class="diary-reflection-actions">
+                        <button class="diary-button diary-button-secondary" type="button" data-reflection-cancel>
+                            Cancel
+                        </button>
+                        <button class="diary-button diary-new-entry-button" type="submit">
+                            <?php echo $reflection_exists ? 'Update Reflection' : 'Save Reflection'; ?>
+                        </button>
+                    </div>
+                </form>
+            </section>
+        </div>
 
         <?php if ($selected_date !== null && !$load_error): ?>
             <section id="selected-date-entries" class="diary-selected-date-section" aria-labelledby="selected-date-heading">

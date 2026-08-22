@@ -2965,6 +2965,7 @@
         var cancelButton = form.querySelector('[data-reflection-cancel]');
         var savedRange = null;
         var initialContent = '';
+        var activeOpenButton = null;
 
         if (!editor || !contentField || !section || !display) {
             return;
@@ -3052,27 +3053,51 @@
             emojiButton.setAttribute('aria-expanded', 'false');
         }
 
-        function openEditMode() {
+        function keepReflectionLocation() {
+            if (!window.history || typeof window.history.replaceState !== 'function') {
+                return;
+            }
+
+            window.history.replaceState(
+                window.history.state,
+                '',
+                window.location.pathname + window.location.search + '#monthly-reflection'
+            );
+        }
+
+        function openEditMode(openButton) {
+            activeOpenButton = openButton || null;
             editor.innerHTML = initialContent;
             contentField.value = initialContent;
             savedRange = null;
             closeEmojiPicker();
             display.hidden = true;
             form.hidden = false;
+            keepReflectionLocation();
             editor.focus();
         }
 
         function closeEditMode() {
+            var scrollLeft = window.pageXOffset || 0;
+            var scrollTop = window.pageYOffset || 0;
+
             editor.innerHTML = initialContent;
             contentField.value = initialContent;
             savedRange = null;
             closeEmojiPicker();
             form.hidden = true;
             display.hidden = false;
+            keepReflectionLocation();
 
-            if (openButtons.length > 0) {
-                openButtons[0].focus();
+            if (activeOpenButton) {
+                try {
+                    activeOpenButton.focus({ preventScroll: true });
+                } catch (error) {
+                    // Keep the current scroll position on older browsers.
+                }
             }
+
+            window.scrollTo(scrollLeft, scrollTop);
         }
 
         function insertEmoji(emoji) {
@@ -3152,11 +3177,16 @@
         }
 
         Array.prototype.forEach.call(openButtons, function (button) {
-            button.addEventListener('click', openEditMode);
+            button.addEventListener('click', function () {
+                openEditMode(button);
+            });
         });
 
         if (cancelButton) {
-            cancelButton.addEventListener('click', closeEditMode);
+            cancelButton.addEventListener('click', function (event) {
+                event.preventDefault();
+                closeEditMode();
+            });
         }
 
         ['focus', 'keyup', 'mouseup'].forEach(function (eventName) {
@@ -3259,6 +3289,10 @@
             node.classList.add('is-visible');
         });
 
+        if (isError) {
+            return;
+        }
+
         feedbackTimer = window.setTimeout(function () {
             node.classList.remove('is-visible');
             window.setTimeout(function () {
@@ -3266,7 +3300,7 @@
                     node.hidden = true;
                 }
             }, 180);
-        }, 3000);
+        }, 4000);
     }
 
     function removeCard(card, afterRemove) {
@@ -3492,5 +3526,173 @@
                     setFavoriteButtonsDisabled(false);
                 });
         });
+    });
+}());
+
+/* Reusable auto-dismiss behavior for standard Diary success flashes. */
+(function () {
+    'use strict';
+
+    var successFlashes = document.querySelectorAll(
+        '[data-diary-flash="success"], .diary-alert-success'
+    );
+    var dismissDelay = 4000;
+    var fadeDuration = 360;
+
+    successFlashes.forEach(function (flash) {
+        if (flash.dataset.diaryFlashDismissReady === 'true') {
+            return;
+        }
+
+        flash.dataset.diaryFlashDismissReady = 'true';
+
+        window.setTimeout(function () {
+            if (!flash.isConnected) {
+                return;
+            }
+
+            var reducedMotion = window.matchMedia
+                && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            if (reducedMotion) {
+                flash.remove();
+                return;
+            }
+
+            flash.classList.add('is-dismissing');
+
+            window.setTimeout(function () {
+                if (flash.isConnected) {
+                    flash.remove();
+                }
+            }, fadeDuration);
+        }, dismissDelay);
+    });
+}());
+
+/* Today's Corner: update the session-selected memory without reloading. */
+(function () {
+    'use strict';
+
+    var form = document.querySelector('[data-diary-memory-form]');
+
+    if (!form || !window.fetch || !window.FormData) {
+        return;
+    }
+
+    var corner = form.closest('[data-diary-memory-corner]');
+    var button = form.querySelector('button[type="submit"]');
+    var csrfInput = form.querySelector('input[name="csrf_token"]');
+    var message = corner ? corner.querySelector('[data-diary-memory-message]') : null;
+    var date = corner ? corner.querySelector('[data-diary-memory-date]') : null;
+    var moodEmoji = corner ? corner.querySelector('[data-diary-memory-mood-emoji]') : null;
+    var moodLabel = corner ? corner.querySelector('[data-diary-memory-mood-label]') : null;
+    var title = corner ? corner.querySelector('[data-diary-memory-title]') : null;
+    var preview = corner ? corner.querySelector('[data-diary-memory-preview]') : null;
+    var viewLink = corner ? corner.querySelector('[data-diary-memory-view]') : null;
+    var requestPending = false;
+
+    if (!corner || !button) {
+        return;
+    }
+
+    function showError(text) {
+        if (!message) {
+            return;
+        }
+
+        message.textContent = text || 'Another memory could not be loaded. Please try again.';
+        message.classList.add('is-error');
+        message.setAttribute('role', 'alert');
+        message.hidden = false;
+    }
+
+    function clearMessage() {
+        if (!message) {
+            return;
+        }
+
+        message.textContent = '';
+        message.classList.remove('is-error');
+        message.setAttribute('role', 'status');
+        message.hidden = true;
+    }
+
+    form.addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        if (requestPending) {
+            return;
+        }
+
+        requestPending = true;
+        clearMessage();
+        form.classList.add('is-pending');
+        corner.setAttribute('aria-busy', 'true');
+        button.disabled = true;
+
+        fetch(form.action, {
+            method: 'POST',
+            body: new FormData(form),
+            credentials: 'same-origin',
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+            .then(function (response) {
+                return response.json()
+                    .catch(function () {
+                        return null;
+                    })
+                    .then(function (payload) {
+                        if (payload && payload.csrf_token && csrfInput) {
+                            csrfInput.value = payload.csrf_token;
+                        }
+
+                        if (!response.ok || !payload || payload.success !== true || !payload.memory) {
+                            throw new Error(payload && payload.message
+                                ? payload.message
+                                : 'Another memory could not be loaded. Please try again.');
+                        }
+
+                        return payload.memory;
+                    });
+            })
+            .then(function (memory) {
+                if (date) {
+                    date.dateTime = memory.entry_date || '';
+                    date.textContent = memory.display_date || '';
+                }
+
+                if (moodEmoji) {
+                    moodEmoji.textContent = memory.mood_emoji || '';
+                }
+
+                if (moodLabel) {
+                    moodLabel.textContent = memory.mood || '';
+                }
+
+                if (title) {
+                    title.textContent = memory.title || '';
+                }
+
+                if (preview) {
+                    preview.textContent = memory.preview || '';
+                }
+
+                if (viewLink) {
+                    viewLink.href = memory.view_url || 'index.php';
+                }
+            })
+            .catch(function (error) {
+                showError(error.message);
+            })
+            .then(function () {
+                requestPending = false;
+                form.classList.remove('is-pending');
+                corner.removeAttribute('aria-busy');
+                button.disabled = false;
+            });
     });
 }());

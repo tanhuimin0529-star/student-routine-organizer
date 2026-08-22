@@ -284,6 +284,7 @@ $diary_js_version = filemtime(__DIR__ . '/../../assets/js/diary.js');
                 </div>
             </div>
 
+            <div class="diary-form-group diary-mood-section">
             <fieldset class="diary-form-group diary-mood-fieldset">
                 <legend id="diary-mood-label">Mood</legend>
                 <p class="diary-mood-help" id="diary-mood-help">Choose the feeling that best matches this entry.</p>
@@ -317,6 +318,7 @@ $diary_js_version = filemtime(__DIR__ . '/../../assets/js/diary.js');
                 </div>
                 <p class="diary-mood-client-error" id="diary-mood-error" role="alert" hidden>Please choose a mood.</p>
             </fieldset>
+            </div>
 
             <div class="diary-form-group">
                 <label for="entry_date">Entry Date</label>
@@ -330,8 +332,8 @@ $diary_js_version = filemtime(__DIR__ . '/../../assets/js/diary.js');
             </div>
 
             <div class="diary-form-actions">
-                <button type="submit">Save Entry</button>
-                <a href="index.php">Cancel / Back</a>
+                <button type="submit">Save</button>
+                <a href="index.php">Cancel</a>
             </div>
         </form>
     </main>

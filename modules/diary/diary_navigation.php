@@ -128,7 +128,7 @@ function diaryNavigationValidateCollectionTarget($value) {
     $destination = $parts['path'];
     $allowed_parameters = array(
         'index.php' => array('search', 'mood', 'sort', 'month', 'date', 'favorites'),
-        'all_entries.php' => array('search', 'mood', 'sort', 'favorites'),
+        'all_entries.php' => array('search', 'mood', 'sort', 'favorites', 'page'),
         'memory_album.php' => array()
     );
     $allowed_fragments = array(
@@ -208,6 +208,18 @@ function diaryNavigationValidateCollectionTarget($value) {
                 return null;
             }
             $canonical['favorites'] = '1';
+            continue;
+        }
+
+        if ($key === 'page') {
+            $page = diaryNavigationPositiveId($query_value);
+            if ($page === null) {
+                return null;
+            }
+            if ($page > 1) {
+                $canonical['page'] = (string) $page;
+            }
+            continue;
         }
     }
 

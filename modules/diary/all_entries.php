@@ -50,6 +50,19 @@ $sort_value = in_array($requested_sort, $allowed_sort_values, true)
     ? $requested_sort
     : 'newest';
 
+$favorites_only = isset($_GET['favorites'])
+    && is_string($_GET['favorites'])
+    && $_GET['favorites'] === '1';
+$requested_page = isset($_GET['page']) && is_string($_GET['page'])
+    ? $_GET['page']
+    : '1';
+$validated_page = filter_var(
+    $requested_page,
+    FILTER_VALIDATE_INT,
+    array('options' => array('min_range' => 1))
+);
+$current_page = $validated_page === false ? 1 : (int) $validated_page;
+
 if (empty($_SESSION['diary_delete_csrf_token'])) {
     $_SESSION['diary_delete_csrf_token'] = bin2hex(random_bytes(32));
 }
@@ -133,8 +146,24 @@ function allEntriesContainsSearch($value, $search_term) {
     return stripos($value, $search_term) !== false;
 }
 
+function allEntriesPaginationUrl($page, $parameters) {
+    $safe_parameters = is_array($parameters) ? $parameters : array();
+    $safe_page = max(1, (int) $page);
+    unset($safe_parameters['page']);
+
+    if ($safe_page > 1) {
+        $safe_parameters['page'] = (string) $safe_page;
+    }
+
+    return diaryNavigationBuildReturnTo(
+        'all_entries.php',
+        $safe_parameters,
+        'all-entries-heading'
+    );
+}
+
 $filtered_entries = $entries;
-$filters_active = $search_term !== '' || $mood_filter !== '';
+$filters_active = $search_term !== '' || $mood_filter !== '' || $favorites_only;
 
 if ($search_term !== '') {
     $filtered_entries = array_values(array_filter($filtered_entries, function ($entry) use ($search_term) {
@@ -153,6 +182,12 @@ if ($mood_filter !== '') {
         $entry_mood = isset($entry['mood']) ? $entry['mood'] : '';
 
         return $entry_mood === $mood_filter;
+    }));
+}
+
+if ($favorites_only) {
+    $filtered_entries = array_values(array_filter($filtered_entries, function ($entry) {
+        return isset($entry['is_favorite']) && (int) $entry['is_favorite'] === 1;
     }));
 }
 
@@ -191,6 +226,15 @@ usort($filtered_entries, function ($first_entry, $second_entry) use ($sort_value
 });
 
 $result_count = count($filtered_entries);
+$entries_per_page = 8;
+$total_pages = max(1, (int) ceil($result_count / $entries_per_page));
+
+if ($current_page > $total_pages) {
+    $current_page = $total_pages;
+}
+
+$page_offset = ($current_page - 1) * $entries_per_page;
+$page_entries = array_slice($filtered_entries, $page_offset, $entries_per_page);
 $all_entries_navigation_parameters = array();
 if ($search_term !== '') {
     $all_entries_navigation_parameters['search'] = $search_term;
@@ -201,8 +245,11 @@ if ($mood_filter !== '') {
 if ($sort_value !== 'newest') {
     $all_entries_navigation_parameters['sort'] = $sort_value;
 }
-if (isset($_GET['favorites']) && is_string($_GET['favorites']) && $_GET['favorites'] === '1') {
+if ($favorites_only) {
     $all_entries_navigation_parameters['favorites'] = '1';
+}
+if ($current_page > 1) {
+    $all_entries_navigation_parameters['page'] = (string) $current_page;
 }
 $all_entries_context = diaryNavigationBuildReturnTo(
     'all_entries.php',
@@ -239,6 +286,7 @@ $all_entries_context = diaryNavigationBuildReturnTo(
             <?php $delete_flash_type = isset($delete_flash['type']) && $delete_flash['type'] === 'success' ? 'success' : 'error'; ?>
             <div
                 class="diary-alert diary-alert-<?php echo allEntriesEscape($delete_flash_type); ?>"
+                data-diary-flash="<?php echo allEntriesEscape($delete_flash_type); ?>"
                 role="<?php echo $delete_flash_type === 'success' ? 'status' : 'alert'; ?>"
             >
                 <?php echo allEntriesEscape(isset($delete_flash['message']) ? $delete_flash['message'] : 'Journal entry could not be deleted.'); ?>
@@ -249,6 +297,7 @@ $all_entries_context = diaryNavigationBuildReturnTo(
             <?php $favorite_flash_type = isset($favorite_flash['type']) && $favorite_flash['type'] === 'success' ? 'success' : 'error'; ?>
             <div
                 class="diary-alert diary-alert-<?php echo allEntriesEscape($favorite_flash_type); ?>"
+                data-diary-flash="<?php echo allEntriesEscape($favorite_flash_type); ?>"
                 role="<?php echo $favorite_flash_type === 'success' ? 'status' : 'alert'; ?>"
             >
                 <?php echo allEntriesEscape(isset($favorite_flash['message']) ? $favorite_flash['message'] : 'Favorite could not be updated right now. Please try again.'); ?>
@@ -258,6 +307,9 @@ $all_entries_context = diaryNavigationBuildReturnTo(
         <section class="diary-search-panel" id="diary-filters" aria-labelledby="diary-search-heading">
             <form class="diary-search-form" action="all_entries.php#diary-filters" method="get" role="search">
                 <label id="diary-search-heading" for="search">Search journal entries</label>
+                <?php if ($favorites_only): ?>
+                    <input type="hidden" name="favorites" value="1">
+                <?php endif; ?>
 
                 <div class="diary-search-controls diary-all-entries-search-controls">
                     <input
@@ -338,7 +390,7 @@ $all_entries_context = diaryNavigationBuildReturnTo(
                     <?php endif; ?>
                 <?php else: ?>
                     <div class="diary-entry-list">
-                        <?php foreach ($filtered_entries as $entry): ?>
+                        <?php foreach ($page_entries as $entry): ?>
                             <article class="diary-journal-card">
                                 <?php allEntriesFavoriteButton($entry, $_SESSION['diary_favorite_csrf_token'], $all_entries_context); ?>
                                 <header class="diary-card-meta">
@@ -359,6 +411,31 @@ $all_entries_context = diaryNavigationBuildReturnTo(
                             </article>
                         <?php endforeach; ?>
                     </div>
+                    <?php if ($total_pages > 1): ?>
+                        <nav class="diary-pagination" aria-label="Journal entry pages">
+                            <?php if ($current_page > 1): ?>
+                                <a class="diary-pagination-link diary-pagination-direction" href="<?php echo allEntriesEscape(allEntriesPaginationUrl($current_page - 1, $all_entries_navigation_parameters)); ?>">← Previous</a>
+                            <?php else: ?>
+                                <span class="diary-pagination-link diary-pagination-direction is-disabled" aria-disabled="true">← Previous</span>
+                            <?php endif; ?>
+
+                            <div class="diary-pagination-pages">
+                                <?php for ($page_number = 1; $page_number <= $total_pages; $page_number++): ?>
+                                    <?php if ($page_number === $current_page): ?>
+                                        <span class="diary-pagination-link is-current" aria-current="page"><?php echo allEntriesEscape($page_number); ?></span>
+                                    <?php else: ?>
+                                        <a class="diary-pagination-link" href="<?php echo allEntriesEscape(allEntriesPaginationUrl($page_number, $all_entries_navigation_parameters)); ?>"><?php echo allEntriesEscape($page_number); ?></a>
+                                    <?php endif; ?>
+                                <?php endfor; ?>
+                            </div>
+
+                            <?php if ($current_page < $total_pages): ?>
+                                <a class="diary-pagination-link diary-pagination-direction" href="<?php echo allEntriesEscape(allEntriesPaginationUrl($current_page + 1, $all_entries_navigation_parameters)); ?>">Next →</a>
+                            <?php else: ?>
+                                <span class="diary-pagination-link diary-pagination-direction is-disabled" aria-disabled="true">Next →</span>
+                            <?php endif; ?>
+                        </nav>
+                    <?php endif; ?>
                 <?php endif; ?>
             </section>
         <?php endif; ?>
