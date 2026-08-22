@@ -306,6 +306,12 @@ $valid_moods = array('Happy', 'Calm', 'Neutral', 'Sad', 'Stressed');
 
 if ($title === '') {
     $errors[] = 'Title is required.';
+} elseif (
+    (function_exists('mb_strlen')
+        ? mb_strlen($title, 'UTF-8')
+        : strlen($title)) > 150
+) {
+    $errors[] = 'Title must be 150 characters or fewer.';
 }
 
 if (!$content_result['valid']) {

@@ -18,6 +18,11 @@ $reflection_flash = isset($_SESSION['diary_reflection_flash']) && is_array($_SES
     ? $_SESSION['diary_reflection_flash']
     : null;
 unset($_SESSION['diary_reflection_flash']);
+$reflection_old = isset($_SESSION['diary_reflection_old'])
+    && is_array($_SESSION['diary_reflection_old'])
+        ? $_SESSION['diary_reflection_old']
+        : null;
+unset($_SESSION['diary_reflection_old']);
 $today_memory_flash = isset($_SESSION['diary_today_memory_flash'])
     && is_string($_SESSION['diary_today_memory_flash'])
     ? $_SESSION['diary_today_memory_flash']
@@ -161,6 +166,10 @@ if ($today_memory_change_requested
 $search_term = isset($_GET['search']) && is_string($_GET['search'])
     ? trim($_GET['search'])
     : '';
+$search_error = diaryNavigationTextLength($search_term) > diaryNavigationSearchMaxLength()
+    ? 'Search keyword must be 100 characters or fewer.'
+    : '';
+$validated_search_term = $search_error === '' ? $search_term : '';
 $allowed_mood_filters = array('Happy', 'Calm', 'Neutral', 'Sad', 'Stressed');
 $mood_filter_options = array(
     '' => array('label' => 'All', 'emoji' => '🌿'),
@@ -251,9 +260,17 @@ $monthly_reflection = getDiaryMonthlyReflection(
 );
 $reflection_load_error = $monthly_reflection === false;
 $reflection_exists = is_array($monthly_reflection);
-$reflection_editor_content = $reflection_exists
+$reflection_saved_content = $reflection_exists
     ? diaryReflectionContentSanitize($monthly_reflection['content'])
     : '';
+$reflection_reopen_editor = $reflection_old !== null
+    && isset($reflection_old['month'], $reflection_old['content'])
+    && is_string($reflection_old['month'])
+    && is_string($reflection_old['content'])
+    && $reflection_old['month'] === $displayed_month_key;
+$reflection_editor_content = $reflection_reopen_editor
+    ? diaryReflectionContentSanitize($reflection_old['content'])
+    : $reflection_saved_content;
 
 if (!$reflection_exists) {
     $monthly_reflection = null;
@@ -460,19 +477,19 @@ function diaryContainsSearch($value, $search_term) {
 }
 
 $filter_results = array();
-$filters_active = $search_term !== '' || $mood_filter !== '' || $sort_value !== 'newest';
+$filters_active = $validated_search_term !== '' || $mood_filter !== '' || $sort_value !== 'newest';
 
 if ($filters_active) {
-    $filter_results = array_values(array_filter($entries, function ($entry) use ($search_term, $mood_filter) {
+    $filter_results = array_values(array_filter($entries, function ($entry) use ($validated_search_term, $mood_filter) {
         $title = isset($entry['title']) ? $entry['title'] : '';
         $content = isset($entry['content'])
             ? diaryContentToPlainText($entry['content'])
             : '';
         $entry_mood = isset($entry['mood']) ? $entry['mood'] : '';
 
-        $matches_search = $search_term === ''
-            || diaryContainsSearch($title, $search_term)
-            || diaryContainsSearch($content, $search_term);
+        $matches_search = $validated_search_term === ''
+            || diaryContainsSearch($title, $validated_search_term)
+            || diaryContainsSearch($content, $validated_search_term);
         $matches_mood = $mood_filter === '' || $entry_mood === $mood_filter;
 
         return $matches_search && $matches_mood;
@@ -519,8 +536,8 @@ $diary_navigation_parameters = array(
 if ($selected_date !== null) {
     $diary_navigation_parameters['date'] = $selected_date;
 }
-if ($search_term !== '') {
-    $diary_navigation_parameters['search'] = $search_term;
+if ($validated_search_term !== '') {
+    $diary_navigation_parameters['search'] = $validated_search_term;
 }
 if ($mood_filter !== '') {
     $diary_navigation_parameters['mood'] = $mood_filter;
@@ -566,8 +583,8 @@ $today_corner_return_parameters = array('month' => $calendar_month->format('Y-m'
 if ($selected_date !== null) {
     $today_corner_return_parameters['date'] = $selected_date;
 }
-if ($search_term !== '') {
-    $today_corner_return_parameters['search'] = $search_term;
+if ($validated_search_term !== '') {
+    $today_corner_return_parameters['search'] = $validated_search_term;
 }
 if ($mood_filter !== '') {
     $today_corner_return_parameters['mood'] = $mood_filter;
@@ -762,6 +779,11 @@ if ($today_memory_change_requested) {
         </section>
 
         <section id="diary-filters" class="diary-search-panel" aria-labelledby="diary-home-search-heading">
+            <?php if ($search_error !== ''): ?>
+                <div class="diary-alert diary-alert-error" role="alert">
+                    <?php echo diaryEscape($search_error); ?>
+                </div>
+            <?php endif; ?>
             <form class="diary-search-form" action="index.php#diary-filters" method="get" role="search">
                 <label id="diary-home-search-heading" for="search">Search journal entries</label>
                 <input type="hidden" name="month" value="<?php echo diaryEscape($calendar_month->format('Y-m')); ?>">
@@ -773,6 +795,7 @@ if ($today_memory_change_requested) {
                         type="search"
                         id="search"
                         name="search"
+                        maxlength="100"
                         value="<?php echo diaryEscape($search_term); ?>"
                         placeholder="Search by title or content"
                     >
@@ -861,7 +884,7 @@ if ($today_memory_change_requested) {
                 <nav class="diary-calendar-navigation" aria-label="Calendar month navigation">
                     <a
                         class="diary-calendar-nav-button"
-                        href="index.php?month=<?php echo rawurlencode($previous_calendar_month->format('Y-m')); ?><?php echo $search_term !== '' ? '&amp;search=' . rawurlencode($search_term) : ''; ?><?php echo $mood_filter !== '' ? '&amp;mood=' . rawurlencode($mood_filter) : ''; ?><?php echo $sort_value !== 'newest' ? '&amp;sort=' . rawurlencode($sort_value) : ''; ?>#journal-calendar"
+                        href="index.php?month=<?php echo rawurlencode($previous_calendar_month->format('Y-m')); ?><?php echo $validated_search_term !== '' ? '&amp;search=' . rawurlencode($validated_search_term) : ''; ?><?php echo $mood_filter !== '' ? '&amp;mood=' . rawurlencode($mood_filter) : ''; ?><?php echo $sort_value !== 'newest' ? '&amp;sort=' . rawurlencode($sort_value) : ''; ?>#journal-calendar"
                         aria-label="Previous month: <?php echo diaryEscape($previous_calendar_month->format('F Y')); ?>"
                     >
                         ← <?php echo diaryEscape($previous_calendar_month->format('F')); ?>
@@ -872,7 +895,7 @@ if ($today_memory_change_requested) {
                     </p>
                     <a
                         class="diary-calendar-nav-button"
-                        href="index.php?month=<?php echo rawurlencode($next_calendar_month->format('Y-m')); ?><?php echo $search_term !== '' ? '&amp;search=' . rawurlencode($search_term) : ''; ?><?php echo $mood_filter !== '' ? '&amp;mood=' . rawurlencode($mood_filter) : ''; ?><?php echo $sort_value !== 'newest' ? '&amp;sort=' . rawurlencode($sort_value) : ''; ?>#journal-calendar"
+                        href="index.php?month=<?php echo rawurlencode($next_calendar_month->format('Y-m')); ?><?php echo $validated_search_term !== '' ? '&amp;search=' . rawurlencode($validated_search_term) : ''; ?><?php echo $mood_filter !== '' ? '&amp;mood=' . rawurlencode($mood_filter) : ''; ?><?php echo $sort_value !== 'newest' ? '&amp;sort=' . rawurlencode($sort_value) : ''; ?>#journal-calendar"
                         aria-label="Next month: <?php echo diaryEscape($next_calendar_month->format('F Y')); ?>"
                     >
                         <?php echo diaryEscape($next_calendar_month->format('F')); ?> →
@@ -899,7 +922,7 @@ if ($today_memory_change_requested) {
                     >
                         <a
                             class="diary-calendar-day-link"
-                            href="index.php?month=<?php echo rawurlencode($calendar_month->format('Y-m')); ?>&amp;date=<?php echo rawurlencode($calendar_date_key); ?><?php echo $search_term !== '' ? '&amp;search=' . rawurlencode($search_term) : ''; ?><?php echo $mood_filter !== '' ? '&amp;mood=' . rawurlencode($mood_filter) : ''; ?><?php echo $sort_value !== 'newest' ? '&amp;sort=' . rawurlencode($sort_value) : ''; ?>#selected-date-entries"
+                            href="index.php?month=<?php echo rawurlencode($calendar_month->format('Y-m')); ?>&amp;date=<?php echo rawurlencode($calendar_date_key); ?><?php echo $validated_search_term !== '' ? '&amp;search=' . rawurlencode($validated_search_term) : ''; ?><?php echo $mood_filter !== '' ? '&amp;mood=' . rawurlencode($mood_filter) : ''; ?><?php echo $sort_value !== 'newest' ? '&amp;sort=' . rawurlencode($sort_value) : ''; ?>#selected-date-entries"
                             aria-label="<?php echo diaryEscape($calendar_day_label); ?>"
                             <?php echo $selected_date === $calendar_date_key ? 'aria-current="date"' : ''; ?>
                         >
@@ -1051,12 +1074,24 @@ if ($today_memory_change_requested) {
                     <?php endif; ?>
                 </div>
 
-                <form class="diary-reflection-form" action="reflection_handler.php" method="post" data-diary-reflection-editor hidden>
+                <form
+                    class="diary-reflection-form"
+                    action="reflection_handler.php"
+                    method="post"
+                    data-diary-reflection-editor
+                    data-reflection-reopen="<?php echo $reflection_reopen_editor ? 'true' : 'false'; ?>"
+                    hidden
+                >
                     <input type="hidden" name="month" value="<?php echo diaryEscape($displayed_month_key); ?>">
                     <input
                         type="hidden"
                         name="csrf_token"
                         value="<?php echo diaryEscape($_SESSION['diary_reflection_csrf_token']); ?>"
+                    >
+                    <input
+                        type="hidden"
+                        value="<?php echo diaryEscape($reflection_saved_content); ?>"
+                        data-reflection-saved-content
                     >
                     <input
                         type="hidden"

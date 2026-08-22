@@ -52,7 +52,10 @@ if ($entry !== null && $use_flash) {
 
 $editor_content = isset($form_values['content']) ? $form_values['content'] : '';
 if (diaryContentIsRich($editor_content)) {
-    $editor_content = diaryContentSanitizeRichHtml(diaryContentRichBody($editor_content));
+    $editor_content = diaryContentSanitizeRichHtml(
+        diaryContentRichBody($editor_content),
+        $logged_in_user_id
+    );
 }
 
 if (empty($_SESSION['diary_edit_csrf_token'])) {

@@ -213,7 +213,7 @@ function diaryViewMoodEmoji($mood) {
                     </header>
 
                     <div class="diary-reading-content">
-                        <?php echo diaryContentRenderSafeHtml($entry['content']); ?>
+                        <?php echo diaryContentRenderSafeHtml($entry['content'], $logged_in_user_id); ?>
                     </div>
 
                     <div class="diary-reading-page-mark">— Personal Journal —</div>

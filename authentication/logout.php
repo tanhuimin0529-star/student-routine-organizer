@@ -6,24 +6,30 @@
 
 require_once __DIR__ . "/../includes/session_start.php";
 
-// Clear all session variables
+// Clear all authenticated session data.
 $_SESSION = array();
 
-// Remove the session cookie when PHP sessions use cookies
+// Expire the session cookie with the same active parameters used to create it.
 if (ini_get("session.use_cookies")) {
     $cookie_params = session_get_cookie_params();
-    setcookie(
-        session_name(),
-        "",
-        time() - 42000,
-        $cookie_params["path"],
-        $cookie_params["domain"],
-        $cookie_params["secure"],
-        $cookie_params["httponly"]
+    $expired_cookie = array(
+        'expires' => time() - 42000,
+        'path' => $cookie_params['path'],
+        'secure' => $cookie_params['secure'],
+        'httponly' => $cookie_params['httponly'],
+        'samesite' => isset($cookie_params['samesite'])
+            ? $cookie_params['samesite']
+            : 'Lax'
     );
+
+    if ($cookie_params['domain'] !== '') {
+        $expired_cookie['domain'] = $cookie_params['domain'];
+    }
+
+    setcookie(session_name(), "", $expired_cookie);
 }
 
-// Destroy the session itself
+// Destroy the server-side session itself.
 session_destroy();
 
 header("Location: login.php?msg=loggedout");

@@ -7,6 +7,10 @@
  * unapproved query parameter. This keeps navigation context reusable across
  * View, Edit, Favorite, and Delete without creating an open redirect.
  */
+function diaryNavigationSearchMaxLength() {
+    return 100;
+}
+
 function diaryNavigationSanitizeReturnTo($value, $fallback = 'index.php') {
     $safe_value = diaryNavigationValidateCollectionTarget($value);
     if ($safe_value !== null) {
@@ -164,7 +168,10 @@ function diaryNavigationValidateCollectionTarget($value) {
     foreach ($query as $key => $query_value) {
         if ($key === 'search') {
             $search = trim($query_value);
-            if ($search === '' || diaryNavigationTextLength($search) > 500) {
+            if (
+                $search === ''
+                || diaryNavigationTextLength($search) > diaryNavigationSearchMaxLength()
+            ) {
                 return null;
             }
             $canonical['search'] = $search;

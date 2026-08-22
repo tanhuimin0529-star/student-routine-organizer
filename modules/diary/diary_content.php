@@ -990,14 +990,17 @@ function diaryContentAddDrawingPresentationStyles($sanitized_html) {
     return trim($rendered);
 }
 
-function diaryContentRenderSafeHtml($stored_content) {
+function diaryContentRenderSafeHtml($stored_content, $image_user_id = null) {
     $stored_content = (string) $stored_content;
 
     if (!diaryContentIsRich($stored_content)) {
         return diaryContentLegacyToSafeHtml($stored_content);
     }
 
-    $sanitized = diaryContentSanitizeRichHtml(diaryContentRichBody($stored_content));
+    $sanitized = diaryContentSanitizeRichHtml(
+        diaryContentRichBody($stored_content),
+        $image_user_id
+    );
 
     return diaryContentAddDrawingPresentationStyles($sanitized);
 }

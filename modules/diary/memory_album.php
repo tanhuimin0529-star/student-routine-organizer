@@ -24,6 +24,7 @@ $album_photos = diaryMemoryAlbumExtractPhotos(
 );
 $photos_by_month = diaryMemoryAlbumGroupPhotosByMonth($album_photos);
 $diary_css_version = filemtime(__DIR__ . '/../../assets/css/diary.css');
+$diary_js_version = filemtime(__DIR__ . '/../../assets/js/diary.js');
 
 function memoryAlbumEscape($value) {
     return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
@@ -64,6 +65,7 @@ function memoryAlbumMoodEmoji($mood) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Memory Album</title>
     <link rel="stylesheet" href="../../assets/css/diary.css?v=<?php echo rawurlencode((string) $diary_css_version); ?>">
+    <script src="../../assets/js/diary.js?v=<?php echo rawurlencode((string) $diary_js_version); ?>" defer></script>
 </head>
 <body class="diary-page diary-memory-album-page">
     <main class="diary-container diary-memory-album-container">
@@ -82,6 +84,7 @@ function memoryAlbumMoodEmoji($mood) {
             <?php $delete_flash_type = isset($delete_flash['type']) && $delete_flash['type'] === 'success' ? 'success' : 'error'; ?>
             <div
                 class="diary-alert diary-alert-<?php echo memoryAlbumEscape($delete_flash_type); ?>"
+                data-diary-flash="<?php echo memoryAlbumEscape($delete_flash_type); ?>"
                 role="<?php echo $delete_flash_type === 'success' ? 'status' : 'alert'; ?>"
             >
                 <?php echo memoryAlbumEscape(isset($delete_flash['message']) ? $delete_flash['message'] : 'Journal entry could not be deleted right now. Please try again.'); ?>

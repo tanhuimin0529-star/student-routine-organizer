@@ -2955,6 +2955,7 @@
     reflectionForms.forEach(function (form) {
         var editor = form.querySelector('[data-reflection-surface]');
         var contentField = form.querySelector('[data-reflection-content]');
+        var savedContentField = form.querySelector('[data-reflection-saved-content]');
         var commandButtons = form.querySelectorAll('[data-reflection-command]');
         var emojiButton = form.querySelector('[data-reflection-emoji-toggle]');
         var emojiPicker = form.querySelector('[data-reflection-emoji-picker]');
@@ -2965,6 +2966,7 @@
         var cancelButton = form.querySelector('[data-reflection-cancel]');
         var savedRange = null;
         var initialContent = '';
+        var shouldReopen = form.getAttribute('data-reflection-reopen') === 'true';
         var activeOpenButton = null;
 
         if (!editor || !contentField || !section || !display) {
@@ -3199,9 +3201,24 @@
         form.addEventListener('submit', synchronizeContent);
 
         synchronizeContent();
-        initialContent = contentField.value;
-        form.hidden = true;
-        display.hidden = false;
+        var restoredContent = contentField.value;
+        initialContent = savedContentField
+            ? savedContentField.value
+            : restoredContent;
+
+        if (shouldReopen) {
+            editor.innerHTML = restoredContent;
+            contentField.value = restoredContent;
+            form.hidden = false;
+            display.hidden = true;
+            keepReflectionLocation();
+            editor.focus();
+        } else {
+            editor.innerHTML = initialContent;
+            contentField.value = initialContent;
+            form.hidden = true;
+            display.hidden = false;
+        }
     });
 }());
 (function () {
@@ -3389,12 +3406,31 @@
         }
     }
 
-    function updateFavoritesOnlyCollection(diaryId, isFavorite) {
+    function favoritesPageUrl(page) {
+        try {
+            var url = new URL(window.location.href);
+
+            if (page > 1) {
+                url.searchParams.set('page', String(page));
+            } else {
+                url.searchParams.delete('page');
+            }
+
+            url.hash = 'all-entries-heading';
+            return url.href;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function updateFavoritesOnlyCollection(diaryId, isFavorite, serverResultCount) {
         if (isFavorite || !favoritesOnlyCollectionActive()) {
             return;
         }
 
+        var library = document.querySelector('.diary-all-entries-page .diary-library');
         var cards = [];
+
         document.querySelectorAll('.diary-all-entries-page .diary-journal-card').forEach(function (card) {
             var form = card.querySelector('form.diary-favorite-form');
             if (form && formDiaryId(form) === diaryId) {
@@ -3402,8 +3438,32 @@
             }
         });
 
-        if (cards.length === 0) {
+        if (!library || cards.length === 0) {
             return;
+        }
+
+        var previousResultCount = parseInt(library.getAttribute('data-diary-result-count'), 10);
+        var previousTotalPages = parseInt(library.getAttribute('data-diary-total-pages'), 10);
+        var currentPage = parseInt(library.getAttribute('data-diary-current-page'), 10);
+        var entriesPerPage = parseInt(library.getAttribute('data-diary-entries-per-page'), 10);
+        var hasServerCount = typeof serverResultCount === 'number'
+            && isFinite(serverResultCount)
+            && serverResultCount >= 0;
+        var updatedResultCount = hasServerCount
+            ? Math.floor(serverResultCount)
+            : Math.max(0, (isFinite(previousResultCount) ? previousResultCount : cards.length) - 1);
+
+        if (!isFinite(currentPage) || currentPage < 1) {
+            currentPage = 1;
+        }
+        if (!isFinite(entriesPerPage) || entriesPerPage < 1) {
+            entriesPerPage = 8;
+        }
+        if (!isFinite(previousTotalPages) || previousTotalPages < 1) {
+            previousTotalPages = Math.max(1, Math.ceil(
+                (isFinite(previousResultCount) ? previousResultCount : updatedResultCount + 1)
+                / entriesPerPage
+            ));
         }
 
         var pendingRemovals = cards.length;
@@ -3414,21 +3474,34 @@
                     return;
                 }
 
-                var remainingCards = document.querySelectorAll('.diary-all-entries-page .diary-journal-card').length;
-                var resultCount = document.querySelector('.diary-all-entries-page .diary-result-count');
-                var entryList = document.querySelector('.diary-all-entries-page .diary-library .diary-entry-list');
+                var remainingCards = library.querySelectorAll('.diary-journal-card').length;
+                var resultCount = library.querySelector('.diary-result-count');
+                var entryList = library.querySelector('.diary-entry-list');
+                var pagination = library.querySelector('.diary-pagination');
+                var updatedTotalPages = Math.max(
+                    1,
+                    Math.ceil(updatedResultCount / entriesPerPage)
+                );
+
+                library.setAttribute('data-diary-result-count', String(updatedResultCount));
+                library.setAttribute('data-diary-total-pages', String(updatedTotalPages));
 
                 if (resultCount) {
-                    resultCount.textContent = remainingCards + (remainingCards === 1
-                        ? ' Favorite Entry'
-                        : ' Favorite Entries');
+                    var singular = resultCount.getAttribute('data-diary-count-singular') || 'Matching Entry';
+                    var plural = resultCount.getAttribute('data-diary-count-plural') || 'Matching Entries';
+                    resultCount.textContent = updatedResultCount + ' '
+                        + (updatedResultCount === 1 ? singular : plural);
                 }
 
-                if (remainingCards === 0 && entryList) {
-                    var library = entryList.closest('.diary-library');
-                    entryList.remove();
+                if (updatedResultCount === 0) {
+                    if (entryList) {
+                        entryList.remove();
+                    }
+                    if (pagination) {
+                        pagination.remove();
+                    }
 
-                    if (library && !library.querySelector('.diary-favorite-ajax-empty')) {
+                    if (!library.querySelector('.diary-favorite-ajax-empty')) {
                         var empty = document.createElement('section');
                         var heading = document.createElement('h2');
                         var message = document.createElement('p');
@@ -3438,6 +3511,19 @@
                         empty.appendChild(heading);
                         empty.appendChild(message);
                         library.appendChild(empty);
+                    }
+                    return;
+                }
+
+                if (remainingCards === 0
+                    || currentPage > updatedTotalPages
+                    || updatedTotalPages !== previousTotalPages
+                ) {
+                    var safePage = Math.min(currentPage, updatedTotalPages);
+                    var target = favoritesPageUrl(safePage);
+
+                    if (target) {
+                        window.location.assign(target);
                     }
                 }
             });
@@ -3514,7 +3600,7 @@
                     var isFavorite = payload.favorite === 1;
                     updateFavoriteState(diaryId, isFavorite);
                     updateHomeFavoritesPreview(diaryId, isFavorite);
-                    updateFavoritesOnlyCollection(diaryId, isFavorite);
+                    updateFavoritesOnlyCollection(diaryId, isFavorite, payload.result_count);
                     showFavoriteFeedback(payload.message, false);
                 })
                 .catch(function (error) {

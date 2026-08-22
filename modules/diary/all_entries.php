@@ -25,6 +25,10 @@ if ($load_error) {
 $search_term = isset($_GET['search']) && is_string($_GET['search'])
     ? trim($_GET['search'])
     : '';
+$search_error = diaryNavigationTextLength($search_term) > diaryNavigationSearchMaxLength()
+    ? 'Search keyword must be 100 characters or fewer.'
+    : '';
+$validated_search_term = $search_error === '' ? $search_term : '';
 
 $allowed_mood_filters = array('Happy', 'Calm', 'Neutral', 'Sad', 'Stressed');
 $mood_filter_options = array(
@@ -163,17 +167,17 @@ function allEntriesPaginationUrl($page, $parameters) {
 }
 
 $filtered_entries = $entries;
-$filters_active = $search_term !== '' || $mood_filter !== '' || $favorites_only;
+$filters_active = $validated_search_term !== '' || $mood_filter !== '' || $favorites_only;
 
-if ($search_term !== '') {
-    $filtered_entries = array_values(array_filter($filtered_entries, function ($entry) use ($search_term) {
+if ($validated_search_term !== '') {
+    $filtered_entries = array_values(array_filter($filtered_entries, function ($entry) use ($validated_search_term) {
         $title = isset($entry['title']) ? $entry['title'] : '';
         $content = isset($entry['content'])
             ? diaryContentToPlainText($entry['content'])
             : '';
 
-        return allEntriesContainsSearch($title, $search_term)
-            || allEntriesContainsSearch($content, $search_term);
+        return allEntriesContainsSearch($title, $validated_search_term)
+            || allEntriesContainsSearch($content, $validated_search_term);
     }));
 }
 
@@ -236,8 +240,8 @@ if ($current_page > $total_pages) {
 $page_offset = ($current_page - 1) * $entries_per_page;
 $page_entries = array_slice($filtered_entries, $page_offset, $entries_per_page);
 $all_entries_navigation_parameters = array();
-if ($search_term !== '') {
-    $all_entries_navigation_parameters['search'] = $search_term;
+if ($validated_search_term !== '') {
+    $all_entries_navigation_parameters['search'] = $validated_search_term;
 }
 if ($mood_filter !== '') {
     $all_entries_navigation_parameters['mood'] = $mood_filter;
@@ -305,6 +309,11 @@ $all_entries_context = diaryNavigationBuildReturnTo(
         <?php endif; ?>
 
         <section class="diary-search-panel" id="diary-filters" aria-labelledby="diary-search-heading">
+            <?php if ($search_error !== ''): ?>
+                <div class="diary-alert diary-alert-error" role="alert">
+                    <?php echo allEntriesEscape($search_error); ?>
+                </div>
+            <?php endif; ?>
             <form class="diary-search-form" action="all_entries.php#diary-filters" method="get" role="search">
                 <label id="diary-search-heading" for="search">Search journal entries</label>
                 <?php if ($favorites_only): ?>
@@ -316,6 +325,7 @@ $all_entries_context = diaryNavigationBuildReturnTo(
                         type="search"
                         id="search"
                         name="search"
+                        maxlength="100"
                         value="<?php echo allEntriesEscape($search_term); ?>"
                         placeholder="Search by title or content"
                     >
@@ -356,13 +366,24 @@ $all_entries_context = diaryNavigationBuildReturnTo(
                 Your journal entries could not be loaded right now. Please try again later.
             </div>
         <?php else: ?>
-            <section class="diary-library" aria-labelledby="all-entries-heading">
+            <section
+                class="diary-library"
+                aria-labelledby="all-entries-heading"
+                data-diary-result-count="<?php echo allEntriesEscape($result_count); ?>"
+                data-diary-current-page="<?php echo allEntriesEscape($current_page); ?>"
+                data-diary-total-pages="<?php echo allEntriesEscape($total_pages); ?>"
+                data-diary-entries-per-page="<?php echo allEntriesEscape($entries_per_page); ?>"
+            >
                 <div class="diary-section-heading">
                     <div>
                         <p class="diary-eyebrow">Your Collection</p>
                         <h2 id="all-entries-heading">Complete Journal Collection</h2>
                     </div>
-                    <p class="diary-result-count">
+                    <p
+                        class="diary-result-count"
+                        data-diary-count-singular="<?php echo $filters_active ? 'Matching Entry' : 'Entry'; ?>"
+                        data-diary-count-plural="<?php echo $filters_active ? 'Matching Entries' : 'Entries'; ?>"
+                    >
                         <?php echo allEntriesEscape($result_count); ?>
                         <?php if ($filters_active): ?>
                             <?php echo $result_count === 1 ? 'Matching Entry' : 'Matching Entries'; ?>

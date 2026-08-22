@@ -8,6 +8,24 @@
 // ===================================================================
 
 /**
+ * Record a technical database failure in the private PHP error log.
+ *
+ * Callers receive only each model function's documented false result.
+ */
+function diaryModelLogDatabaseException($operation, $exception) {
+    $log_message = str_replace(array("\r", "\n"), " ", $exception->getMessage());
+
+    error_log(
+        "[Diary database] "
+        . $operation
+        . " failed (mysqli error "
+        . (int) $exception->getCode()
+        . "): "
+        . $log_message
+    );
+}
+
+/**
  * Return all diary entries owned by one user.
  *
  * @return array|false Array of entries (possibly empty), or false on a
@@ -18,31 +36,38 @@ function getDiaryEntriesForUser($conn, $user_id) {
             FROM diary_entries
             WHERE user_id = ?
             ORDER BY entry_date DESC, created_at DESC";
+    $stmt = null;
 
-    $stmt = mysqli_prepare($conn, $sql);
-    if (!$stmt) {
+    try {
+        $stmt = mysqli_prepare($conn, $sql);
+        if (!$stmt) {
+            return false;
+        }
+
+        mysqli_stmt_bind_param($stmt, "i", $user_id);
+        if (!mysqli_stmt_execute($stmt)) {
+            return false;
+        }
+
+        $result = mysqli_stmt_get_result($stmt);
+        if (!$result) {
+            return false;
+        }
+
+        $entries = array();
+        while ($row = mysqli_fetch_assoc($result)) {
+            $entries[] = $row;
+        }
+
+        return $entries;
+    } catch (mysqli_sql_exception $exception) {
+        diaryModelLogDatabaseException("get diary entries", $exception);
         return false;
+    } finally {
+        if ($stmt instanceof mysqli_stmt) {
+            mysqli_stmt_close($stmt);
+        }
     }
-
-    mysqli_stmt_bind_param($stmt, "i", $user_id);
-    if (!mysqli_stmt_execute($stmt)) {
-        mysqli_stmt_close($stmt);
-        return false;
-    }
-
-    $result = mysqli_stmt_get_result($stmt);
-    if (!$result) {
-        mysqli_stmt_close($stmt);
-        return false;
-    }
-
-    $entries = array();
-    while ($row = mysqli_fetch_assoc($result)) {
-        $entries[] = $row;
-    }
-
-    mysqli_stmt_close($stmt);
-    return $entries;
 }
 
 /**
@@ -56,28 +81,34 @@ function getDiaryEntryById($conn, $diary_id, $user_id) {
             FROM diary_entries
             WHERE diary_id = ? AND user_id = ?
             LIMIT 1";
+    $stmt = null;
 
-    $stmt = mysqli_prepare($conn, $sql);
-    if (!$stmt) {
+    try {
+        $stmt = mysqli_prepare($conn, $sql);
+        if (!$stmt) {
+            return false;
+        }
+
+        mysqli_stmt_bind_param($stmt, "ii", $diary_id, $user_id);
+        if (!mysqli_stmt_execute($stmt)) {
+            return false;
+        }
+
+        $result = mysqli_stmt_get_result($stmt);
+        if (!$result) {
+            return false;
+        }
+
+        $entry = mysqli_fetch_assoc($result);
+        return $entry ? $entry : null;
+    } catch (mysqli_sql_exception $exception) {
+        diaryModelLogDatabaseException("get diary entry", $exception);
         return false;
+    } finally {
+        if ($stmt instanceof mysqli_stmt) {
+            mysqli_stmt_close($stmt);
+        }
     }
-
-    mysqli_stmt_bind_param($stmt, "ii", $diary_id, $user_id);
-    if (!mysqli_stmt_execute($stmt)) {
-        mysqli_stmt_close($stmt);
-        return false;
-    }
-
-    $result = mysqli_stmt_get_result($stmt);
-    if (!$result) {
-        mysqli_stmt_close($stmt);
-        return false;
-    }
-
-    $entry = mysqli_fetch_assoc($result);
-    mysqli_stmt_close($stmt);
-
-    return $entry ? $entry : null;
 }
 
 /**
@@ -93,28 +124,34 @@ function getDiaryMonthlyReflection($conn, $user_id, $reflection_month) {
             FROM diary_monthly_reflections
             WHERE user_id = ? AND reflection_month = ?
             LIMIT 1";
+    $stmt = null;
 
-    $stmt = mysqli_prepare($conn, $sql);
-    if (!$stmt) {
+    try {
+        $stmt = mysqli_prepare($conn, $sql);
+        if (!$stmt) {
+            return false;
+        }
+
+        mysqli_stmt_bind_param($stmt, "is", $user_id, $reflection_month);
+        if (!mysqli_stmt_execute($stmt)) {
+            return false;
+        }
+
+        $result = mysqli_stmt_get_result($stmt);
+        if (!$result) {
+            return false;
+        }
+
+        $reflection = mysqli_fetch_assoc($result);
+        return $reflection ? $reflection : null;
+    } catch (mysqli_sql_exception $exception) {
+        diaryModelLogDatabaseException("get monthly reflection", $exception);
         return false;
+    } finally {
+        if ($stmt instanceof mysqli_stmt) {
+            mysqli_stmt_close($stmt);
+        }
     }
-
-    mysqli_stmt_bind_param($stmt, "is", $user_id, $reflection_month);
-    if (!mysqli_stmt_execute($stmt)) {
-        mysqli_stmt_close($stmt);
-        return false;
-    }
-
-    $result = mysqli_stmt_get_result($stmt);
-    if (!$result) {
-        mysqli_stmt_close($stmt);
-        return false;
-    }
-
-    $reflection = mysqli_fetch_assoc($result);
-    mysqli_stmt_close($stmt);
-
-    return $reflection ? $reflection : null;
 }
 
 /**
@@ -129,17 +166,24 @@ function saveDiaryMonthlyReflection($conn, $user_id, $reflection_month, $content
     $sql = "INSERT INTO diary_monthly_reflections (user_id, reflection_month, content)
             VALUES (?, ?, ?)
             ON DUPLICATE KEY UPDATE content = VALUES(content)";
+    $stmt = null;
 
-    $stmt = mysqli_prepare($conn, $sql);
-    if (!$stmt) {
+    try {
+        $stmt = mysqli_prepare($conn, $sql);
+        if (!$stmt) {
+            return false;
+        }
+
+        mysqli_stmt_bind_param($stmt, "iss", $user_id, $reflection_month, $content);
+        return mysqli_stmt_execute($stmt);
+    } catch (mysqli_sql_exception $exception) {
+        diaryModelLogDatabaseException("save monthly reflection", $exception);
         return false;
+    } finally {
+        if ($stmt instanceof mysqli_stmt) {
+            mysqli_stmt_close($stmt);
+        }
     }
-
-    mysqli_stmt_bind_param($stmt, "iss", $user_id, $reflection_month, $content);
-    $success = mysqli_stmt_execute($stmt);
-    mysqli_stmt_close($stmt);
-
-    return $success;
 }
 
 /**
@@ -150,21 +194,28 @@ function saveDiaryMonthlyReflection($conn, $user_id, $reflection_month, $content
 function createDiaryEntry($conn, $user_id, $title, $content, $mood, $entry_date) {
     $sql = "INSERT INTO diary_entries (user_id, title, content, mood, entry_date)
             VALUES (?, ?, ?, ?, ?)";
+    $stmt = null;
 
-    $stmt = mysqli_prepare($conn, $sql);
-    if (!$stmt) {
+    try {
+        $stmt = mysqli_prepare($conn, $sql);
+        if (!$stmt) {
+            return false;
+        }
+
+        mysqli_stmt_bind_param($stmt, "issss", $user_id, $title, $content, $mood, $entry_date);
+        if (!mysqli_stmt_execute($stmt)) {
+            return false;
+        }
+
+        return mysqli_insert_id($conn);
+    } catch (mysqli_sql_exception $exception) {
+        diaryModelLogDatabaseException("create diary entry", $exception);
         return false;
+    } finally {
+        if ($stmt instanceof mysqli_stmt) {
+            mysqli_stmt_close($stmt);
+        }
     }
-
-    mysqli_stmt_bind_param($stmt, "issss", $user_id, $title, $content, $mood, $entry_date);
-    if (!mysqli_stmt_execute($stmt)) {
-        mysqli_stmt_close($stmt);
-        return false;
-    }
-
-    $diary_id = mysqli_insert_id($conn);
-    mysqli_stmt_close($stmt);
-    return $diary_id;
 }
 
 /**
@@ -178,21 +229,28 @@ function updateDiaryEntry($conn, $diary_id, $user_id, $title, $content, $mood, $
     $sql = "UPDATE diary_entries
             SET title = ?, content = ?, mood = ?, entry_date = ?
             WHERE diary_id = ? AND user_id = ?";
+    $stmt = null;
 
-    $stmt = mysqli_prepare($conn, $sql);
-    if (!$stmt) {
+    try {
+        $stmt = mysqli_prepare($conn, $sql);
+        if (!$stmt) {
+            return false;
+        }
+
+        mysqli_stmt_bind_param($stmt, "ssssii", $title, $content, $mood, $entry_date, $diary_id, $user_id);
+        if (!mysqli_stmt_execute($stmt)) {
+            return false;
+        }
+
+        return mysqli_stmt_affected_rows($stmt);
+    } catch (mysqli_sql_exception $exception) {
+        diaryModelLogDatabaseException("update diary entry", $exception);
         return false;
+    } finally {
+        if ($stmt instanceof mysqli_stmt) {
+            mysqli_stmt_close($stmt);
+        }
     }
-
-    mysqli_stmt_bind_param($stmt, "ssssii", $title, $content, $mood, $entry_date, $diary_id, $user_id);
-    if (!mysqli_stmt_execute($stmt)) {
-        mysqli_stmt_close($stmt);
-        return false;
-    }
-
-    $affected_rows = mysqli_stmt_affected_rows($stmt);
-    mysqli_stmt_close($stmt);
-    return $affected_rows;
 }
 
 /**
@@ -212,21 +270,28 @@ function setDiaryEntryFavorite($conn, $diary_id, $user_id, $favorite) {
     $sql = "UPDATE diary_entries
             SET is_favorite = ?, updated_at = updated_at
             WHERE diary_id = ? AND user_id = ?";
+    $stmt = null;
 
-    $stmt = mysqli_prepare($conn, $sql);
-    if (!$stmt) {
+    try {
+        $stmt = mysqli_prepare($conn, $sql);
+        if (!$stmt) {
+            return false;
+        }
+
+        mysqli_stmt_bind_param($stmt, "iii", $favorite, $diary_id, $user_id);
+        if (!mysqli_stmt_execute($stmt)) {
+            return false;
+        }
+
+        return mysqli_stmt_affected_rows($stmt);
+    } catch (mysqli_sql_exception $exception) {
+        diaryModelLogDatabaseException("set diary favorite", $exception);
         return false;
+    } finally {
+        if ($stmt instanceof mysqli_stmt) {
+            mysqli_stmt_close($stmt);
+        }
     }
-
-    mysqli_stmt_bind_param($stmt, "iii", $favorite, $diary_id, $user_id);
-    if (!mysqli_stmt_execute($stmt)) {
-        mysqli_stmt_close($stmt);
-        return false;
-    }
-
-    $affected_rows = mysqli_stmt_affected_rows($stmt);
-    mysqli_stmt_close($stmt);
-    return $affected_rows;
 }
 
 /**
@@ -237,20 +302,27 @@ function setDiaryEntryFavorite($conn, $diary_id, $user_id, $favorite) {
 function deleteDiaryEntry($conn, $diary_id, $user_id) {
     $sql = "DELETE FROM diary_entries
             WHERE diary_id = ? AND user_id = ?";
+    $stmt = null;
 
-    $stmt = mysqli_prepare($conn, $sql);
-    if (!$stmt) {
+    try {
+        $stmt = mysqli_prepare($conn, $sql);
+        if (!$stmt) {
+            return false;
+        }
+
+        mysqli_stmt_bind_param($stmt, "ii", $diary_id, $user_id);
+        if (!mysqli_stmt_execute($stmt)) {
+            return false;
+        }
+
+        return mysqli_stmt_affected_rows($stmt);
+    } catch (mysqli_sql_exception $exception) {
+        diaryModelLogDatabaseException("delete diary entry", $exception);
         return false;
+    } finally {
+        if ($stmt instanceof mysqli_stmt) {
+            mysqli_stmt_close($stmt);
+        }
     }
-
-    mysqli_stmt_bind_param($stmt, "ii", $diary_id, $user_id);
-    if (!mysqli_stmt_execute($stmt)) {
-        mysqli_stmt_close($stmt);
-        return false;
-    }
-
-    $affected_rows = mysqli_stmt_affected_rows($stmt);
-    mysqli_stmt_close($stmt);
-    return $affected_rows;
 }
 ?>
