@@ -1143,7 +1143,7 @@ if ($today_memory_change_requested) {
                     <p>Your latest thoughts and memories</p>
                 </div>
 
-                <div class="diary-entry-list">
+                <div class="diary-entry-list diary-recent-entries-strip" tabindex="0" aria-label="Recent journal entries; scroll horizontally to see more">
                     <?php foreach ($recent_entries as $entry): ?>
                         <?php $entry_return_to = $diary_recent_context; ?>
                         <article class="diary-journal-card">
