@@ -2959,9 +2959,14 @@
         var emojiButton = form.querySelector('[data-reflection-emoji-toggle]');
         var emojiPicker = form.querySelector('[data-reflection-emoji-picker]');
         var emojiOptions = form.querySelectorAll('[data-reflection-emoji]');
+        var section = form.closest('[data-diary-reflection-section]');
+        var display = section ? section.querySelector('[data-reflection-display]') : null;
+        var openButtons = section ? section.querySelectorAll('[data-reflection-open]') : [];
+        var cancelButton = form.querySelector('[data-reflection-cancel]');
         var savedRange = null;
+        var initialContent = '';
 
-        if (!editor || !contentField) {
+        if (!editor || !contentField || !section || !display) {
             return;
         }
 
@@ -3047,6 +3052,29 @@
             emojiButton.setAttribute('aria-expanded', 'false');
         }
 
+        function openEditMode() {
+            editor.innerHTML = initialContent;
+            contentField.value = initialContent;
+            savedRange = null;
+            closeEmojiPicker();
+            display.hidden = true;
+            form.hidden = false;
+            editor.focus();
+        }
+
+        function closeEditMode() {
+            editor.innerHTML = initialContent;
+            contentField.value = initialContent;
+            savedRange = null;
+            closeEmojiPicker();
+            form.hidden = true;
+            display.hidden = false;
+
+            if (openButtons.length > 0) {
+                openButtons[0].focus();
+            }
+        }
+
         function insertEmoji(emoji) {
             prepareSelectionForInsertion();
 
@@ -3123,6 +3151,14 @@
             });
         }
 
+        Array.prototype.forEach.call(openButtons, function (button) {
+            button.addEventListener('click', openEditMode);
+        });
+
+        if (cancelButton) {
+            cancelButton.addEventListener('click', closeEditMode);
+        }
+
         ['focus', 'keyup', 'mouseup'].forEach(function (eventName) {
             editor.addEventListener(eventName, rememberSelection);
         });
@@ -3133,5 +3169,8 @@
         form.addEventListener('submit', synchronizeContent);
 
         synchronizeContent();
+        initialContent = contentField.value;
+        form.hidden = true;
+        display.hidden = false;
     });
 }());

@@ -532,6 +532,10 @@ if ($today_memory_change_requested) {
                 <div class="diary-header-actions">
                     <a class="diary-button diary-button-secondary" href="../../dashboard/dashboard.php">Back to Dashboard</a>
                     <a class="diary-button diary-button-secondary diary-favorites-jump" href="#favorite-entries">★ Favorites</a>
+                    <a class="diary-button diary-button-secondary diary-memory-album-link" href="memory_album.php">
+                        <span class="diary-memory-album-link-icon" aria-hidden="true">📷</span>
+                        <span>Memory Album</span>
+                    </a>
                     <a class="diary-button diary-new-entry-button" href="add.php">+ New Journal Entry</a>
                 </div>
             </header>
@@ -893,7 +897,7 @@ if ($today_memory_change_requested) {
         <?php endif; ?>
 
 
-        <section id="monthly-reflection" class="diary-reflection-section" aria-labelledby="monthly-reflection-heading">
+        <section id="monthly-reflection" class="diary-reflection-section" aria-labelledby="monthly-reflection-heading" data-diary-reflection-section>
             <div class="diary-section-heading diary-reflection-heading">
                 <div>
                     <p class="diary-eyebrow">Pause and Look Back</p>
@@ -922,7 +926,29 @@ if ($today_memory_change_requested) {
                 </div>
             <?php endif; ?>
 
-            <form class="diary-reflection-form" action="reflection_handler.php" method="post" data-diary-reflection-editor>
+            <div class="diary-reflection-display" data-reflection-display>
+                <?php if ($reflection_exists): ?>
+                    <div class="diary-reflection-readonly" aria-label="Saved monthly reflection">
+                        <?php echo $reflection_editor_content; // Sanitized by the strict reflection allow-list. ?>
+                    </div>
+                    <div class="diary-reflection-view-actions">
+                        <button class="diary-button diary-button-secondary" type="button" data-reflection-open>
+                            Edit Reflection
+                        </button>
+                    </div>
+                <?php else: ?>
+                    <div class="diary-reflection-empty-state">
+                        <span class="diary-reflection-empty-icon" aria-hidden="true">&#9997;&#65039;</span>
+                        <h3>No reflection for <?php echo diaryEscape($calendar_month->format('F Y')); ?> yet.</h3>
+                        <p>Take a quiet moment to capture what this month has meant to you.</p>
+                        <button class="diary-button diary-new-entry-button" type="button" data-reflection-open>
+                            Write Reflection
+                        </button>
+                    </div>
+                <?php endif; ?>
+            </div>
+
+            <form class="diary-reflection-form" action="reflection_handler.php" method="post" data-diary-reflection-editor hidden>
                 <input type="hidden" name="month" value="<?php echo diaryEscape($displayed_month_key); ?>">
                 <input
                     type="hidden"
@@ -984,6 +1010,9 @@ if ($today_memory_change_requested) {
                 </div>
 
                 <div class="diary-reflection-actions">
+                    <button class="diary-button diary-button-secondary" type="button" data-reflection-cancel>
+                        Cancel
+                    </button>
                     <button class="diary-button diary-new-entry-button" type="submit">
                         <?php echo $reflection_exists ? 'Update Reflection' : 'Save Reflection'; ?>
                     </button>
