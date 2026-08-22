@@ -81,6 +81,68 @@ function getDiaryEntryById($conn, $diary_id, $user_id) {
 }
 
 /**
+ * Return one monthly reflection only when it belongs to the given user.
+ *
+ * The reflection month is stored as the first day of the month (YYYY-MM-01).
+ *
+ * @return array|null|false Reflection row, null when not found, or false on a
+ *                          database/statement failure.
+ */
+function getDiaryMonthlyReflection($conn, $user_id, $reflection_month) {
+    $sql = "SELECT reflection_id, user_id, reflection_month, content, created_at, updated_at
+            FROM diary_monthly_reflections
+            WHERE user_id = ? AND reflection_month = ?
+            LIMIT 1";
+
+    $stmt = mysqli_prepare($conn, $sql);
+    if (!$stmt) {
+        return false;
+    }
+
+    mysqli_stmt_bind_param($stmt, "is", $user_id, $reflection_month);
+    if (!mysqli_stmt_execute($stmt)) {
+        mysqli_stmt_close($stmt);
+        return false;
+    }
+
+    $result = mysqli_stmt_get_result($stmt);
+    if (!$result) {
+        mysqli_stmt_close($stmt);
+        return false;
+    }
+
+    $reflection = mysqli_fetch_assoc($result);
+    mysqli_stmt_close($stmt);
+
+    return $reflection ? $reflection : null;
+}
+
+/**
+ * Create or update one monthly reflection for the given user and month.
+ *
+ * The unique (user_id, reflection_month) key makes the upsert atomic and
+ * prevents duplicate reflections for the same user and month.
+ *
+ * @return bool True when the statement succeeds, otherwise false.
+ */
+function saveDiaryMonthlyReflection($conn, $user_id, $reflection_month, $content) {
+    $sql = "INSERT INTO diary_monthly_reflections (user_id, reflection_month, content)
+            VALUES (?, ?, ?)
+            ON DUPLICATE KEY UPDATE content = VALUES(content)";
+
+    $stmt = mysqli_prepare($conn, $sql);
+    if (!$stmt) {
+        return false;
+    }
+
+    mysqli_stmt_bind_param($stmt, "iss", $user_id, $reflection_month, $content);
+    $success = mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
+
+    return $success;
+}
+
+/**
  * Create a diary entry for the given logged-in user.
  *
  * @return int|false New diary ID on success, or false on failure.

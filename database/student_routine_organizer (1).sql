@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 19, 2026 at 11:21 AM
+-- Generation Time: Aug 22, 2026 at 06:26 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -48,6 +48,33 @@ INSERT INTO `achievements` (`achievement_id`, `user_id`, `badge_name`, `badge_ic
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `badge_types`
+--
+
+CREATE TABLE `badge_types` (
+  `badge_type_id` int(11) NOT NULL,
+  `reward_code` varchar(50) NOT NULL,
+  `reward_name` varchar(100) NOT NULL,
+  `reward_description` varchar(255) NOT NULL,
+  `requirement` int(10) UNSIGNED NOT NULL,
+  `tree_tier` tinyint(3) UNSIGNED NOT NULL DEFAULT 1,
+  `reward_type` enum('Badge','Decoration') NOT NULL,
+  `slot` enum('Hat','Glasses','Clothes','Shoes','Background') DEFAULT NULL,
+  `reward_asset` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `badge_types`
+--
+
+INSERT INTO `badge_types` (`badge_type_id`, `reward_code`, `reward_name`, `reward_description`, `requirement`, `tree_tier`, `reward_type`, `slot`, `reward_asset`) VALUES
+(1, 'streak_3', '3-Day Streak', 'Complete the same habit for 3 consecutive days.', 3, 1, 'Badge', NULL, '🏅'),
+(2, 'streak_7', '7-Day Streak', 'Complete the same habit for 7 consecutive days.', 7, 2, 'Badge', NULL, '🏆'),
+(3, 'checkins_10', 'Ten Check-ins', 'Complete any 10 habit check-ins.', 10, 2, 'Badge', NULL, '⭐');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `diary_entries`
 --
 
@@ -58,10 +85,46 @@ CREATE TABLE `diary_entries` (
   `content` text NOT NULL,
   `mood` varchar(30) NOT NULL,
   `entry_date` date NOT NULL,
-  `is_favorite` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `is_favorite` tinyint(1) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `diary_entries`
+--
+
+INSERT INTO `diary_entries` (`diary_id`, `user_id`, `title`, `content`, `mood`, `entry_date`, `created_at`, `updated_at`, `is_favorite`) VALUES
+(4, 4, 'rge', 'ger', 'Sad', '2026-08-21', '2026-08-21 04:04:00', '2026-08-21 04:04:00', 0),
+(5, 4, 'dcddwe', '<span style=\"background-color: rgb(255, 241, 168);\">qwddwhdbwdqhwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh</span><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div>', 'Calm', '2026-08-20', '2026-08-21 12:26:14', '2026-08-21 12:26:14', 0),
+(6, 4, 'ggtrtrt', '<!--DIARY_RICH_TEXT_V1--><u>ferferfefrf </u>jj<p><br></p><blockquote><blockquote><blockquote><blockquote><p style=\"text-align: justify\"><u>jggggg</u></p></blockquote></blockquote></blockquote></blockquote><p><u><br></u></p><p><u><br></u></p>', 'Happy', '2026-08-21', '2026-08-21 13:03:40', '2026-08-21 13:03:40', 0),
+(7, 4, 'test', '<!--DIARY_RICH_TEXT_V1-->dsdds plain text<p><b>dd</b></p><p><b><i>dd</i></b></p><p><b><i><u><span style=\"font-family: Times New Roman\">jqtly</span></u></i></b><b><i><u><span style=\"font-family: Verdana\"></span></u></i></b></p><p><span style=\"font-size: 32px\">hh</span></p><p><span style=\"font-size: 32px\"><span style=\"color: #667653\">jjj</span></span></p><p><span style=\"font-size: 32px\"><span style=\"color: #667653\"><br></span></span></p><p><span style=\"font-size: 32px\"><span style=\"color: #667653; background-color: #d8e7f3\">uuu</span></span></p><p style=\"text-align: right\"><span style=\"font-size: 32px\"><span style=\"color: #667653; background-color: #d8e7f3\">oo</span></span></p><p style=\"text-align: left\"><ul><li>fdffg</li></ul><ol><li>hjjhj</li></ol><blockquote>ghfgh (quote)</blockquote></p>', 'Calm', '2026-08-21', '2026-08-21 13:14:11', '2026-08-21 13:14:11', 0),
+(12, 4, 'ferf', '<!--DIARY_RICH_TEXT_V1-->feferfrf🌈☕', 'Calm', '2026-08-21', '2026-08-21 18:17:31', '2026-08-21 18:17:31', 0),
+(13, 4, 'ewf', '<!--DIARY_RICH_TEXT_V1-->fsedfsf<p>gfer</p><br><p></p><figure data-diary-object=\"drawing\" data-diary-x=\"20.6\" data-diary-y=\"65.7\" data-diary-width=\"35\" data-diary-rotation=\"0\"><img src=\"/student-routine-organizer/uploads/diary/user_4/6a24eaa1492660430fe2f33fa18ce45a.png\" alt=\"Journal drawing\"></figure>', 'Calm', '2026-08-21', '2026-08-21 20:18:11', '2026-08-22 04:19:29', 1),
+(14, 4, 'THUHSUHD', '<!--DIARY_RICH_TEXT_V1--><b><span style=\"font-family: Arial\"><span style=\"color: #315a7d; background-color: #d8e7f3\">rwere</span></span></b><p><ul><li><br></li><li><br></li></ul><ol><li><br></li><li>r</li></ol><figure data-diary-object=\"drawing\" data-diary-x=\"82.5\" data-diary-y=\"73.2\" data-diary-width=\"35\" data-diary-rotation=\"0\"><img src=\"/student-routine-organizer/uploads/diary/user_4/ee243d5ca012e4bf9db96e1a136f4de1.png\" alt=\"Journal drawing\"></figure></p>', 'Stressed', '2026-08-22', '2026-08-22 03:33:10', '2026-08-22 03:33:10', 0);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `diary_monthly_reflections`
+--
+
+CREATE TABLE `diary_monthly_reflections` (
+  `reflection_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `reflection_month` date NOT NULL,
+  `content` text NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `diary_monthly_reflections`
+--
+
+INSERT INTO `diary_monthly_reflections` (`reflection_id`, `user_id`, `reflection_month`, `content`, `created_at`, `updated_at`) VALUES
+(1, 4, '2026-08-01', 'gggg', '2026-08-22 04:23:23', '2026-08-22 04:23:23'),
+(3, 4, '2026-07-01', 'dgf❤️', '2026-08-22 04:24:43', '2026-08-22 04:24:43');
 
 -- --------------------------------------------------------
 
@@ -154,7 +217,79 @@ CREATE TABLE `fitness_profile` (
 
 INSERT INTO `fitness_profile` (`profile_id`, `user_id`, `height_cm`, `weight_kg`, `daily_calorie_goal`, `daily_step_goal`, `current_steps`, `water_intake_ml`, `sleep_hours`, `steps_date`, `updated_at`) VALUES
 (1, 1, 175.0, 72.5, 500, 10000, 6500, 1500, 7.5, '2026-08-19', '2026-08-19 06:12:14'),
-(2, 4, 170.0, 65.0, 500, 10000, 0, 0, 0.0, '2026-08-19', '2026-08-19 08:51:21');
+(2, 4, 170.0, 65.0, 500, 10000, 0, 0, 0.0, '2026-08-22', '2026-08-22 03:44:27');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `habits`
+--
+
+CREATE TABLE `habits` (
+  `habit_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `category_id` int(11) NOT NULL,
+  `habit_name` varchar(100) NOT NULL,
+  `habit_description` text DEFAULT NULL,
+  `target_frequency` int(10) UNSIGNED NOT NULL,
+  `frequency_type` enum('Daily','Weekly','Monthly') NOT NULL,
+  `start_date` date NOT NULL,
+  `status` enum('Active','Paused','Completed','Archived') NOT NULL DEFAULT 'Active',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `habit_badges`
+--
+
+CREATE TABLE `habit_badges` (
+  `badge_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `habit_id` int(11) DEFAULT NULL,
+  `badge_type_id` int(11) NOT NULL,
+  `earned_date` date NOT NULL,
+  `is_equipped` tinyint(1) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `habit_categories`
+--
+
+CREATE TABLE `habit_categories` (
+  `category_id` int(11) NOT NULL,
+  `category_name` varchar(50) NOT NULL,
+  `category_icon` varchar(50) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `habit_categories`
+--
+
+INSERT INTO `habit_categories` (`category_id`, `category_name`, `category_icon`) VALUES
+(1, 'Health', 'heart'),
+(2, 'Study', 'book'),
+(3, 'Fitness', 'dumbbell'),
+(4, 'Lifestyle', 'leaf');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `habit_logs`
+--
+
+CREATE TABLE `habit_logs` (
+  `log_id` int(11) NOT NULL,
+  `habit_id` int(11) NOT NULL,
+  `log_date` date NOT NULL,
+  `log_time` time NOT NULL,
+  `completed` tinyint(1) NOT NULL DEFAULT 1,
+  `log_note` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -194,11 +329,25 @@ ALTER TABLE `achievements`
   ADD UNIQUE KEY `unique_badge_per_user` (`user_id`,`badge_name`);
 
 --
+-- Indexes for table `badge_types`
+--
+ALTER TABLE `badge_types`
+  ADD PRIMARY KEY (`badge_type_id`),
+  ADD UNIQUE KEY `uq_reward_code` (`reward_code`);
+
+--
 -- Indexes for table `diary_entries`
 --
 ALTER TABLE `diary_entries`
   ADD PRIMARY KEY (`diary_id`),
   ADD KEY `fk_diary_user` (`user_id`);
+
+--
+-- Indexes for table `diary_monthly_reflections`
+--
+ALTER TABLE `diary_monthly_reflections`
+  ADD PRIMARY KEY (`reflection_id`),
+  ADD UNIQUE KEY `unique_diary_reflection_user_month` (`user_id`,`reflection_month`);
 
 --
 -- Indexes for table `exercise`
@@ -213,6 +362,37 @@ ALTER TABLE `exercise`
 ALTER TABLE `fitness_profile`
   ADD PRIMARY KEY (`profile_id`),
   ADD UNIQUE KEY `user_id` (`user_id`);
+
+--
+-- Indexes for table `habits`
+--
+ALTER TABLE `habits`
+  ADD PRIMARY KEY (`habit_id`),
+  ADD KEY `fk_habits_category` (`category_id`),
+  ADD KEY `idx_habits_user_status` (`user_id`,`status`);
+
+--
+-- Indexes for table `habit_badges`
+--
+ALTER TABLE `habit_badges`
+  ADD PRIMARY KEY (`badge_id`),
+  ADD KEY `fk_habit_badges_habit` (`habit_id`),
+  ADD KEY `fk_habit_badges_type` (`badge_type_id`),
+  ADD KEY `idx_habit_badges_user` (`user_id`);
+
+--
+-- Indexes for table `habit_categories`
+--
+ALTER TABLE `habit_categories`
+  ADD PRIMARY KEY (`category_id`),
+  ADD UNIQUE KEY `uq_category_name` (`category_name`);
+
+--
+-- Indexes for table `habit_logs`
+--
+ALTER TABLE `habit_logs`
+  ADD PRIMARY KEY (`log_id`),
+  ADD UNIQUE KEY `uq_habit_daily_checkin` (`habit_id`,`log_date`);
 
 --
 -- Indexes for table `users`
@@ -232,10 +412,22 @@ ALTER TABLE `achievements`
   MODIFY `achievement_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
+-- AUTO_INCREMENT for table `badge_types`
+--
+ALTER TABLE `badge_types`
+  MODIFY `badge_type_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
 -- AUTO_INCREMENT for table `diary_entries`
 --
 ALTER TABLE `diary_entries`
-  MODIFY `diary_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `diary_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+
+--
+-- AUTO_INCREMENT for table `diary_monthly_reflections`
+--
+ALTER TABLE `diary_monthly_reflections`
+  MODIFY `reflection_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `exercise`
@@ -248,6 +440,30 @@ ALTER TABLE `exercise`
 --
 ALTER TABLE `fitness_profile`
   MODIFY `profile_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `habits`
+--
+ALTER TABLE `habits`
+  MODIFY `habit_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `habit_badges`
+--
+ALTER TABLE `habit_badges`
+  MODIFY `badge_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `habit_categories`
+--
+ALTER TABLE `habit_categories`
+  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `habit_logs`
+--
+ALTER TABLE `habit_logs`
+  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `users`
@@ -272,6 +488,12 @@ ALTER TABLE `diary_entries`
   ADD CONSTRAINT `fk_diary_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 
 --
+-- Constraints for table `diary_monthly_reflections`
+--
+ALTER TABLE `diary_monthly_reflections`
+  ADD CONSTRAINT `fk_diary_reflection_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+--
 -- Constraints for table `exercise`
 --
 ALTER TABLE `exercise`
@@ -282,6 +504,27 @@ ALTER TABLE `exercise`
 --
 ALTER TABLE `fitness_profile`
   ADD CONSTRAINT `fk_profile_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `habits`
+--
+ALTER TABLE `habits`
+  ADD CONSTRAINT `fk_habits_category` FOREIGN KEY (`category_id`) REFERENCES `habit_categories` (`category_id`),
+  ADD CONSTRAINT `fk_habits_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `habit_badges`
+--
+ALTER TABLE `habit_badges`
+  ADD CONSTRAINT `fk_habit_badges_habit` FOREIGN KEY (`habit_id`) REFERENCES `habits` (`habit_id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_habit_badges_type` FOREIGN KEY (`badge_type_id`) REFERENCES `badge_types` (`badge_type_id`),
+  ADD CONSTRAINT `fk_habit_badges_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `habit_logs`
+--
+ALTER TABLE `habit_logs`
+  ADD CONSTRAINT `fk_habit_logs_habit` FOREIGN KEY (`habit_id`) REFERENCES `habits` (`habit_id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

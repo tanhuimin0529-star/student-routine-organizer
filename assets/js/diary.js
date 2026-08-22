@@ -2941,3 +2941,192 @@
         });
     });
 }());
+
+(function () {
+    'use strict';
+
+    var reflectionForms = document.querySelectorAll('[data-diary-reflection-editor]');
+
+    reflectionForms.forEach(function (form) {
+        var editor = form.querySelector('[data-reflection-surface]');
+        var contentField = form.querySelector('[data-reflection-content]');
+        var commandButtons = form.querySelectorAll('[data-reflection-command]');
+        var emojiButton = form.querySelector('[data-reflection-emoji-toggle]');
+        var emojiPicker = form.querySelector('[data-reflection-emoji-picker]');
+        var emojiOptions = form.querySelectorAll('[data-reflection-emoji]');
+        var savedRange = null;
+
+        if (!editor || !contentField) {
+            return;
+        }
+
+        function rangeBelongsToEditor(range) {
+            if (!range) {
+                return false;
+            }
+
+            var container = range.commonAncestorContainer;
+            var containerElement = container.nodeType === Node.ELEMENT_NODE
+                ? container
+                : container.parentNode;
+
+            return containerElement === editor || editor.contains(containerElement);
+        }
+
+        function rememberSelection() {
+            var selection = window.getSelection();
+            if (!selection || selection.rangeCount === 0) {
+                return;
+            }
+
+            var range = selection.getRangeAt(0);
+            if (rangeBelongsToEditor(range)) {
+                savedRange = range.cloneRange();
+            }
+        }
+
+        function restoreSelection() {
+            if (!savedRange || !rangeBelongsToEditor(savedRange)) {
+                return false;
+            }
+
+            var selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(savedRange);
+            return true;
+        }
+
+        function normalizeUnderlineMarkup() {
+            editor.querySelectorAll('span').forEach(function (span) {
+                var decoration = [
+                    span.style.textDecorationLine || '',
+                    span.style.textDecoration || ''
+                ].join(' ').toLowerCase();
+                var replacement = decoration.indexOf('underline') !== -1
+                    ? document.createElement('u')
+                    : document.createDocumentFragment();
+
+                while (span.firstChild) {
+                    replacement.appendChild(span.firstChild);
+                }
+                span.replaceWith(replacement);
+            });
+        }
+
+        function synchronizeContent() {
+            normalizeUnderlineMarkup();
+            contentField.value = editor.innerHTML.trim();
+        }
+
+        function prepareSelectionForInsertion() {
+            editor.focus();
+            if (restoreSelection()) {
+                return;
+            }
+
+            var selection = window.getSelection();
+            var range = document.createRange();
+            range.selectNodeContents(editor);
+            range.collapse(false);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            savedRange = range.cloneRange();
+        }
+
+        function closeEmojiPicker() {
+            if (!emojiButton || !emojiPicker) {
+                return;
+            }
+
+            emojiPicker.hidden = true;
+            emojiButton.setAttribute('aria-expanded', 'false');
+        }
+
+        function insertEmoji(emoji) {
+            prepareSelectionForInsertion();
+
+            var selection = window.getSelection();
+            var range = selection.getRangeAt(0);
+            range.deleteContents();
+
+            var emojiNode = document.createTextNode(emoji);
+            range.insertNode(emojiNode);
+            range.setStartAfter(emojiNode);
+            range.collapse(true);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            savedRange = range.cloneRange();
+            synchronizeContent();
+        }
+
+        commandButtons.forEach(function (button) {
+            button.addEventListener('mousedown', function (event) {
+                event.preventDefault();
+                rememberSelection();
+            });
+
+            button.addEventListener('click', function () {
+                var command = button.getAttribute('data-reflection-command');
+                prepareSelectionForInsertion();
+
+                try {
+                    document.execCommand('styleWithCSS', false, false);
+                    document.execCommand(command, false, null);
+                } catch (error) {
+                    // The editor remains usable even if a browser does not
+                    // support one of the legacy native formatting commands.
+                }
+
+                rememberSelection();
+                synchronizeContent();
+                editor.focus();
+            });
+        });
+
+        if (emojiButton && emojiPicker) {
+            emojiButton.addEventListener('mousedown', function (event) {
+                event.preventDefault();
+                rememberSelection();
+            });
+
+            emojiButton.addEventListener('click', function () {
+                var shouldOpen = emojiPicker.hidden;
+                emojiPicker.hidden = !shouldOpen;
+                emojiButton.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+            });
+
+            emojiOptions.forEach(function (option) {
+                option.addEventListener('mousedown', function (event) {
+                    event.preventDefault();
+                });
+
+                option.addEventListener('click', function () {
+                    insertEmoji(option.getAttribute('data-reflection-emoji') || '');
+                    closeEmojiPicker();
+                    editor.focus();
+                });
+            });
+
+            document.addEventListener('click', function (event) {
+                if (
+                    !emojiPicker.hidden
+                    && !emojiPicker.contains(event.target)
+                    && !emojiButton.contains(event.target)
+                ) {
+                    closeEmojiPicker();
+                }
+            });
+        }
+
+        ['focus', 'keyup', 'mouseup'].forEach(function (eventName) {
+            editor.addEventListener(eventName, rememberSelection);
+        });
+        editor.addEventListener('input', function () {
+            rememberSelection();
+            synchronizeContent();
+        });
+        form.addEventListener('submit', synchronizeContent);
+
+        synchronizeContent();
+    });
+}());
