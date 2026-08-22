@@ -920,6 +920,7 @@ a.diary-action-export:visited {
     box-shadow: 0 10px 26px rgba(79, 60, 39, 0.07);
     margin-bottom: 36px;
     padding: 20px;
+    scroll-margin-top: 20px;
 }
 
 .diary-search-form {
@@ -1015,6 +1016,9 @@ a.diary-action-export:visited {
 }
 
 .diary-mood-filter-option {
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
     display: inline-flex;
     align-items: center;
     gap: 5px;
@@ -1025,6 +1029,7 @@ a.diary-action-export:visited {
     color: #62574c;
     font-size: 0.78rem;
     font-weight: 700;
+    font-family: inherit;
     line-height: 1;
     padding: 6px 10px;
     text-decoration: none;
@@ -4606,5 +4611,66 @@ body.diary-drawing-open {
     .diary-home-page .diary-memory-album-link {
         justify-content: center;
         white-space: normal;
+    }
+}
+/* Progressive Favorite feedback and pending states */
+.diary-favorite-button:disabled,
+.diary-favorite-form.is-pending .diary-favorite-button {
+    cursor: wait;
+    opacity: 0.62;
+    transform: none;
+}
+
+.diary-journal-card.is-favorite-removing {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-6px) scale(0.98);
+}
+
+.diary-favorite-feedback {
+    position: fixed;
+    z-index: 1200;
+    right: 24px;
+    bottom: 24px;
+    max-width: min(360px, calc(100vw - 32px));
+    border: 1px solid rgba(102, 118, 83, 0.35);
+    border-radius: 12px;
+    background: #edf3e6;
+    box-shadow: 0 12px 30px rgba(54, 47, 38, 0.2);
+    color: #405033;
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1.45;
+    opacity: 0;
+    padding: 12px 16px;
+    pointer-events: none;
+    transform: translateY(8px);
+    transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.diary-favorite-feedback.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.diary-favorite-feedback.is-error {
+    border-color: rgba(164, 71, 67, 0.4);
+    background: #f9e9e5;
+    color: #7b3733;
+}
+
+@media (max-width: 600px) {
+    .diary-favorite-feedback {
+        right: 16px;
+        bottom: 16px;
+        left: 16px;
+        max-width: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .diary-journal-card.is-favorite-removing,
+    .diary-favorite-feedback {
+        transition: none;
     }
 }

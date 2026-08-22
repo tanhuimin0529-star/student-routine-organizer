@@ -3174,3 +3174,323 @@
         display.hidden = false;
     });
 }());
+(function () {
+    'use strict';
+
+    var favoriteForms = document.querySelectorAll('form.diary-favorite-form');
+    var requestPending = false;
+    var feedbackNode = null;
+    var feedbackTimer = null;
+
+    if (favoriteForms.length === 0) {
+        return;
+    }
+
+    function formDiaryId(form) {
+        var input = form.querySelector('input[name="diary_id"]');
+        return input ? input.value : '';
+    }
+
+    function setFavoriteButtonsDisabled(disabled) {
+        document.querySelectorAll('form.diary-favorite-form .diary-favorite-button').forEach(function (button) {
+            button.disabled = disabled;
+        });
+    }
+
+    function updateFavoriteTokens(token) {
+        if (typeof token !== 'string' || token === '') {
+            return;
+        }
+
+        document.querySelectorAll('form.diary-favorite-form input[name="csrf_token"]').forEach(function (input) {
+            input.value = token;
+        });
+    }
+
+    function updateFavoriteState(diaryId, isFavorite) {
+        document.querySelectorAll('form.diary-favorite-form').forEach(function (form) {
+            if (formDiaryId(form) !== diaryId) {
+                return;
+            }
+
+            var favoriteInput = form.querySelector('input[name="favorite"]');
+            var button = form.querySelector('.diary-favorite-button');
+            var label = isFavorite ? 'Remove from favorites' : 'Add to favorites';
+
+            if (favoriteInput) {
+                favoriteInput.value = isFavorite ? '0' : '1';
+            }
+            if (button) {
+                button.textContent = isFavorite ? '★' : '☆';
+                button.classList.toggle('is-favorite', isFavorite);
+                button.setAttribute('aria-pressed', isFavorite ? 'true' : 'false');
+                button.setAttribute('aria-label', label);
+                button.title = label;
+            }
+        });
+    }
+
+    function ensureFeedbackNode() {
+        if (feedbackNode) {
+            return feedbackNode;
+        }
+
+        feedbackNode = document.createElement('div');
+        feedbackNode.className = 'diary-favorite-feedback';
+        feedbackNode.setAttribute('aria-live', 'polite');
+        feedbackNode.setAttribute('aria-atomic', 'true');
+        feedbackNode.hidden = true;
+        document.body.appendChild(feedbackNode);
+        return feedbackNode;
+    }
+
+    function showFavoriteFeedback(message, isError) {
+        var node = ensureFeedbackNode();
+
+        window.clearTimeout(feedbackTimer);
+        node.textContent = message || (isError
+            ? 'Favorite could not be updated right now. Please try again.'
+            : 'Favorite updated.');
+        node.classList.toggle('is-error', isError);
+        node.setAttribute('role', isError ? 'alert' : 'status');
+        node.hidden = false;
+
+        window.requestAnimationFrame(function () {
+            node.classList.add('is-visible');
+        });
+
+        feedbackTimer = window.setTimeout(function () {
+            node.classList.remove('is-visible');
+            window.setTimeout(function () {
+                if (!node.classList.contains('is-visible')) {
+                    node.hidden = true;
+                }
+            }, 180);
+        }, 3000);
+    }
+
+    function removeCard(card, afterRemove) {
+        if (!card || card.classList.contains('is-favorite-removing')) {
+            return;
+        }
+
+        card.classList.add('is-favorite-removing');
+        window.setTimeout(function () {
+            if (card.parentNode) {
+                card.parentNode.removeChild(card);
+            }
+            if (typeof afterRemove === 'function') {
+                afterRemove();
+            }
+        }, 170);
+    }
+
+    function ensureHomeFavoritesEmptyState() {
+        var section = document.getElementById('favorite-entries');
+        if (!section) {
+            return;
+        }
+
+        var list = section.querySelector('.diary-favorite-entry-list');
+        if (list && list.querySelector('.diary-favorite-entry-card')) {
+            return;
+        }
+        if (list && list.parentNode) {
+            list.parentNode.removeChild(list);
+        }
+        if (section.querySelector('.diary-favorites-empty')) {
+            return;
+        }
+
+        var empty = document.createElement('div');
+        var message = document.createElement('p');
+        empty.className = 'diary-favorites-empty';
+        message.textContent = 'No favorite journal entries yet.';
+        empty.appendChild(message);
+        section.appendChild(empty);
+    }
+
+    function updateHomeFavoritesPreview(diaryId, isFavorite) {
+        if (isFavorite) {
+            return;
+        }
+
+        var section = document.getElementById('favorite-entries');
+        if (!section) {
+            return;
+        }
+
+        var matchingCards = [];
+        section.querySelectorAll('.diary-favorite-entry-card').forEach(function (card) {
+            var form = card.querySelector('form.diary-favorite-form');
+            if (form && formDiaryId(form) === diaryId) {
+                matchingCards.push(card);
+            }
+        });
+
+        if (matchingCards.length === 0) {
+            return;
+        }
+
+        var remaining = matchingCards.length;
+        matchingCards.forEach(function (card) {
+            removeCard(card, function () {
+                remaining -= 1;
+                if (remaining === 0) {
+                    ensureHomeFavoritesEmptyState();
+                }
+            });
+        });
+    }
+
+    function favoritesOnlyCollectionActive() {
+        if (!document.body.classList.contains('diary-all-entries-page')) {
+            return false;
+        }
+
+        try {
+            return new URLSearchParams(window.location.search).get('favorites') === '1';
+        } catch (error) {
+            return /(?:^|[?&])favorites=1(?:&|$)/.test(window.location.search);
+        }
+    }
+
+    function updateFavoritesOnlyCollection(diaryId, isFavorite) {
+        if (isFavorite || !favoritesOnlyCollectionActive()) {
+            return;
+        }
+
+        var cards = [];
+        document.querySelectorAll('.diary-all-entries-page .diary-journal-card').forEach(function (card) {
+            var form = card.querySelector('form.diary-favorite-form');
+            if (form && formDiaryId(form) === diaryId) {
+                cards.push(card);
+            }
+        });
+
+        if (cards.length === 0) {
+            return;
+        }
+
+        var pendingRemovals = cards.length;
+        cards.forEach(function (card) {
+            removeCard(card, function () {
+                pendingRemovals -= 1;
+                if (pendingRemovals !== 0) {
+                    return;
+                }
+
+                var remainingCards = document.querySelectorAll('.diary-all-entries-page .diary-journal-card').length;
+                var resultCount = document.querySelector('.diary-all-entries-page .diary-result-count');
+                var entryList = document.querySelector('.diary-all-entries-page .diary-library .diary-entry-list');
+
+                if (resultCount) {
+                    resultCount.textContent = remainingCards + (remainingCards === 1
+                        ? ' Favorite Entry'
+                        : ' Favorite Entries');
+                }
+
+                if (remainingCards === 0 && entryList) {
+                    var library = entryList.closest('.diary-library');
+                    entryList.remove();
+
+                    if (library && !library.querySelector('.diary-favorite-ajax-empty')) {
+                        var empty = document.createElement('section');
+                        var heading = document.createElement('h2');
+                        var message = document.createElement('p');
+                        empty.className = 'diary-empty-state diary-search-empty diary-favorite-ajax-empty';
+                        heading.textContent = 'No favorite journal entries yet.';
+                        message.textContent = 'Use the star on an entry to add it to your favorites.';
+                        empty.appendChild(heading);
+                        empty.appendChild(message);
+                        library.appendChild(empty);
+                    }
+                }
+            });
+        });
+    }
+
+    favoriteForms.forEach(function (form) {
+        var button = form.querySelector('.diary-favorite-button');
+
+        form.addEventListener('click', function (event) {
+            event.stopPropagation();
+        });
+        form.addEventListener('keydown', function (event) {
+            event.stopPropagation();
+        });
+
+        if (!button || !window.fetch || !window.FormData) {
+            return;
+        }
+
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            if (requestPending) {
+                return;
+            }
+
+            var diaryId = formDiaryId(form);
+            var formData = new FormData(form);
+
+            if (diaryId === '') {
+                showFavoriteFeedback('Favorite could not be updated right now. Please try again.', true);
+                return;
+            }
+
+            requestPending = true;
+            form.classList.add('is-pending');
+            setFavoriteButtonsDisabled(true);
+
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(function (response) {
+                    return response.json()
+                        .catch(function () {
+                            return null;
+                        })
+                        .then(function (payload) {
+                            if (payload && payload.csrf_token) {
+                                updateFavoriteTokens(payload.csrf_token);
+                            }
+
+                            if (!response.ok || !payload || payload.success !== true) {
+                                throw new Error(payload && payload.message
+                                    ? payload.message
+                                    : 'Favorite could not be updated right now. Please try again.');
+                            }
+
+                            if (payload.favorite !== 0 && payload.favorite !== 1) {
+                                throw new Error('Favorite could not be updated right now. Please try again.');
+                            }
+
+                            return payload;
+                        });
+                })
+                .then(function (payload) {
+                    var isFavorite = payload.favorite === 1;
+                    updateFavoriteState(diaryId, isFavorite);
+                    updateHomeFavoritesPreview(diaryId, isFavorite);
+                    updateFavoritesOnlyCollection(diaryId, isFavorite);
+                    showFavoriteFeedback(payload.message, false);
+                })
+                .catch(function (error) {
+                    showFavoriteFeedback(error.message, true);
+                })
+                .then(function () {
+                    requestPending = false;
+                    form.classList.remove('is-pending');
+                    setFavoriteButtonsDisabled(false);
+                });
+        });
+    });
+}());

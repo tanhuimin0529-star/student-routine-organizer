@@ -3,7 +3,13 @@ require_once __DIR__ . '/../../includes/session_check.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/diary_model.php';
 require_once __DIR__ . '/diary_memory_album.php';
+require_once __DIR__ . '/diary_navigation.php';
 
+$delete_flash = isset($_SESSION['diary_delete_flash']) && is_array($_SESSION['diary_delete_flash'])
+    ? $_SESSION['diary_delete_flash']
+    : null;
+unset($_SESSION['diary_delete_flash']);
+$memory_album_context = diaryNavigationBuildReturnTo('memory_album.php');
 $entries = getDiaryEntriesForUser($conn, $logged_in_user_id);
 $load_error = $entries === false;
 
@@ -72,6 +78,16 @@ function memoryAlbumMoodEmoji($mood) {
             </div>
         </header>
 
+        <?php if ($delete_flash !== null): ?>
+            <?php $delete_flash_type = isset($delete_flash['type']) && $delete_flash['type'] === 'success' ? 'success' : 'error'; ?>
+            <div
+                class="diary-alert diary-alert-<?php echo memoryAlbumEscape($delete_flash_type); ?>"
+                role="<?php echo $delete_flash_type === 'success' ? 'status' : 'alert'; ?>"
+            >
+                <?php echo memoryAlbumEscape(isset($delete_flash['message']) ? $delete_flash['message'] : 'Journal entry could not be deleted right now. Please try again.'); ?>
+            </div>
+        <?php endif; ?>
+
         <?php if ($load_error): ?>
             <div class="diary-alert diary-alert-error" role="alert">
                 Your Memory Album could not be loaded right now. Please try again later.
@@ -134,7 +150,7 @@ function memoryAlbumMoodEmoji($mood) {
                                         <?php if ($photo['caption'] !== ''): ?>
                                             <p class="diary-memory-photo-caption"><?php echo memoryAlbumEscape($photo['caption']); ?></p>
                                         <?php endif; ?>
-                                        <a class="diary-action-button diary-action-primary" href="view.php?id=<?php echo rawurlencode((string) $photo['diary_id']); ?>">
+                                        <a class="diary-action-button diary-action-primary" href="<?php echo memoryAlbumEscape(diaryNavigationViewUrl($photo['diary_id'], $memory_album_context)); ?>">
                                             View Journal
                                         </a>
                                     </div>

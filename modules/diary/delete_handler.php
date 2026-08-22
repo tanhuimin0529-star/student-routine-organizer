@@ -3,17 +3,15 @@ require_once __DIR__ . '/../../includes/session_check.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/diary_model.php';
 require_once __DIR__ . '/diary_media_cleanup.php';
+require_once __DIR__ . '/diary_navigation.php';
 
 function diaryDeleteReturnTarget() {
     $requested_target = isset($_POST['return_to']) && is_string($_POST['return_to'])
         ? $_POST['return_to']
         : '';
 
-    return $requested_target === 'all_entries.php'
-        ? 'all_entries.php'
-        : 'index.php';
+    return diaryNavigationSanitizeReturnTo($requested_target);
 }
-
 function returnFromDiaryDelete($message, $type = 'error') {
     $_SESSION['diary_delete_flash'] = array(
         'type' => $type === 'success' ? 'success' : 'error',

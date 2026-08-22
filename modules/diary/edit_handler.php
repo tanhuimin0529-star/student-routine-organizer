@@ -4,15 +4,23 @@ require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/diary_model.php';
 require_once __DIR__ . '/diary_content.php';
 require_once __DIR__ . '/diary_media_cleanup.php';
+require_once __DIR__ . '/diary_navigation.php';
 
 function returnToDiaryEdit($diary_id, $errors, $old = array()) {
+    $return_to = diaryNavigationSanitizeReturnTo(
+        isset($old['return_to']) && is_string($old['return_to'])
+            ? $old['return_to']
+            : ''
+    );
+    $old['return_to'] = $return_to;
+
     $_SESSION['diary_edit_errors'] = $errors;
     $_SESSION['diary_edit_old'] = $old;
     $_SESSION['diary_edit_id'] = $diary_id === false ? null : (int) $diary_id;
 
     $location = $diary_id === false
-        ? 'edit.php'
-        : 'edit.php?id=' . rawurlencode((string) $diary_id);
+        ? 'edit.php?return_to=' . rawurlencode($return_to)
+        : diaryNavigationEditUrl($diary_id, $return_to);
 
     header('Location: ' . $location, true, 303);
     exit();
@@ -230,6 +238,7 @@ if ($is_image_upload || $is_drawing_upload) {
     ));
 }
 
+$return_to = diaryNavigationSanitizeReturnTo(diaryEditPostString('return_to'));
 $title = diaryEditPostString('title');
 $submitted_content = diaryEditPostString('content');
 $mood = diaryEditPostString('mood');
@@ -238,6 +247,7 @@ $upload_batch_token = diaryEditValidatedUploadBatchToken();
 $content_result = diaryContentPrepareForStorage($submitted_content, $logged_in_user_id);
 
 $old = array(
+    'return_to' => $return_to,
     'title' => $title,
     'content' => $content_result['sanitized'],
     'upload_batch_token' => $upload_batch_token,
@@ -353,5 +363,5 @@ unset(
     $_SESSION['diary_edit_id']
 );
 
-header('Location: view.php?id=' . rawurlencode((string) $diary_id), true, 303);
+header('Location: ' . diaryNavigationViewUrl($diary_id, $return_to), true, 303);
 exit();

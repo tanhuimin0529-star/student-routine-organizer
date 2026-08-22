@@ -3,7 +3,12 @@ require_once __DIR__ . '/../../includes/session_check.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/diary_model.php';
 require_once __DIR__ . '/diary_content.php';
+require_once __DIR__ . '/diary_navigation.php';
 
+$requested_return_to = isset($_GET['return_to']) && is_string($_GET['return_to'])
+    ? $_GET['return_to']
+    : '';
+$return_to = diaryNavigationSanitizeReturnTo($requested_return_to);
 $requested_id = isset($_GET['id']) && is_string($_GET['id'])
     ? $_GET['id']
     : (isset($_GET['diary_id']) && is_string($_GET['diary_id']) ? $_GET['diary_id'] : '');
@@ -123,12 +128,12 @@ $diary_js_version = filemtime(__DIR__ . '/../../assets/js/diary.js');
             <div class="diary-alert diary-alert-error" role="alert">
                 This journal entry could not be loaded right now. Please try again later.
             </div>
-            <a class="diary-button diary-button-secondary" href="index.php">Back to Diary</a>
+            <a class="diary-button diary-button-secondary" href="<?php echo diaryEditEscape($return_to); ?>">Back to Diary</a>
         <?php elseif ($entry === null): ?>
             <section class="diary-empty-state">
                 <h2>Journal entry not found.</h2>
                 <p>The entry may not exist or may not be available to your account.</p>
-                <a class="diary-button" href="index.php">Back to Diary</a>
+                <a class="diary-button" href="<?php echo diaryEditEscape($return_to); ?>">Back to Diary</a>
             </section>
         <?php else: ?>
             <?php if (!empty($errors)): ?>
@@ -153,6 +158,11 @@ $diary_js_version = filemtime(__DIR__ . '/../../assets/js/diary.js');
                     type="hidden"
                     name="csrf_token"
                     value="<?php echo diaryEditEscape($_SESSION['diary_edit_csrf_token']); ?>"
+                >
+                <input
+                    type="hidden"
+                    name="return_to"
+                    value="<?php echo diaryEditEscape($return_to); ?>"
                 >
 
                 <div class="diary-form-group">
@@ -389,7 +399,7 @@ $diary_js_version = filemtime(__DIR__ . '/../../assets/js/diary.js');
 
                 <div class="diary-form-actions">
                     <button type="submit">Save Changes</button>
-                    <a href="view.php?id=<?php echo rawurlencode((string) $diary_id); ?>">Cancel / Back</a>
+                    <a href="<?php echo diaryEditEscape(diaryNavigationViewUrl($diary_id, $return_to)); ?>">Cancel / Back</a>
                 </div>
             </form>
         <?php endif; ?>

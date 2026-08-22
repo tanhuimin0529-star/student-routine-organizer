@@ -3,12 +3,17 @@ require_once __DIR__ . '/../../includes/session_check.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/diary_model.php';
 require_once __DIR__ . '/diary_content.php';
+require_once __DIR__ . '/diary_navigation.php';
 
 $favorite_flash = isset($_SESSION['diary_favorite_flash']) && is_array($_SESSION['diary_favorite_flash'])
     ? $_SESSION['diary_favorite_flash']
     : null;
 unset($_SESSION['diary_favorite_flash']);
 
+$requested_return_to = isset($_GET['return_to']) && is_string($_GET['return_to'])
+    ? $_GET['return_to']
+    : '';
+$return_to = diaryNavigationSanitizeReturnTo($requested_return_to);
 $entry = null;
 $database_error = false;
 $requested_id = isset($_GET['id']) && is_string($_GET['id'])
@@ -69,6 +74,12 @@ if ($entry !== null) {
 }
 
 
+$current_view_url = $entry !== null
+    ? diaryNavigationViewUrl($entry['diary_id'], $return_to)
+    : $return_to;
+$current_edit_url = $entry !== null
+    ? diaryNavigationEditUrl($entry['diary_id'], $return_to)
+    : $return_to;
 $entry_is_favorite = $entry !== null && isset($entry['is_favorite']) && (int) $entry['is_favorite'] === 1;
 $favorite_label = $entry_is_favorite ? 'Remove from favorites' : 'Add to favorites';
 $diary_css_version = filemtime(__DIR__ . '/../../assets/css/diary.css');
@@ -127,7 +138,7 @@ function diaryViewMoodEmoji($mood) {
             <div class="diary-alert diary-alert-error" role="alert">
                 This journal entry could not be loaded right now. Please try again later.
             </div>
-            <a class="diary-button diary-button-secondary" href="index.php">Back to Diary</a>
+            <a class="diary-button diary-button-secondary" href="<?php echo diaryViewEscape($return_to); ?>">Back to Diary</a>
         <?php elseif ($entry === null): ?>
             <header class="diary-page-header">
                 <p class="diary-eyebrow">Diary Entry</p>
@@ -135,11 +146,11 @@ function diaryViewMoodEmoji($mood) {
             <section class="diary-empty-state">
                 <h2>Journal entry not found.</h2>
                 <p>The entry may not exist or may not be available to your account.</p>
-                <a class="diary-button" href="index.php">Back to Diary</a>
+                <a class="diary-button" href="<?php echo diaryViewEscape($return_to); ?>">Back to Diary</a>
             </section>
         <?php else: ?>
             <nav class="diary-reader-nav" aria-label="Diary navigation">
-                <a href="index.php">← Back to Diary Home</a>
+                <a href="<?php echo diaryViewEscape($return_to); ?>">← Back to Journal Collection</a>
                 <span>Personal Journal</span>
             </nav>
 
@@ -155,7 +166,7 @@ function diaryViewMoodEmoji($mood) {
                             name="csrf_token"
                             value="<?php echo diaryViewEscape($_SESSION['diary_favorite_csrf_token']); ?>"
                         >
-                        <input type="hidden" name="return_to" value="view.php?id=<?php echo diaryViewEscape($entry['diary_id']); ?>">
+                        <input type="hidden" name="return_to" value="<?php echo diaryViewEscape($current_view_url); ?>">
                         <button
                             class="diary-favorite-button<?php echo $entry_is_favorite ? ' is-favorite' : ''; ?>"
                             type="submit"
@@ -191,7 +202,7 @@ function diaryViewMoodEmoji($mood) {
                     <?php if ($previous_entry_id !== null): ?>
                         <a
                             class="diary-entry-sequence-link diary-entry-sequence-previous"
-                            href="view.php?id=<?php echo rawurlencode((string) $previous_entry_id); ?>"
+                            href="<?php echo diaryViewEscape(diaryNavigationViewUrl($previous_entry_id, $return_to)); ?>"
                             aria-label="Previous journal entry"
                         >←</a>
                     <?php else: ?>
@@ -205,7 +216,7 @@ function diaryViewMoodEmoji($mood) {
                     <?php if ($next_entry_id !== null): ?>
                         <a
                             class="diary-entry-sequence-link diary-entry-sequence-next"
-                            href="view.php?id=<?php echo rawurlencode((string) $next_entry_id); ?>"
+                            href="<?php echo diaryViewEscape(diaryNavigationViewUrl($next_entry_id, $return_to)); ?>"
                             aria-label="Next journal entry"
                         >→</a>
                     <?php else: ?>
@@ -220,14 +231,15 @@ function diaryViewMoodEmoji($mood) {
 
             <footer class="diary-reader-external-actions">
                 <nav class="diary-reading-actions" aria-label="Journal entry actions">
-                    <a class="diary-action-button diary-action-secondary" href="index.php">Back to Diary Home</a>
-                    <a class="diary-action-button diary-action-primary" href="edit.php?id=<?php echo rawurlencode((string) $entry['diary_id']); ?>">Edit Entry</a>
+                    <a class="diary-action-button diary-action-secondary" href="<?php echo diaryViewEscape($return_to); ?>">Back to Journal Collection</a>
+                    <a class="diary-action-button diary-action-primary" href="<?php echo diaryViewEscape($current_edit_url); ?>">Edit Entry</a>
                     <a
                         class="diary-action-button diary-action-export"
                         href="export_pdf.php?id=<?php echo rawurlencode((string) $entry['diary_id']); ?>"
                     ><span class="diary-action-icon" aria-hidden="true">&#8595;</span> Export PDF</a>
                     <form action="delete_handler.php" method="post">
                         <input type="hidden" name="diary_id" value="<?php echo diaryViewEscape($entry['diary_id']); ?>">
+                        <input type="hidden" name="return_to" value="<?php echo diaryViewEscape($return_to); ?>">
                         <input
                             type="hidden"
                             name="csrf_token"

@@ -3,6 +3,7 @@ require_once __DIR__ . '/../../includes/session_check.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/diary_model.php';
 require_once __DIR__ . '/diary_content.php';
+require_once __DIR__ . '/diary_navigation.php';
 require_once __DIR__ . '/diary_reflection_content.php';
 
 $delete_flash = isset($_SESSION['diary_delete_flash']) && is_array($_SESSION['diary_delete_flash'])
@@ -480,11 +481,55 @@ if ($filters_active) {
     });
 }
 
+$diary_navigation_parameters = array(
+    'month' => $calendar_month->format('Y-m')
+);
+if ($selected_date !== null) {
+    $diary_navigation_parameters['date'] = $selected_date;
+}
+if ($search_term !== '') {
+    $diary_navigation_parameters['search'] = $search_term;
+}
+if ($mood_filter !== '') {
+    $diary_navigation_parameters['mood'] = $mood_filter;
+}
+if ($sort_value !== 'newest') {
+    $diary_navigation_parameters['sort'] = $sort_value;
+}
+if (isset($_GET['favorites']) && is_string($_GET['favorites']) && $_GET['favorites'] === '1') {
+    $diary_navigation_parameters['favorites'] = '1';
+}
+
+$diary_today_context = diaryNavigationBuildReturnTo(
+    'index.php',
+    $diary_navigation_parameters,
+    'diary-today-corner'
+);
+$diary_search_context = diaryNavigationBuildReturnTo(
+    'index.php',
+    $diary_navigation_parameters,
+    'diary-filters'
+);
+$diary_selected_date_context = diaryNavigationBuildReturnTo(
+    'index.php',
+    $diary_navigation_parameters,
+    'selected-date-entries'
+);
+$diary_favorites_context = diaryNavigationBuildReturnTo(
+    'index.php',
+    $diary_navigation_parameters,
+    'favorite-entries'
+);
+$diary_recent_context = diaryNavigationBuildReturnTo(
+    'index.php',
+    $diary_navigation_parameters,
+    'journal-entries-heading'
+);
 $clear_search_parameters = array('month' => $calendar_month->format('Y-m'));
 if ($selected_date !== null) {
     $clear_search_parameters['date'] = $selected_date;
 }
-$clear_search_url = 'index.php?' . http_build_query($clear_search_parameters);
+$clear_search_url = 'index.php?' . http_build_query($clear_search_parameters) . '#diary-filters';
 $today_corner_return_parameters = array('month' => $calendar_month->format('Y-m'));
 if ($selected_date !== null) {
     $today_corner_return_parameters['date'] = $selected_date;
@@ -619,7 +664,7 @@ if ($today_memory_change_requested) {
                         <div class="diary-memory-corner-actions">
                             <a
                                 class="diary-action-button diary-action-primary diary-memory-corner-button"
-                                href="view.php?id=<?php echo rawurlencode((string) $today_memory['diary_id']); ?>"
+                                href="<?php echo diaryEscape(diaryNavigationViewUrl($today_memory['diary_id'], $diary_today_context)); ?>"
                             >View Memory</a>
                             <form action="<?php echo diaryEscape($today_corner_action_url); ?>" method="post">
                                 <input type="hidden" name="diary_memory_action" value="show_another">
@@ -639,15 +684,12 @@ if ($today_memory_change_requested) {
         </section>
         </section>
 
-        <section class="diary-search-panel" aria-labelledby="diary-home-search-heading">
-            <form class="diary-search-form" action="index.php" method="get" role="search">
+        <section id="diary-filters" class="diary-search-panel" aria-labelledby="diary-home-search-heading">
+            <form class="diary-search-form" action="index.php#diary-filters" method="get" role="search">
                 <label id="diary-home-search-heading" for="search">Search journal entries</label>
                 <input type="hidden" name="month" value="<?php echo diaryEscape($calendar_month->format('Y-m')); ?>">
                 <?php if ($selected_date !== null): ?>
                     <input type="hidden" name="date" value="<?php echo diaryEscape($selected_date); ?>">
-                <?php endif; ?>
-                <?php if ($mood_filter !== ''): ?>
-                    <input type="hidden" name="mood" value="<?php echo diaryEscape($mood_filter); ?>">
                 <?php endif; ?>
                 <div class="diary-search-controls diary-home-search-controls">
                     <input
@@ -657,37 +699,23 @@ if ($today_memory_change_requested) {
                         value="<?php echo diaryEscape($search_term); ?>"
                         placeholder="Search by title or content"
                     >
-                    <button class="diary-button" type="submit">Search</button>
+                    <button class="diary-button" type="submit" name="mood" value="<?php echo diaryEscape($mood_filter); ?>">Search</button>
                     <a class="diary-button diary-button-secondary" href="<?php echo diaryEscape($clear_search_url); ?>">Clear Filters</a>
                 </div>
                 <div class="diary-all-entries-filter-row">
                     <div class="diary-mood-filter-toolbar" role="group" aria-label="Filter journal entries by mood">
                     <?php foreach ($mood_filter_options as $mood_value => $mood_option): ?>
-                        <?php
-                        $mood_link_parameters = array('month' => $calendar_month->format('Y-m'));
-                        if ($selected_date !== null) {
-                            $mood_link_parameters['date'] = $selected_date;
-                        }
-                        if ($search_term !== '') {
-                            $mood_link_parameters['search'] = $search_term;
-                        }
-                        if ($mood_value !== '') {
-                            $mood_link_parameters['mood'] = $mood_value;
-                        }
-                        if ($sort_value !== 'newest') {
-                            $mood_link_parameters['sort'] = $sort_value;
-                        }
-                        $mood_link_url = 'index.php?' . http_build_query($mood_link_parameters);
-                        $mood_is_active = $mood_filter === $mood_value;
-                        ?>
-                        <a
+                        <?php $mood_is_active = $mood_filter === $mood_value; ?>
+                        <button
                             class="diary-mood-filter-option<?php echo $mood_is_active ? ' is-active' : ''; ?>"
-                            href="<?php echo diaryEscape($mood_link_url); ?>"
-                            <?php echo $mood_is_active ? 'aria-current="true"' : ''; ?>
+                            type="submit"
+                            name="mood"
+                            value="<?php echo diaryEscape($mood_value); ?>"
+                            aria-pressed="<?php echo $mood_is_active ? 'true' : 'false'; ?>"
                         >
                             <span class="diary-mood-filter-emoji" aria-hidden="true"><?php echo diaryEscape($mood_option['emoji']); ?></span>
                             <span><?php echo diaryEscape($mood_option['label']); ?></span>
-                        </a>
+                        </button>
                     <?php endforeach; ?>
                     </div>
                     <label class="diary-all-entries-sort-control" for="sort">
@@ -722,8 +750,9 @@ if ($today_memory_change_requested) {
                 <?php else: ?>
                     <div class="diary-entry-list diary-search-entry-list">
                         <?php foreach ($filter_results as $entry): ?>
+                            <?php $entry_return_to = $diary_search_context; ?>
                             <article class="diary-journal-card">
-                                <?php diaryFavoriteButton($entry, 'index.php', $_SESSION['diary_favorite_csrf_token']); ?>
+                                <?php diaryFavoriteButton($entry, $entry_return_to, $_SESSION['diary_favorite_csrf_token']); ?>
                                 <header class="diary-card-meta">
                                     <span class="diary-card-mood">
                                         <span aria-hidden="true"><?php echo diaryEscape(diaryMoodEmoji($entry['mood'])); ?></span>
@@ -734,25 +763,11 @@ if ($today_memory_change_requested) {
                                     </time>
                                 </header>
 
-                                <h3><?php echo diaryEscape($entry['title']); ?></h3>
+                                <h3><a class="diary-card-link" href="<?php echo diaryEscape(diaryNavigationViewUrl($entry['diary_id'], $entry_return_to)); ?>"><?php echo diaryEscape($entry['title']); ?></a></h3>
                                 <p class="diary-entry-preview">
                                     <?php echo diaryEscape(diaryContentPreview($entry['content'])); ?>
                                 </p>
-
-                                <footer class="diary-card-actions">
-                                    <a class="diary-action-button diary-action-primary" href="view.php?id=<?php echo rawurlencode((string) $entry['diary_id']); ?>">Read Entry</a>
-                                    <a class="diary-action-button diary-action-secondary" href="edit.php?id=<?php echo rawurlencode((string) $entry['diary_id']); ?>">Edit</a>
-                                    <form action="delete_handler.php" method="post">
-                                        <input type="hidden" name="diary_id" value="<?php echo diaryEscape($entry['diary_id']); ?>">
-                                        <input type="hidden" name="return_to" value="index.php">
-                                        <input
-                                            type="hidden"
-                                            name="csrf_token"
-                                            value="<?php echo diaryEscape($_SESSION['diary_delete_csrf_token']); ?>"
-                                        >
-                                        <button class="diary-action-button diary-action-delete" type="submit">Delete</button>
-                                    </form>
-                                </footer>
+                                <span class="diary-card-read-cue" aria-hidden="true">Read journal →</span>
                             </article>
                         <?php endforeach; ?>
                     </div>
@@ -769,7 +784,7 @@ if ($today_memory_change_requested) {
                 <nav class="diary-calendar-navigation" aria-label="Calendar month navigation">
                     <a
                         class="diary-calendar-nav-button"
-                        href="index.php?month=<?php echo rawurlencode($previous_calendar_month->format('Y-m')); ?><?php echo $search_term !== '' ? '&amp;search=' . rawurlencode($search_term) : ''; ?><?php echo $mood_filter !== '' ? '&amp;mood=' . rawurlencode($mood_filter) : ''; ?>#journal-calendar"
+                        href="index.php?month=<?php echo rawurlencode($previous_calendar_month->format('Y-m')); ?><?php echo $search_term !== '' ? '&amp;search=' . rawurlencode($search_term) : ''; ?><?php echo $mood_filter !== '' ? '&amp;mood=' . rawurlencode($mood_filter) : ''; ?><?php echo $sort_value !== 'newest' ? '&amp;sort=' . rawurlencode($sort_value) : ''; ?>#journal-calendar"
                         aria-label="Previous month: <?php echo diaryEscape($previous_calendar_month->format('F Y')); ?>"
                     >
                         ← <?php echo diaryEscape($previous_calendar_month->format('F')); ?>
@@ -780,7 +795,7 @@ if ($today_memory_change_requested) {
                     </p>
                     <a
                         class="diary-calendar-nav-button"
-                        href="index.php?month=<?php echo rawurlencode($next_calendar_month->format('Y-m')); ?><?php echo $search_term !== '' ? '&amp;search=' . rawurlencode($search_term) : ''; ?><?php echo $mood_filter !== '' ? '&amp;mood=' . rawurlencode($mood_filter) : ''; ?>#journal-calendar"
+                        href="index.php?month=<?php echo rawurlencode($next_calendar_month->format('Y-m')); ?><?php echo $search_term !== '' ? '&amp;search=' . rawurlencode($search_term) : ''; ?><?php echo $mood_filter !== '' ? '&amp;mood=' . rawurlencode($mood_filter) : ''; ?><?php echo $sort_value !== 'newest' ? '&amp;sort=' . rawurlencode($sort_value) : ''; ?>#journal-calendar"
                         aria-label="Next month: <?php echo diaryEscape($next_calendar_month->format('F Y')); ?>"
                     >
                         <?php echo diaryEscape($next_calendar_month->format('F')); ?> →
@@ -807,7 +822,7 @@ if ($today_memory_change_requested) {
                     >
                         <a
                             class="diary-calendar-day-link"
-                            href="index.php?month=<?php echo rawurlencode($calendar_month->format('Y-m')); ?>&amp;date=<?php echo rawurlencode($calendar_date_key); ?><?php echo $search_term !== '' ? '&amp;search=' . rawurlencode($search_term) : ''; ?><?php echo $mood_filter !== '' ? '&amp;mood=' . rawurlencode($mood_filter) : ''; ?>#selected-date-entries"
+                            href="index.php?month=<?php echo rawurlencode($calendar_month->format('Y-m')); ?>&amp;date=<?php echo rawurlencode($calendar_date_key); ?><?php echo $search_term !== '' ? '&amp;search=' . rawurlencode($search_term) : ''; ?><?php echo $mood_filter !== '' ? '&amp;mood=' . rawurlencode($mood_filter) : ''; ?><?php echo $sort_value !== 'newest' ? '&amp;sort=' . rawurlencode($sort_value) : ''; ?>#selected-date-entries"
                             aria-label="<?php echo diaryEscape($calendar_day_label); ?>"
                             <?php echo $selected_date === $calendar_date_key ? 'aria-current="date"' : ''; ?>
                         >
@@ -1040,8 +1055,9 @@ if ($today_memory_change_requested) {
                 <?php else: ?>
                     <div class="diary-entry-list diary-selected-entry-list">
                         <?php foreach ($selected_date_entries as $entry): ?>
+                            <?php $entry_return_to = $diary_selected_date_context; ?>
                             <article class="diary-journal-card diary-selected-entry-card">
-                                <?php diaryFavoriteButton($entry, 'index.php', $_SESSION['diary_favorite_csrf_token']); ?>
+                                <?php diaryFavoriteButton($entry, $entry_return_to, $_SESSION['diary_favorite_csrf_token']); ?>
                                 <header class="diary-card-meta">
                                     <span class="diary-card-mood">
                                         <span aria-hidden="true"><?php echo diaryEscape(diaryMoodEmoji($entry['mood'])); ?></span>
@@ -1052,25 +1068,11 @@ if ($today_memory_change_requested) {
                                     </time>
                                 </header>
 
-                                <h3><?php echo diaryEscape($entry['title']); ?></h3>
+                                <h3><a class="diary-card-link" href="<?php echo diaryEscape(diaryNavigationViewUrl($entry['diary_id'], $entry_return_to)); ?>"><?php echo diaryEscape($entry['title']); ?></a></h3>
                                 <p class="diary-entry-preview">
                                     <?php echo diaryEscape(diaryContentPreview($entry['content'])); ?>
                                 </p>
-
-                                <footer class="diary-card-actions">
-                                    <a class="diary-action-button diary-action-primary" href="view.php?id=<?php echo rawurlencode((string) $entry['diary_id']); ?>">Read Entry</a>
-                                    <a class="diary-action-button diary-action-secondary" href="edit.php?id=<?php echo rawurlencode((string) $entry['diary_id']); ?>">Edit</a>
-                                    <form action="delete_handler.php" method="post">
-                                        <input type="hidden" name="diary_id" value="<?php echo diaryEscape($entry['diary_id']); ?>">
-                                        <input type="hidden" name="return_to" value="index.php">
-                                        <input
-                                            type="hidden"
-                                            name="csrf_token"
-                                            value="<?php echo diaryEscape($_SESSION['diary_delete_csrf_token']); ?>"
-                                        >
-                                        <button class="diary-action-button diary-action-delete" type="submit">Delete</button>
-                                    </form>
-                                </footer>
+                                <span class="diary-card-read-cue" aria-hidden="true">Read journal →</span>
                             </article>
                         <?php endforeach; ?>
                     </div>
@@ -1095,8 +1097,9 @@ if ($today_memory_change_requested) {
                 <?php else: ?>
                     <div class="diary-entry-list diary-favorite-entry-list">
                         <?php foreach ($favorite_entries as $entry): ?>
+                            <?php $entry_return_to = $diary_favorites_context; ?>
                             <article class="diary-journal-card diary-favorite-entry-card">
-                                <?php diaryFavoriteButton($entry, 'index.php', $_SESSION['diary_favorite_csrf_token']); ?>
+                                <?php diaryFavoriteButton($entry, $entry_return_to, $_SESSION['diary_favorite_csrf_token']); ?>
                                 <header class="diary-card-meta">
                                     <span class="diary-card-mood">
                                         <span aria-hidden="true"><?php echo diaryEscape(diaryMoodEmoji($entry['mood'])); ?></span>
@@ -1107,25 +1110,11 @@ if ($today_memory_change_requested) {
                                     </time>
                                 </header>
 
-                                <h3><?php echo diaryEscape($entry['title']); ?></h3>
+                                <h3><a class="diary-card-link" href="<?php echo diaryEscape(diaryNavigationViewUrl($entry['diary_id'], $entry_return_to)); ?>"><?php echo diaryEscape($entry['title']); ?></a></h3>
                                 <p class="diary-entry-preview">
                                     <?php echo diaryEscape(diaryContentPreview($entry['content'])); ?>
                                 </p>
-
-                                <footer class="diary-card-actions">
-                                    <a class="diary-action-button diary-action-primary" href="view.php?id=<?php echo rawurlencode((string) $entry['diary_id']); ?>">Read Entry</a>
-                                    <a class="diary-action-button diary-action-secondary" href="edit.php?id=<?php echo rawurlencode((string) $entry['diary_id']); ?>">Edit</a>
-                                    <form action="delete_handler.php" method="post">
-                                        <input type="hidden" name="diary_id" value="<?php echo diaryEscape($entry['diary_id']); ?>">
-                                        <input type="hidden" name="return_to" value="index.php">
-                                        <input
-                                            type="hidden"
-                                            name="csrf_token"
-                                            value="<?php echo diaryEscape($_SESSION['diary_delete_csrf_token']); ?>"
-                                        >
-                                        <button class="diary-action-button diary-action-delete" type="submit">Delete</button>
-                                    </form>
-                                </footer>
+                                <span class="diary-card-read-cue" aria-hidden="true">Read journal →</span>
                             </article>
                         <?php endforeach; ?>
                     </div>
@@ -1156,8 +1145,9 @@ if ($today_memory_change_requested) {
 
                 <div class="diary-entry-list">
                     <?php foreach ($recent_entries as $entry): ?>
+                        <?php $entry_return_to = $diary_recent_context; ?>
                         <article class="diary-journal-card">
-                            <?php diaryFavoriteButton($entry, 'index.php', $_SESSION['diary_favorite_csrf_token']); ?>
+                            <?php diaryFavoriteButton($entry, $entry_return_to, $_SESSION['diary_favorite_csrf_token']); ?>
                             <header class="diary-card-meta">
                                 <span class="diary-card-mood">
                                     <span aria-hidden="true"><?php echo diaryEscape(diaryMoodEmoji($entry['mood'])); ?></span>
@@ -1168,25 +1158,11 @@ if ($today_memory_change_requested) {
                                 </time>
                             </header>
 
-                            <h3><?php echo diaryEscape($entry['title']); ?></h3>
+                            <h3><a class="diary-card-link" href="<?php echo diaryEscape(diaryNavigationViewUrl($entry['diary_id'], $entry_return_to)); ?>"><?php echo diaryEscape($entry['title']); ?></a></h3>
                             <p class="diary-entry-preview">
                                 <?php echo diaryEscape(diaryContentPreview($entry['content'])); ?>
                             </p>
-
-                            <footer class="diary-card-actions">
-                                <a class="diary-action-button diary-action-primary" href="view.php?id=<?php echo rawurlencode((string) $entry['diary_id']); ?>">Read Entry</a>
-                                <a class="diary-action-button diary-action-secondary" href="edit.php?id=<?php echo rawurlencode((string) $entry['diary_id']); ?>">Edit</a>
-                                <form action="delete_handler.php" method="post">
-                                    <input type="hidden" name="diary_id" value="<?php echo diaryEscape($entry['diary_id']); ?>">
-                                    <input type="hidden" name="return_to" value="index.php">
-                                    <input
-                                        type="hidden"
-                                        name="csrf_token"
-                                        value="<?php echo diaryEscape($_SESSION['diary_delete_csrf_token']); ?>"
-                                    >
-                                    <button class="diary-action-button diary-action-delete" type="submit">Delete</button>
-                                </form>
-                            </footer>
+                                <span class="diary-card-read-cue" aria-hidden="true">Read journal →</span>
                         </article>
                     <?php endforeach; ?>
                 </div>

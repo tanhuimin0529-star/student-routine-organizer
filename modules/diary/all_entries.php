@@ -3,6 +3,7 @@ require_once __DIR__ . '/../../includes/session_check.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/diary_model.php';
 require_once __DIR__ . '/diary_content.php';
+require_once __DIR__ . '/diary_navigation.php';
 
 $delete_flash = isset($_SESSION['diary_delete_flash']) && is_array($_SESSION['diary_delete_flash'])
     ? $_SESSION['diary_delete_flash']
@@ -64,7 +65,7 @@ function allEntriesEscape($value) {
     return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
 }
 
-function allEntriesFavoriteButton($entry, $csrf_token) {
+function allEntriesFavoriteButton($entry, $csrf_token, $return_to) {
     $diary_id = isset($entry['diary_id']) ? (int) $entry['diary_id'] : 0;
     $is_favorite = isset($entry['is_favorite']) && (int) $entry['is_favorite'] === 1;
     $next_favorite = $is_favorite ? 0 : 1;
@@ -74,7 +75,7 @@ function allEntriesFavoriteButton($entry, $csrf_token) {
         <input type="hidden" name="diary_id" value="<?php echo allEntriesEscape($diary_id); ?>">
         <input type="hidden" name="favorite" value="<?php echo allEntriesEscape($next_favorite); ?>">
         <input type="hidden" name="csrf_token" value="<?php echo allEntriesEscape($csrf_token); ?>">
-        <input type="hidden" name="return_to" value="all_entries.php">
+        <input type="hidden" name="return_to" value="<?php echo allEntriesEscape($return_to); ?>">
         <button
             class="diary-favorite-button<?php echo $is_favorite ? ' is-favorite' : ''; ?>"
             type="submit"
@@ -190,6 +191,24 @@ usort($filtered_entries, function ($first_entry, $second_entry) use ($sort_value
 });
 
 $result_count = count($filtered_entries);
+$all_entries_navigation_parameters = array();
+if ($search_term !== '') {
+    $all_entries_navigation_parameters['search'] = $search_term;
+}
+if ($mood_filter !== '') {
+    $all_entries_navigation_parameters['mood'] = $mood_filter;
+}
+if ($sort_value !== 'newest') {
+    $all_entries_navigation_parameters['sort'] = $sort_value;
+}
+if (isset($_GET['favorites']) && is_string($_GET['favorites']) && $_GET['favorites'] === '1') {
+    $all_entries_navigation_parameters['favorites'] = '1';
+}
+$all_entries_context = diaryNavigationBuildReturnTo(
+    'all_entries.php',
+    $all_entries_navigation_parameters,
+    'diary-filters'
+);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -236,12 +255,10 @@ $result_count = count($filtered_entries);
             </div>
         <?php endif; ?>
 
-        <section class="diary-search-panel" aria-labelledby="diary-search-heading">
-            <form class="diary-search-form" action="all_entries.php" method="get" role="search">
+        <section class="diary-search-panel" id="diary-filters" aria-labelledby="diary-search-heading">
+            <form class="diary-search-form" action="all_entries.php#diary-filters" method="get" role="search">
                 <label id="diary-search-heading" for="search">Search journal entries</label>
-                <?php if ($mood_filter !== ''): ?>
-                    <input type="hidden" name="mood" value="<?php echo allEntriesEscape($mood_filter); ?>">
-                <?php endif; ?>
+
                 <div class="diary-search-controls diary-all-entries-search-controls">
                     <input
                         type="search"
@@ -251,37 +268,23 @@ $result_count = count($filtered_entries);
                         placeholder="Search by title or content"
                     >
 
-                    <button class="diary-button" type="submit">Search</button>
-                    <a class="diary-button diary-button-secondary diary-all-entries-clear" href="all_entries.php">Clear Filters</a>
+                    <button class="diary-button" type="submit" name="mood" value="<?php echo allEntriesEscape($mood_filter); ?>">Search</button>
+                    <a class="diary-button diary-button-secondary diary-all-entries-clear" href="all_entries.php#diary-filters">Clear Filters</a>
                 </div>
                 <div class="diary-all-entries-filter-row">
                     <div class="diary-mood-filter-toolbar" role="group" aria-label="Filter journal entries by mood">
                     <?php foreach ($mood_filter_options as $mood_value => $mood_option): ?>
-                        <?php
-                        $mood_link_parameters = array();
-                        if ($search_term !== '') {
-                            $mood_link_parameters['search'] = $search_term;
-                        }
-                        if ($mood_value !== '') {
-                            $mood_link_parameters['mood'] = $mood_value;
-                        }
-                        if ($sort_value !== 'newest') {
-                            $mood_link_parameters['sort'] = $sort_value;
-                        }
-                        $mood_link_url = 'all_entries.php';
-                        if (!empty($mood_link_parameters)) {
-                            $mood_link_url .= '?' . http_build_query($mood_link_parameters);
-                        }
-                        $mood_is_active = $mood_filter === $mood_value;
-                        ?>
-                        <a
+                        <?php $mood_is_active = $mood_filter === $mood_value; ?>
+                        <button
                             class="diary-mood-filter-option<?php echo $mood_is_active ? ' is-active' : ''; ?>"
-                            href="<?php echo allEntriesEscape($mood_link_url); ?>"
-                            <?php echo $mood_is_active ? 'aria-current="true"' : ''; ?>
+                            type="submit"
+                            name="mood"
+                            value="<?php echo allEntriesEscape($mood_value); ?>"
+                            aria-pressed="<?php echo $mood_is_active ? 'true' : 'false'; ?>"
                         >
                             <span class="diary-mood-filter-emoji" aria-hidden="true"><?php echo allEntriesEscape($mood_option['emoji']); ?></span>
                             <span><?php echo allEntriesEscape($mood_option['label']); ?></span>
-                        </a>
+                        </button>
                     <?php endforeach; ?>
                     </div>
                     <label class="diary-all-entries-sort-control" for="sort">
@@ -323,7 +326,7 @@ $result_count = count($filtered_entries);
                             <span class="diary-empty-icon" aria-hidden="true">🔎</span>
                             <h2>No journal entries found.</h2>
                             <p>Try different filters or clear them to see your complete collection.</p>
-                            <a class="diary-button diary-button-secondary" href="all_entries.php">Clear Filters</a>
+                            <a class="diary-button diary-button-secondary" href="all_entries.php#diary-filters">Clear Filters</a>
                         </section>
                     <?php else: ?>
                         <section class="diary-empty-state diary-empty-journal">
@@ -337,7 +340,7 @@ $result_count = count($filtered_entries);
                     <div class="diary-entry-list">
                         <?php foreach ($filtered_entries as $entry): ?>
                             <article class="diary-journal-card">
-                                <?php allEntriesFavoriteButton($entry, $_SESSION['diary_favorite_csrf_token']); ?>
+                                <?php allEntriesFavoriteButton($entry, $_SESSION['diary_favorite_csrf_token'], $all_entries_context); ?>
                                 <header class="diary-card-meta">
                                     <span class="diary-card-mood">
                                         <span aria-hidden="true"><?php echo allEntriesEscape(allEntriesMoodEmoji($entry['mood'])); ?></span>
@@ -348,25 +351,11 @@ $result_count = count($filtered_entries);
                                     </time>
                                 </header>
 
-                                <h3><?php echo allEntriesEscape($entry['title']); ?></h3>
+                                <h3><a class="diary-card-link" href="<?php echo allEntriesEscape(diaryNavigationViewUrl($entry['diary_id'], $all_entries_context)); ?>"><?php echo allEntriesEscape($entry['title']); ?></a></h3>
                                 <p class="diary-entry-preview">
                                     <?php echo allEntriesEscape(allEntriesContentPreview($entry['content'])); ?>
                                 </p>
-
-                                <footer class="diary-card-actions">
-                                    <a class="diary-action-button diary-action-primary" href="view.php?id=<?php echo rawurlencode((string) $entry['diary_id']); ?>">Read Entry</a>
-                                    <a class="diary-action-button diary-action-secondary" href="edit.php?id=<?php echo rawurlencode((string) $entry['diary_id']); ?>">Edit</a>
-                                    <form action="delete_handler.php" method="post">
-                                        <input type="hidden" name="diary_id" value="<?php echo allEntriesEscape($entry['diary_id']); ?>">
-                                        <input type="hidden" name="return_to" value="all_entries.php">
-                                        <input
-                                            type="hidden"
-                                            name="csrf_token"
-                                            value="<?php echo allEntriesEscape($_SESSION['diary_delete_csrf_token']); ?>"
-                                        >
-                                        <button class="diary-action-button diary-action-delete" type="submit">Delete</button>
-                                    </form>
-                                </footer>
+                                <span class="diary-card-read-cue" aria-hidden="true">Read journal →</span>
                             </article>
                         <?php endforeach; ?>
                     </div>
