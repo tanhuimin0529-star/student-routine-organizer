@@ -60,6 +60,12 @@ function diaryFavoriteFilteredResultCount($conn, $user_id, $return_target) {
         && in_array($query['mood'], $allowed_moods, true)
             ? $query['mood']
             : '';
+    $allowed_weather_filters = array('Sunny', 'Cloudy', 'Rainy', 'Windy', 'Stormy', 'not-set');
+    $weather = isset($query['weather'])
+        && is_string($query['weather'])
+        && in_array($query['weather'], $allowed_weather_filters, true)
+            ? $query['weather']
+            : '';
 
     $entries = getDiaryEntriesForUser($conn, $user_id);
     if (!is_array($entries)) {
@@ -77,6 +83,15 @@ function diaryFavoriteFilteredResultCount($conn, $user_id, $return_target) {
 
         if ($mood !== ''
             && (!isset($candidate['mood']) || $candidate['mood'] !== $mood)
+        ) {
+            continue;
+        }
+
+        $candidate_weather = isset($candidate['weather']) && is_string($candidate['weather'])
+            ? trim($candidate['weather'])
+            : '';
+        if (($weather === 'not-set' && $candidate_weather !== '')
+            || ($weather !== '' && $weather !== 'not-set' && $candidate_weather !== $weather)
         ) {
             continue;
         }

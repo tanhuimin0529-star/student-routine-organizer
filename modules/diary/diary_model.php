@@ -32,7 +32,7 @@ function diaryModelLogDatabaseException($operation, $exception) {
  *                     database/statement failure.
  */
 function getDiaryEntriesForUser($conn, $user_id) {
-    $sql = "SELECT diary_id, user_id, title, content, mood, entry_date, is_favorite, created_at, updated_at
+    $sql = "SELECT diary_id, user_id, title, content, mood, weather, entry_date, is_favorite, created_at, updated_at
             FROM diary_entries
             WHERE user_id = ?
             ORDER BY entry_date DESC, created_at DESC";
@@ -77,7 +77,7 @@ function getDiaryEntriesForUser($conn, $user_id) {
  *                          false on a database/statement failure.
  */
 function getDiaryEntryById($conn, $diary_id, $user_id) {
-    $sql = "SELECT diary_id, user_id, title, content, mood, entry_date, is_favorite, created_at, updated_at
+    $sql = "SELECT diary_id, user_id, title, content, mood, weather, entry_date, is_favorite, created_at, updated_at
             FROM diary_entries
             WHERE diary_id = ? AND user_id = ?
             LIMIT 1";
@@ -191,10 +191,11 @@ function saveDiaryMonthlyReflection($conn, $user_id, $reflection_month, $content
  *
  * @return int|false New diary ID on success, or false on failure.
  */
-function createDiaryEntry($conn, $user_id, $title, $content, $mood, $entry_date) {
-    $sql = "INSERT INTO diary_entries (user_id, title, content, mood, entry_date)
-            VALUES (?, ?, ?, ?, ?)";
+function createDiaryEntry($conn, $user_id, $title, $content, $mood, $weather, $entry_date) {
+    $sql = "INSERT INTO diary_entries (user_id, title, content, mood, weather, entry_date)
+            VALUES (?, ?, ?, ?, ?, ?)";
     $stmt = null;
+    $weather_value = $weather === '' ? null : $weather;
 
     try {
         $stmt = mysqli_prepare($conn, $sql);
@@ -202,7 +203,7 @@ function createDiaryEntry($conn, $user_id, $title, $content, $mood, $entry_date)
             return false;
         }
 
-        mysqli_stmt_bind_param($stmt, "issss", $user_id, $title, $content, $mood, $entry_date);
+        mysqli_stmt_bind_param($stmt, "isssss", $user_id, $title, $content, $mood, $weather_value, $entry_date);
         if (!mysqli_stmt_execute($stmt)) {
             return false;
         }
@@ -225,11 +226,12 @@ function createDiaryEntry($conn, $user_id, $title, $content, $mood, $entry_date)
  *                   of 0 means no row changed (not found/not owned, or the
  *                   submitted values matched the stored values).
  */
-function updateDiaryEntry($conn, $diary_id, $user_id, $title, $content, $mood, $entry_date) {
+function updateDiaryEntry($conn, $diary_id, $user_id, $title, $content, $mood, $weather, $entry_date) {
     $sql = "UPDATE diary_entries
-            SET title = ?, content = ?, mood = ?, entry_date = ?
+            SET title = ?, content = ?, mood = ?, weather = ?, entry_date = ?
             WHERE diary_id = ? AND user_id = ?";
     $stmt = null;
+    $weather_value = $weather === '' ? null : $weather;
 
     try {
         $stmt = mysqli_prepare($conn, $sql);
@@ -237,7 +239,7 @@ function updateDiaryEntry($conn, $diary_id, $user_id, $title, $content, $mood, $
             return false;
         }
 
-        mysqli_stmt_bind_param($stmt, "ssssii", $title, $content, $mood, $entry_date, $diary_id, $user_id);
+        mysqli_stmt_bind_param($stmt, "sssssii", $title, $content, $mood, $weather_value, $entry_date, $diary_id, $user_id);
         if (!mysqli_stmt_execute($stmt)) {
             return false;
         }

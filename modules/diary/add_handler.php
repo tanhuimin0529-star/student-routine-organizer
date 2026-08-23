@@ -193,6 +193,7 @@ if ($is_image_upload || $is_drawing_upload) {
 $title = diaryPostString('title');
 $submitted_content = diaryPostString('content');
 $mood = diaryPostString('mood');
+$weather = diaryPostString('weather');
 $entry_date = diaryPostString('entry_date');
 $upload_batch_token = diaryAddValidatedUploadBatchToken();
 $content_result = diaryContentPrepareForStorage($submitted_content, $logged_in_user_id);
@@ -202,6 +203,7 @@ $old = array(
     'content' => $content_result['sanitized'],
     'upload_batch_token' => $upload_batch_token,
     'mood' => $mood,
+    'weather' => $weather,
     'entry_date' => $entry_date
 );
 
@@ -223,6 +225,7 @@ if ($upload_batch_token === '') {
 }
 $errors = array();
 $valid_moods = array('Happy', 'Calm', 'Neutral', 'Sad', 'Stressed');
+$valid_weather_values = array('Sunny', 'Cloudy', 'Rainy', 'Windy', 'Stormy');
 
 if ($title === '') {
     $errors[] = 'Title is required.';
@@ -240,6 +243,10 @@ if (!$content_result['valid']) {
 
 if (!in_array($mood, $valid_moods, true)) {
     $errors[] = 'Please select a valid mood.';
+}
+
+if ($weather !== '' && !in_array($weather, $valid_weather_values, true)) {
+    $errors[] = 'Please select a valid weather option.';
 }
 
 $date = DateTime::createFromFormat('!Y-m-d', $entry_date);
@@ -262,6 +269,7 @@ $diary_id = createDiaryEntry(
     $title,
     $content_result['stored'],
     $mood,
+    $weather,
     $entry_date
 );
 

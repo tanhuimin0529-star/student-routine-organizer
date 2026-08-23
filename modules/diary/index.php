@@ -172,7 +172,7 @@ $search_error = diaryNavigationTextLength($search_term) > diaryNavigationSearchM
 $validated_search_term = $search_error === '' ? $search_term : '';
 $allowed_mood_filters = array('Happy', 'Calm', 'Neutral', 'Sad', 'Stressed');
 $mood_filter_options = array(
-    '' => array('label' => 'All', 'emoji' => '🌿'),
+    '' => array('label' => 'dll', 'emoji' => '🌿'),
     'Happy' => array('label' => 'Happy', 'emoji' => '😊'),
     'Calm' => array('label' => 'Calm', 'emoji' => '😌'),
     'Neutral' => array('label' => 'Neutral', 'emoji' => '😐'),
@@ -184,6 +184,22 @@ $requested_mood_filter = isset($_GET['mood']) && is_string($_GET['mood'])
     : '';
 $mood_filter = in_array($requested_mood_filter, $allowed_mood_filters, true)
     ? $requested_mood_filter
+    : '';
+$allowed_weather_filters = array('Sunny', 'Cloudy', 'Rainy', 'Windy', 'Stormy', 'not-set');
+$weather_filter_options = array(
+    '' => array('label' => 'All Weather', 'emoji' => '🌦️'),
+    'Sunny' => array('label' => 'Sunny', 'emoji' => '☀️'),
+    'Cloudy' => array('label' => 'Cloudy', 'emoji' => '☁️'),
+    'Rainy' => array('label' => 'Rainy', 'emoji' => '🌧️'),
+    'Windy' => array('label' => 'Windy', 'emoji' => '💨'),
+    'Stormy' => array('label' => 'Stormy', 'emoji' => '⛈️'),
+    'not-set' => array('label' => 'Not set', 'emoji' => '—')
+);
+$requested_weather_filter = isset($_GET['weather']) && is_string($_GET['weather'])
+    ? $_GET['weather']
+    : '';
+$weather_filter = in_array($requested_weather_filter, $allowed_weather_filters, true)
+    ? $requested_weather_filter
     : '';
 $allowed_sort_values = array('newest', 'oldest', 'updated');
 $requested_sort = isset($_GET['sort']) && is_string($_GET['sort'])
@@ -477,22 +493,28 @@ function diaryContainsSearch($value, $search_term) {
 }
 
 $filter_results = array();
-$filters_active = $validated_search_term !== '' || $mood_filter !== '' || $sort_value !== 'newest';
+$filters_active = $validated_search_term !== '' || $mood_filter !== '' || $weather_filter !== '' || $sort_value !== 'newest';
 
 if ($filters_active) {
-    $filter_results = array_values(array_filter($entries, function ($entry) use ($validated_search_term, $mood_filter) {
+    $filter_results = array_values(array_filter($entries, function ($entry) use ($validated_search_term, $mood_filter, $weather_filter) {
         $title = isset($entry['title']) ? $entry['title'] : '';
         $content = isset($entry['content'])
             ? diaryContentToPlainText($entry['content'])
             : '';
         $entry_mood = isset($entry['mood']) ? $entry['mood'] : '';
+        $entry_weather = isset($entry['weather']) && is_string($entry['weather'])
+            ? trim($entry['weather'])
+            : '';
 
         $matches_search = $validated_search_term === ''
             || diaryContainsSearch($title, $validated_search_term)
             || diaryContainsSearch($content, $validated_search_term);
         $matches_mood = $mood_filter === '' || $entry_mood === $mood_filter;
+        $matches_weather = $weather_filter === ''
+            || ($weather_filter === 'not-set' && $entry_weather === '')
+            || ($weather_filter !== 'not-set' && $entry_weather === $weather_filter);
 
-        return $matches_search && $matches_mood;
+        return $matches_search && $matches_mood && $matches_weather;
     }));
 
     usort($filter_results, function ($first_entry, $second_entry) use ($sort_value) {
@@ -542,6 +564,9 @@ if ($validated_search_term !== '') {
 if ($mood_filter !== '') {
     $diary_navigation_parameters['mood'] = $mood_filter;
 }
+if ($weather_filter !== '') {
+    $diary_navigation_parameters['weather'] = $weather_filter;
+}
 if ($sort_value !== 'newest') {
     $diary_navigation_parameters['sort'] = $sort_value;
 }
@@ -588,6 +613,9 @@ if ($validated_search_term !== '') {
 }
 if ($mood_filter !== '') {
     $today_corner_return_parameters['mood'] = $mood_filter;
+}
+if ($weather_filter !== '') {
+    $today_corner_return_parameters['weather'] = $weather_filter;
 }
 if ($sort_value !== 'newest') {
     $today_corner_return_parameters['sort'] = $sort_value;
@@ -790,6 +818,8 @@ if ($today_memory_change_requested) {
                 <?php if ($selected_date !== null): ?>
                     <input type="hidden" name="date" value="<?php echo diaryEscape($selected_date); ?>">
                 <?php endif; ?>
+                <input type="hidden" name="mood" value="<?php echo diaryEscape($mood_filter); ?>">
+                <input type="hidden" name="weather" value="<?php echo diaryEscape($weather_filter); ?>">
                 <div class="diary-search-controls diary-home-search-controls">
                     <input
                         type="search"
@@ -799,24 +829,47 @@ if ($today_memory_change_requested) {
                         value="<?php echo diaryEscape($search_term); ?>"
                         placeholder="Search by title or content"
                     >
-                    <button class="diary-button" type="submit" name="mood" value="<?php echo diaryEscape($mood_filter); ?>">Search</button>
+                    <button class="diary-button" type="submit">Search</button>
                     <a class="diary-button diary-button-secondary" href="<?php echo diaryEscape($clear_search_url); ?>">Clear Filters</a>
                 </div>
                 <div class="diary-all-entries-filter-row">
-                    <div class="diary-mood-filter-toolbar" role="group" aria-label="Filter journal entries by mood">
-                    <?php foreach ($mood_filter_options as $mood_value => $mood_option): ?>
-                        <?php $mood_is_active = $mood_filter === $mood_value; ?>
-                        <button
-                            class="diary-mood-filter-option<?php echo $mood_is_active ? ' is-active' : ''; ?>"
-                            type="submit"
-                            name="mood"
-                            value="<?php echo diaryEscape($mood_value); ?>"
-                            aria-pressed="<?php echo $mood_is_active ? 'true' : 'false'; ?>"
-                        >
-                            <span class="diary-mood-filter-emoji" aria-hidden="true"><?php echo diaryEscape($mood_option['emoji']); ?></span>
-                            <span><?php echo diaryEscape($mood_option['label']); ?></span>
-                        </button>
-                    <?php endforeach; ?>
+                    <div class="diary-filter-toolbar-groups">
+                        <div class="diary-filter-group">
+                            <span class="diary-filter-group-label">Mood</span>
+                            <div class="diary-mood-filter-toolbar" role="group" aria-label="Filter journal entries by mood">
+                            <?php foreach ($mood_filter_options as $mood_value => $mood_option): ?>
+                                <?php $mood_is_active = $mood_filter === $mood_value; ?>
+                                <button
+                                    class="diary-mood-filter-option<?php echo $mood_is_active ? ' is-active' : ''; ?>"
+                                    type="submit"
+                                    name="mood"
+                                    value="<?php echo diaryEscape($mood_value); ?>"
+                                    aria-pressed="<?php echo $mood_is_active ? 'true' : 'false'; ?>"
+                                >
+                                    <span class="diary-mood-filter-emoji" aria-hidden="true"><?php echo diaryEscape($mood_option['emoji']); ?></span>
+                                    <span><?php echo diaryEscape($mood_option['label']); ?></span>
+                                </button>
+                            <?php endforeach; ?>
+                            </div>
+                        </div>
+                        <div class="diary-filter-group diary-weather-filter-group">
+                            <span class="diary-filter-group-label">Weather</span>
+                            <div class="diary-mood-filter-toolbar diary-weather-filter-toolbar" role="group" aria-label="Filter journal entries by weather">
+                            <?php foreach ($weather_filter_options as $weather_value => $weather_option): ?>
+                                <?php $weather_is_active = $weather_filter === $weather_value; ?>
+                                <button
+                                    class="diary-mood-filter-option diary-weather-filter-option<?php echo $weather_is_active ? ' is-active' : ''; ?>"
+                                    type="submit"
+                                    name="weather"
+                                    value="<?php echo diaryEscape($weather_value); ?>"
+                                    aria-pressed="<?php echo $weather_is_active ? 'true' : 'false'; ?>"
+                                >
+                                    <span class="diary-mood-filter-emoji" aria-hidden="true"><?php echo diaryEscape($weather_option['emoji']); ?></span>
+                                    <span><?php echo diaryEscape($weather_option['label']); ?></span>
+                                </button>
+                            <?php endforeach; ?>
+                            </div>
+                        </div>
                     </div>
                     <label class="diary-all-entries-sort-control" for="sort">
                         <span>Sort</span>
@@ -884,7 +937,7 @@ if ($today_memory_change_requested) {
                 <nav class="diary-calendar-navigation" aria-label="Calendar month navigation">
                     <a
                         class="diary-calendar-nav-button"
-                        href="index.php?month=<?php echo rawurlencode($previous_calendar_month->format('Y-m')); ?><?php echo $validated_search_term !== '' ? '&amp;search=' . rawurlencode($validated_search_term) : ''; ?><?php echo $mood_filter !== '' ? '&amp;mood=' . rawurlencode($mood_filter) : ''; ?><?php echo $sort_value !== 'newest' ? '&amp;sort=' . rawurlencode($sort_value) : ''; ?>#journal-calendar"
+                        href="index.php?month=<?php echo rawurlencode($previous_calendar_month->format('Y-m')); ?><?php echo $validated_search_term !== '' ? '&amp;search=' . rawurlencode($validated_search_term) : ''; ?><?php echo $mood_filter !== '' ? '&amp;mood=' . rawurlencode($mood_filter) : ''; ?><?php echo $weather_filter !== '' ? '&amp;weather=' . rawurlencode($weather_filter) : ''; ?><?php echo $sort_value !== 'newest' ? '&amp;sort=' . rawurlencode($sort_value) : ''; ?>#journal-calendar"
                         aria-label="Previous month: <?php echo diaryEscape($previous_calendar_month->format('F Y')); ?>"
                     >
                         ← <?php echo diaryEscape($previous_calendar_month->format('F')); ?>
@@ -895,7 +948,7 @@ if ($today_memory_change_requested) {
                     </p>
                     <a
                         class="diary-calendar-nav-button"
-                        href="index.php?month=<?php echo rawurlencode($next_calendar_month->format('Y-m')); ?><?php echo $validated_search_term !== '' ? '&amp;search=' . rawurlencode($validated_search_term) : ''; ?><?php echo $mood_filter !== '' ? '&amp;mood=' . rawurlencode($mood_filter) : ''; ?><?php echo $sort_value !== 'newest' ? '&amp;sort=' . rawurlencode($sort_value) : ''; ?>#journal-calendar"
+                        href="index.php?month=<?php echo rawurlencode($next_calendar_month->format('Y-m')); ?><?php echo $validated_search_term !== '' ? '&amp;search=' . rawurlencode($validated_search_term) : ''; ?><?php echo $mood_filter !== '' ? '&amp;mood=' . rawurlencode($mood_filter) : ''; ?><?php echo $weather_filter !== '' ? '&amp;weather=' . rawurlencode($weather_filter) : ''; ?><?php echo $sort_value !== 'newest' ? '&amp;sort=' . rawurlencode($sort_value) : ''; ?>#journal-calendar"
                         aria-label="Next month: <?php echo diaryEscape($next_calendar_month->format('F Y')); ?>"
                     >
                         <?php echo diaryEscape($next_calendar_month->format('F')); ?> →
@@ -922,7 +975,7 @@ if ($today_memory_change_requested) {
                     >
                         <a
                             class="diary-calendar-day-link"
-                            href="index.php?month=<?php echo rawurlencode($calendar_month->format('Y-m')); ?>&amp;date=<?php echo rawurlencode($calendar_date_key); ?><?php echo $validated_search_term !== '' ? '&amp;search=' . rawurlencode($validated_search_term) : ''; ?><?php echo $mood_filter !== '' ? '&amp;mood=' . rawurlencode($mood_filter) : ''; ?><?php echo $sort_value !== 'newest' ? '&amp;sort=' . rawurlencode($sort_value) : ''; ?>#selected-date-entries"
+                            href="index.php?month=<?php echo rawurlencode($calendar_month->format('Y-m')); ?>&amp;date=<?php echo rawurlencode($calendar_date_key); ?><?php echo $validated_search_term !== '' ? '&amp;search=' . rawurlencode($validated_search_term) : ''; ?><?php echo $mood_filter !== '' ? '&amp;mood=' . rawurlencode($mood_filter) : ''; ?><?php echo $weather_filter !== '' ? '&amp;weather=' . rawurlencode($weather_filter) : ''; ?><?php echo $sort_value !== 'newest' ? '&amp;sort=' . rawurlencode($sort_value) : ''; ?>#selected-date-entries"
                             aria-label="<?php echo diaryEscape($calendar_day_label); ?>"
                             <?php echo $selected_date === $calendar_date_key ? 'aria-current="date"' : ''; ?>
                         >

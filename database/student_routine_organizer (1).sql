@@ -84,6 +84,7 @@ CREATE TABLE `diary_entries` (
   `title` varchar(150) NOT NULL,
   `content` text NOT NULL,
   `mood` varchar(30) NOT NULL,
+  `weather` varchar(20) DEFAULT NULL,
   `entry_date` date NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),

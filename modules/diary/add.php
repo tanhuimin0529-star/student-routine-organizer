@@ -54,6 +54,18 @@ $mood_options = array(
 $selected_mood = isset($old['mood']) && array_key_exists($old['mood'], $mood_options)
     ? $old['mood']
     : '';
+$weather_options = array(
+    '' => array('emoji' => '—', 'label' => 'Not set'),
+    'Sunny' => array('emoji' => '☀️', 'label' => 'Sunny'),
+    'Cloudy' => array('emoji' => '☁️', 'label' => 'Cloudy'),
+    'Rainy' => array('emoji' => '🌧️', 'label' => 'Rainy'),
+    'Windy' => array('emoji' => '💨', 'label' => 'Windy'),
+    'Stormy' => array('emoji' => '⛈️', 'label' => 'Stormy')
+);
+$selected_weather = isset($old['weather'])
+    && array_key_exists((string) $old['weather'], $weather_options)
+        ? (string) $old['weather']
+        : '';
 $diary_css_version = filemtime(__DIR__ . '/../../assets/css/diary.css');
 $diary_js_version = filemtime(__DIR__ . '/../../assets/js/diary.js');
 ?>
@@ -318,6 +330,31 @@ $diary_js_version = filemtime(__DIR__ . '/../../assets/js/diary.js');
                 </div>
                 <p class="diary-mood-client-error" id="diary-mood-error" role="alert" hidden>Please choose a mood.</p>
             </fieldset>
+            </div>
+
+            <div class="diary-form-group diary-weather-section">
+                <fieldset class="diary-form-group diary-mood-fieldset diary-weather-fieldset">
+                    <legend id="diary-weather-label">Weather <span class="diary-optional-label">(optional)</span></legend>
+                    <p class="diary-mood-help" id="diary-weather-help">Choose the weather that matches this journal entry.</p>
+                    <div class="diary-mood-picker diary-weather-picker" role="radiogroup" aria-labelledby="diary-weather-label" aria-describedby="diary-weather-help">
+                        <?php foreach ($weather_options as $weather_value => $weather_option): ?>
+                            <?php $weather_is_selected = $selected_weather === $weather_value; ?>
+                            <label class="diary-weather-choice">
+                                <input
+                                    class="diary-visually-hidden"
+                                    type="radio"
+                                    name="weather"
+                                    value="<?php echo htmlspecialchars($weather_value, ENT_QUOTES, 'UTF-8'); ?>"
+                                    <?php echo $weather_is_selected ? 'checked' : ''; ?>
+                                >
+                                <span class="diary-mood-option diary-weather-option">
+                                    <span class="diary-mood-option-emoji" aria-hidden="true"><?php echo htmlspecialchars($weather_option['emoji'], ENT_QUOTES, 'UTF-8'); ?></span>
+                                    <span class="diary-mood-option-label"><?php echo htmlspecialchars($weather_option['label'], ENT_QUOTES, 'UTF-8'); ?></span>
+                                </span>
+                            </label>
+                        <?php endforeach; ?>
+                    </div>
+                </fieldset>
             </div>
 
             <div class="diary-form-group">

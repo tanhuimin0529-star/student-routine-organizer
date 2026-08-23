@@ -131,8 +131,8 @@ function diaryNavigationValidateCollectionTarget($value) {
 
     $destination = $parts['path'];
     $allowed_parameters = array(
-        'index.php' => array('search', 'mood', 'sort', 'month', 'date', 'favorites'),
-        'all_entries.php' => array('search', 'mood', 'sort', 'favorites', 'page'),
+        'index.php' => array('search', 'mood', 'weather', 'sort', 'month', 'date', 'favorites'),
+        'all_entries.php' => array('search', 'mood', 'weather', 'sort', 'favorites', 'page'),
         'memory_album.php' => array()
     );
     $allowed_fragments = array(
@@ -183,6 +183,14 @@ function diaryNavigationValidateCollectionTarget($value) {
                 return null;
             }
             $canonical['mood'] = $query_value;
+            continue;
+        }
+
+        if ($key === 'weather') {
+            if (!in_array($query_value, array('Sunny', 'Cloudy', 'Rainy', 'Windy', 'Stormy', 'not-set'), true)) {
+                return null;
+            }
+            $canonical['weather'] = $query_value;
             continue;
         }
 

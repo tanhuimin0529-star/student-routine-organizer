@@ -242,6 +242,7 @@ $return_to = diaryNavigationSanitizeReturnTo(diaryEditPostString('return_to'));
 $title = diaryEditPostString('title');
 $submitted_content = diaryEditPostString('content');
 $mood = diaryEditPostString('mood');
+$weather = diaryEditPostString('weather');
 $entry_date = diaryEditPostString('entry_date');
 $upload_batch_token = diaryEditValidatedUploadBatchToken();
 $content_result = diaryContentPrepareForStorage($submitted_content, $logged_in_user_id);
@@ -252,6 +253,7 @@ $old = array(
     'content' => $content_result['sanitized'],
     'upload_batch_token' => $upload_batch_token,
     'mood' => $mood,
+    'weather' => $weather,
     'entry_date' => $entry_date
 );
 
@@ -303,6 +305,7 @@ $existing_stored_content = isset($existing_entry['content'])
 
 $errors = array();
 $valid_moods = array('Happy', 'Calm', 'Neutral', 'Sad', 'Stressed');
+$valid_weather_values = array('Sunny', 'Cloudy', 'Rainy', 'Windy', 'Stormy');
 
 if ($title === '') {
     $errors[] = 'Title is required.';
@@ -320,6 +323,10 @@ if (!$content_result['valid']) {
 
 if (!in_array($mood, $valid_moods, true)) {
     $errors[] = 'Please select a valid mood.';
+}
+
+if ($weather !== '' && !in_array($weather, $valid_weather_values, true)) {
+    $errors[] = 'Please select a valid weather option.';
 }
 
 $date = DateTime::createFromFormat('!Y-m-d', $entry_date);
@@ -342,6 +349,7 @@ $updated = updateDiaryEntry(
     $title,
     $content_result['stored'],
     $mood,
+    $weather,
     $entry_date
 );
 

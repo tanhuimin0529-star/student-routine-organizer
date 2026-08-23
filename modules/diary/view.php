@@ -82,6 +82,13 @@ $current_edit_url = $entry !== null
     : $return_to;
 $entry_is_favorite = $entry !== null && isset($entry['is_favorite']) && (int) $entry['is_favorite'] === 1;
 $favorite_label = $entry_is_favorite ? 'Remove from favorites' : 'Add to favorites';
+$allowed_weather_values = array('Sunny', 'Cloudy', 'Rainy', 'Windy', 'Stormy');
+$entry_weather = $entry !== null
+    && isset($entry['weather'])
+    && is_string($entry['weather'])
+    && in_array($entry['weather'], $allowed_weather_values, true)
+        ? $entry['weather']
+        : '';
 $diary_css_version = filemtime(__DIR__ . '/../../assets/css/diary.css');
 $diary_js_version = filemtime(__DIR__ . '/../../assets/js/diary.js');
 
@@ -108,6 +115,18 @@ function diaryViewMoodEmoji($mood) {
     );
 
     return isset($icons[$mood]) ? $icons[$mood] : '📝';
+}
+
+function diaryViewWeatherEmoji($weather) {
+    $icons = array(
+        'Sunny' => '☀️',
+        'Cloudy' => '☁️',
+        'Rainy' => '🌧️',
+        'Windy' => '💨',
+        'Stormy' => '⛈️'
+    );
+
+    return isset($icons[$weather]) ? $icons[$weather] : '';
 }
 ?>
 <!DOCTYPE html>
@@ -209,6 +228,13 @@ function diaryViewMoodEmoji($mood) {
                                 <span aria-hidden="true"><?php echo diaryViewEscape(diaryViewMoodEmoji($entry['mood'])); ?></span>
                                 <?php echo diaryViewEscape($entry['mood']); ?>
                             </span>
+                            <?php if ($entry_weather !== ''): ?>
+                                <span class="diary-reading-meta-item">
+                                    <span class="diary-meta-label">Weather</span>
+                                    <span aria-hidden="true"><?php echo diaryViewEscape(diaryViewWeatherEmoji($entry_weather)); ?></span>
+                                    <?php echo diaryViewEscape($entry_weather); ?>
+                                </span>
+                            <?php endif; ?>
                         </div>
                     </header>
 

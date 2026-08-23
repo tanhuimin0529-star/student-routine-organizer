@@ -45,6 +45,22 @@ $requested_mood_filter = isset($_GET['mood']) && is_string($_GET['mood'])
 $mood_filter = in_array($requested_mood_filter, $allowed_mood_filters, true)
     ? $requested_mood_filter
     : '';
+$allowed_weather_filters = array('Sunny', 'Cloudy', 'Rainy', 'Windy', 'Stormy', 'not-set');
+$weather_filter_options = array(
+    '' => array('label' => 'All Weather', 'emoji' => '🌦️'),
+    'Sunny' => array('label' => 'Sunny', 'emoji' => '☀️'),
+    'Cloudy' => array('label' => 'Cloudy', 'emoji' => '☁️'),
+    'Rainy' => array('label' => 'Rainy', 'emoji' => '🌧️'),
+    'Windy' => array('label' => 'Windy', 'emoji' => '💨'),
+    'Stormy' => array('label' => 'Stormy', 'emoji' => '⛈️'),
+    'not-set' => array('label' => 'Not set', 'emoji' => '—')
+);
+$requested_weather_filter = isset($_GET['weather']) && is_string($_GET['weather'])
+    ? $_GET['weather']
+    : '';
+$weather_filter = in_array($requested_weather_filter, $allowed_weather_filters, true)
+    ? $requested_weather_filter
+    : '';
 
 $allowed_sort_values = array('newest', 'oldest', 'updated');
 $requested_sort = isset($_GET['sort']) && is_string($_GET['sort'])
@@ -167,7 +183,7 @@ function allEntriesPaginationUrl($page, $parameters) {
 }
 
 $filtered_entries = $entries;
-$filters_active = $validated_search_term !== '' || $mood_filter !== '' || $favorites_only;
+$filters_active = $validated_search_term !== '' || $mood_filter !== '' || $weather_filter !== '' || $favorites_only;
 
 if ($validated_search_term !== '') {
     $filtered_entries = array_values(array_filter($filtered_entries, function ($entry) use ($validated_search_term) {
@@ -186,6 +202,18 @@ if ($mood_filter !== '') {
         $entry_mood = isset($entry['mood']) ? $entry['mood'] : '';
 
         return $entry_mood === $mood_filter;
+    }));
+}
+
+if ($weather_filter !== '') {
+    $filtered_entries = array_values(array_filter($filtered_entries, function ($entry) use ($weather_filter) {
+        $entry_weather = isset($entry['weather']) && is_string($entry['weather'])
+            ? trim($entry['weather'])
+            : '';
+
+        return $weather_filter === 'not-set'
+            ? $entry_weather === ''
+            : $entry_weather === $weather_filter;
     }));
 }
 
@@ -245,6 +273,9 @@ if ($validated_search_term !== '') {
 }
 if ($mood_filter !== '') {
     $all_entries_navigation_parameters['mood'] = $mood_filter;
+}
+if ($weather_filter !== '') {
+    $all_entries_navigation_parameters['weather'] = $weather_filter;
 }
 if ($sort_value !== 'newest') {
     $all_entries_navigation_parameters['sort'] = $sort_value;
@@ -319,6 +350,8 @@ $all_entries_context = diaryNavigationBuildReturnTo(
                 <?php if ($favorites_only): ?>
                     <input type="hidden" name="favorites" value="1">
                 <?php endif; ?>
+                <input type="hidden" name="mood" value="<?php echo allEntriesEscape($mood_filter); ?>">
+                <input type="hidden" name="weather" value="<?php echo allEntriesEscape($weather_filter); ?>">
 
                 <div class="diary-search-controls diary-all-entries-search-controls">
                     <input
@@ -330,24 +363,47 @@ $all_entries_context = diaryNavigationBuildReturnTo(
                         placeholder="Search by title or content"
                     >
 
-                    <button class="diary-button" type="submit" name="mood" value="<?php echo allEntriesEscape($mood_filter); ?>">Search</button>
+                    <button class="diary-button" type="submit">Search</button>
                     <a class="diary-button diary-button-secondary diary-all-entries-clear" href="all_entries.php#diary-filters">Clear Filters</a>
                 </div>
                 <div class="diary-all-entries-filter-row">
-                    <div class="diary-mood-filter-toolbar" role="group" aria-label="Filter journal entries by mood">
-                    <?php foreach ($mood_filter_options as $mood_value => $mood_option): ?>
-                        <?php $mood_is_active = $mood_filter === $mood_value; ?>
-                        <button
-                            class="diary-mood-filter-option<?php echo $mood_is_active ? ' is-active' : ''; ?>"
-                            type="submit"
-                            name="mood"
-                            value="<?php echo allEntriesEscape($mood_value); ?>"
-                            aria-pressed="<?php echo $mood_is_active ? 'true' : 'false'; ?>"
-                        >
-                            <span class="diary-mood-filter-emoji" aria-hidden="true"><?php echo allEntriesEscape($mood_option['emoji']); ?></span>
-                            <span><?php echo allEntriesEscape($mood_option['label']); ?></span>
-                        </button>
-                    <?php endforeach; ?>
+                    <div class="diary-filter-toolbar-groups">
+                        <div class="diary-filter-group">
+                            <span class="diary-filter-group-label">Mood</span>
+                            <div class="diary-mood-filter-toolbar" role="group" aria-label="Filter journal entries by mood">
+                            <?php foreach ($mood_filter_options as $mood_value => $mood_option): ?>
+                                <?php $mood_is_active = $mood_filter === $mood_value; ?>
+                                <button
+                                    class="diary-mood-filter-option<?php echo $mood_is_active ? ' is-active' : ''; ?>"
+                                    type="submit"
+                                    name="mood"
+                                    value="<?php echo allEntriesEscape($mood_value); ?>"
+                                    aria-pressed="<?php echo $mood_is_active ? 'true' : 'false'; ?>"
+                                >
+                                    <span class="diary-mood-filter-emoji" aria-hidden="true"><?php echo allEntriesEscape($mood_option['emoji']); ?></span>
+                                    <span><?php echo allEntriesEscape($mood_option['label']); ?></span>
+                                </button>
+                            <?php endforeach; ?>
+                            </div>
+                        </div>
+                        <div class="diary-filter-group diary-weather-filter-group">
+                            <span class="diary-filter-group-label">Weather</span>
+                            <div class="diary-mood-filter-toolbar diary-weather-filter-toolbar" role="group" aria-label="Filter journal entries by weather">
+                            <?php foreach ($weather_filter_options as $weather_value => $weather_option): ?>
+                                <?php $weather_is_active = $weather_filter === $weather_value; ?>
+                                <button
+                                    class="diary-mood-filter-option diary-weather-filter-option<?php echo $weather_is_active ? ' is-active' : ''; ?>"
+                                    type="submit"
+                                    name="weather"
+                                    value="<?php echo allEntriesEscape($weather_value); ?>"
+                                    aria-pressed="<?php echo $weather_is_active ? 'true' : 'false'; ?>"
+                                >
+                                    <span class="diary-mood-filter-emoji" aria-hidden="true"><?php echo allEntriesEscape($weather_option['emoji']); ?></span>
+                                    <span><?php echo allEntriesEscape($weather_option['label']); ?></span>
+                                </button>
+                            <?php endforeach; ?>
+                            </div>
+                        </div>
                     </div>
                     <label class="diary-all-entries-sort-control" for="sort">
                         <span>Sort</span>
