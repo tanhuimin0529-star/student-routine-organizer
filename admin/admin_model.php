@@ -55,4 +55,40 @@ function getAllRegisteredUsers($conn) {
     mysqli_stmt_close($stmt);
     return $users;
 }
+function getRecentRegisteredUsers($conn, $limit = 5) {
+    $limit = max(1, min(20, (int) $limit));
+    $stmt = null;
+
+    try {
+        $sql = "SELECT user_id, name, email, role, created_at
+                FROM users
+                ORDER BY created_at DESC, user_id DESC
+                LIMIT ?";
+        $stmt = mysqli_prepare($conn, $sql);
+        mysqli_stmt_bind_param($stmt, "i", $limit);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        $users = array();
+
+        while ($row = mysqli_fetch_assoc($result)) {
+            $users[] = $row;
+        }
+
+        mysqli_stmt_close($stmt);
+        return $users;
+    } catch (mysqli_sql_exception $exception) {
+        if ($stmt instanceof mysqli_stmt) {
+            mysqli_stmt_close($stmt);
+        }
+
+        $message = str_replace(array("\r", "\n"), " ", $exception->getMessage());
+        error_log(
+            "[Admin dashboard] recent registrations mysqli error "
+            . (int) $exception->getCode()
+            . ": "
+            . $message
+        );
+        return array();
+    }
+}
 ?>

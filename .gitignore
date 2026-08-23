@@ -1,5 +1,6 @@
 # User database credentials and local configurations
 config/db_config.php
+config/smtp_config.php
 
 # PHP & dependency files
 vendor/

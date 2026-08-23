@@ -19,6 +19,11 @@ require_once __DIR__ . "/auth_functions.php";
 $errors = array();
 $email = "";
 
+$success_message = "";
+if (isset($_GET['msg']) && $_GET['msg'] === 'password_reset') {
+    $success_message = "Your administrator password has been reset successfully. Please log in.";
+}
+
 $session_message = "";
 if (isset($_GET['msg']) && $_GET['msg'] === 'session_expired') {
     $session_message = "Your session has expired due to inactivity. Please log in again.";
@@ -80,6 +85,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <h1>Admin Login</h1>
         <p class="auth-subtitle">Administrator access only</p>
 
+        <?php if ($success_message != "") { ?>
+            <div class="alert alert-success"><?php echo htmlspecialchars($success_message); ?></div>
+        <?php } ?>
+
         <?php if ($session_message != "") { ?>
             <div class="alert alert-error"><?php echo htmlspecialchars($session_message); ?></div>
         <?php } ?>
@@ -100,6 +109,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <label for="password">Password</label>
             <input type="password" name="password" id="password" required>
+
+            <p class="auth-forgot-link"><a href="admin_forgot_password.php">Forgot Password?</a></p>
 
             <button type="submit" class="btn-primary">Login as Admin</button>
         </form>
