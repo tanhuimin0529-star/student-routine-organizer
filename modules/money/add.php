@@ -5,6 +5,7 @@
 // ===================================================================
 
 require_once "../../includes/session_check.php";
+require_once "../../includes/shared_navbar.php";
 require_once "../../config/database.php";
 require_once "money_model.php";
 
@@ -19,6 +20,10 @@ $error = isset($_GET['error']) ? $_GET['error'] : "";
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Add Transaction - Money Tracker</title>
+
+    <script src="../../assets/js/theme.js"></script>
+    <link rel="stylesheet" href="../../assets/css/theme.css">
+    <?php renderSharedNavbarAssets('../../'); ?>
 
     <style>
         * {
@@ -135,15 +140,8 @@ $error = isset($_GET['error']) ? $_GET['error'] : "";
 
 <body>
 
-<nav class="navbar">
-    <h2>💰 Money Tracker</h2>
 
-    <div>
-        <a href="../../dashboard/dashboard.php">Home</a>
-        <a href="index.php">Money Tracker</a>
-        <a href="../../authentication/logout.php">Logout</a>
-    </div>
-</nav>
+<?php renderIntegratedModuleHeader('../../', 'money'); ?>
 
 <div class="container">
 

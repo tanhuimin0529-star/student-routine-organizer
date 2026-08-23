@@ -1,19 +1,28 @@
 <?php
 
 /**
- * Render the shared Light / Dark / System preference control.
- * Theme behavior lives in assets/js/theme.js so this component stays reusable.
+ * Render the shared global theme toggle.
+ *
+ * Use floating mode on pages without a suitable header action area.
  */
-function renderGlobalThemeControl(): void
+function renderGlobalThemeControl(bool $floating = false): void
 {
+    $class_name = 'global-theme-control';
+
+    if ($floating) {
+        $class_name .= ' global-theme-control--floating';
+    }
     ?>
-    <div class="global-theme-control" data-theme-control role="group" aria-label="Theme preference">
-        <span class="global-theme-label">Theme</span>
-        <div class="global-theme-options">
-            <button type="button" data-theme-option="light" aria-pressed="false" title="Use light theme">Light</button>
-            <button type="button" data-theme-option="dark" aria-pressed="false" title="Use dark theme">Dark</button>
-            <button type="button" data-theme-option="system" aria-pressed="false" title="Follow system theme">System</button>
-        </div>
+    <div class="<?php echo $class_name; ?>" data-theme-control>
+        <button
+            class="global-theme-toggle"
+            type="button"
+            data-theme-toggle
+            aria-label="Switch to dark mode"
+            title="Switch to dark mode"
+        >
+            <span data-theme-icon aria-hidden="true">☀</span>
+        </button>
     </div>
     <?php
 }

@@ -5,6 +5,7 @@
 // ===================================================================
 
 require_once "../../includes/session_check.php";
+require_once "../../includes/shared_navbar.php";
 require_once "../../config/database.php";
 require_once "money_model.php";
 
@@ -171,6 +172,10 @@ $total_remaining =
     <title>
         Monthly Budget - Student Routine Organizer
     </title>
+
+    <script src="../../assets/js/theme.js"></script>
+    <link rel="stylesheet" href="../../assets/css/theme.css">
+    <?php renderSharedNavbarAssets('../../'); ?>
 
     <style>
 
@@ -556,33 +561,8 @@ $total_remaining =
      Navigation
 ========================= -->
 
-<nav class="navbar">
 
-    <h2>
-        💰 Money Tracker
-    </h2>
-
-    <div>
-
-        <a href="../../dashboard/dashboard.php">
-            Home
-        </a>
-
-        <a href="index.php">
-            Transactions
-        </a>
-
-        <a href="budget.php">
-            Budget
-        </a>
-
-        <a href="../../authentication/logout.php">
-            Logout
-        </a>
-
-    </div>
-
-</nav>
+<?php renderIntegratedModuleHeader('../../', 'money', 'budget'); ?>
 
 
 <div class="container">

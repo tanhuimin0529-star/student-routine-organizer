@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 22, 2026 at 06:26 AM
+-- Generation Time: Aug 23, 2026 at 12:46 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -95,14 +95,17 @@ CREATE TABLE `diary_entries` (
 -- Dumping data for table `diary_entries`
 --
 
-INSERT INTO `diary_entries` (`diary_id`, `user_id`, `title`, `content`, `mood`, `entry_date`, `created_at`, `updated_at`, `is_favorite`) VALUES
-(4, 4, 'rge', 'ger', 'Sad', '2026-08-21', '2026-08-21 04:04:00', '2026-08-21 04:04:00', 0),
-(5, 4, 'dcddwe', '<span style=\"background-color: rgb(255, 241, 168);\">qwddwhdbwdqhwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh</span><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div>', 'Calm', '2026-08-20', '2026-08-21 12:26:14', '2026-08-21 12:26:14', 0),
-(6, 4, 'ggtrtrt', '<!--DIARY_RICH_TEXT_V1--><u>ferferfefrf </u>jj<p><br></p><blockquote><blockquote><blockquote><blockquote><p style=\"text-align: justify\"><u>jggggg</u></p></blockquote></blockquote></blockquote></blockquote><p><u><br></u></p><p><u><br></u></p>', 'Happy', '2026-08-21', '2026-08-21 13:03:40', '2026-08-21 13:03:40', 0),
-(7, 4, 'test', '<!--DIARY_RICH_TEXT_V1-->dsdds plain text<p><b>dd</b></p><p><b><i>dd</i></b></p><p><b><i><u><span style=\"font-family: Times New Roman\">jqtly</span></u></i></b><b><i><u><span style=\"font-family: Verdana\"></span></u></i></b></p><p><span style=\"font-size: 32px\">hh</span></p><p><span style=\"font-size: 32px\"><span style=\"color: #667653\">jjj</span></span></p><p><span style=\"font-size: 32px\"><span style=\"color: #667653\"><br></span></span></p><p><span style=\"font-size: 32px\"><span style=\"color: #667653; background-color: #d8e7f3\">uuu</span></span></p><p style=\"text-align: right\"><span style=\"font-size: 32px\"><span style=\"color: #667653; background-color: #d8e7f3\">oo</span></span></p><p style=\"text-align: left\"><ul><li>fdffg</li></ul><ol><li>hjjhj</li></ol><blockquote>ghfgh (quote)</blockquote></p>', 'Calm', '2026-08-21', '2026-08-21 13:14:11', '2026-08-21 13:14:11', 0),
-(12, 4, 'ferf', '<!--DIARY_RICH_TEXT_V1-->feferfrf🌈☕', 'Calm', '2026-08-21', '2026-08-21 18:17:31', '2026-08-21 18:17:31', 0),
-(13, 4, 'ewf', '<!--DIARY_RICH_TEXT_V1-->fsedfsf<p>gfer</p><br><p></p><figure data-diary-object=\"drawing\" data-diary-x=\"20.6\" data-diary-y=\"65.7\" data-diary-width=\"35\" data-diary-rotation=\"0\"><img src=\"/student-routine-organizer/uploads/diary/user_4/6a24eaa1492660430fe2f33fa18ce45a.png\" alt=\"Journal drawing\"></figure>', 'Calm', '2026-08-21', '2026-08-21 20:18:11', '2026-08-22 04:19:29', 1),
-(14, 4, 'THUHSUHD', '<!--DIARY_RICH_TEXT_V1--><b><span style=\"font-family: Arial\"><span style=\"color: #315a7d; background-color: #d8e7f3\">rwere</span></span></b><p><ul><li><br></li><li><br></li></ul><ol><li><br></li><li>r</li></ol><figure data-diary-object=\"drawing\" data-diary-x=\"82.5\" data-diary-y=\"73.2\" data-diary-width=\"35\" data-diary-rotation=\"0\"><img src=\"/student-routine-organizer/uploads/diary/user_4/ee243d5ca012e4bf9db96e1a136f4de1.png\" alt=\"Journal drawing\"></figure></p>', 'Stressed', '2026-08-22', '2026-08-22 03:33:10', '2026-08-22 03:33:10', 0);
+INSERT INTO `diary_entries` (`diary_id`, `user_id`, `title`, `content`, `mood`, `weather`, `entry_date`, `created_at`, `updated_at`, `is_favorite`) VALUES
+(5, 4, 'dcddwe', '<span style=\"background-color: rgb(255, 241, 168);\">qwddwhdbwdqhwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh</span><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div>', 'Calm', NULL, '2026-08-20', '2026-08-21 12:26:14', '2026-08-21 12:26:14', 0),
+(6, 4, 'ggtrtrt', '<!--DIARY_RICH_TEXT_V1--><u>ferferfefrf </u>jj<p><br></p><blockquote><blockquote><blockquote><blockquote><p style=\"text-align: justify\"><u>jggggg</u></p></blockquote></blockquote></blockquote></blockquote><p><u><br></u></p><p><u><br></u></p>', 'Happy', NULL, '2026-08-21', '2026-08-21 13:03:40', '2026-08-21 13:03:40', 0),
+(7, 4, 'test', '<!--DIARY_RICH_TEXT_V1-->dsdds plain text<p><b>dd</b></p><p><b><i>dd</i></b></p><p><b><i><u><span style=\"font-family: Times New Roman\">jqtly</span></u></i></b><b><i><u><span style=\"font-family: Verdana\"></span></u></i></b></p><p><span style=\"font-size: 32px\">hh</span></p><p><span style=\"font-size: 32px\"><span style=\"color: #667653\">jjj</span></span></p><p><span style=\"font-size: 32px\"><span style=\"color: #667653\"><br></span></span></p><p><span style=\"font-size: 32px\"><span style=\"color: #667653; background-color: #d8e7f3\">uuu</span></span></p><p style=\"text-align: right\"><span style=\"font-size: 32px\"><span style=\"color: #667653; background-color: #d8e7f3\">oo</span></span></p><p style=\"text-align: left\"><ul><li>fdffg</li></ul><ol><li>hjjhj</li></ol><blockquote>ghfgh (quote)</blockquote></p>', 'Calm', NULL, '2026-08-21', '2026-08-21 13:14:11', '2026-08-21 13:14:11', 0),
+(12, 4, 'ferf', '<!--DIARY_RICH_TEXT_V1-->feferfrf🌈☕', 'Calm', NULL, '2026-08-21', '2026-08-21 18:17:31', '2026-08-21 18:17:31', 0),
+(14, 4, 'THUHSUHD', '<!--DIARY_RICH_TEXT_V1--><b><span style=\"font-family: Arial\"><span style=\"color: #315a7d; background-color: #d8e7f3\">rwere</span></span></b><p><ul><li><br></li><li><br></li></ul><ol><li><br></li><li>r</li></ol><figure data-diary-object=\"drawing\" data-diary-x=\"82.5\" data-diary-y=\"73.2\" data-diary-width=\"35\" data-diary-rotation=\"0\"><img src=\"/student-routine-organizer/uploads/diary/user_4/ee243d5ca012e4bf9db96e1a136f4de1.png\" alt=\"Journal drawing\"></figure></p>', 'Stressed', NULL, '2026-08-22', '2026-08-22 03:33:10', '2026-08-22 03:33:10', 0),
+(15, 4, '. Add entry', '<!--DIARY_RICH_TEXT_V1-->tt<figure data-diary-object=\"drawing\" data-diary-x=\"50\" data-diary-y=\"35\" data-diary-width=\"35\" data-diary-rotation=\"0\"><img src=\"/student-routine-organizer/uploads/diary/user_4/a880437adecd85f518ca72a25c7c22bc.png\" alt=\"Journal drawing\"></figure>', 'Calm', NULL, '2026-08-22', '2026-08-22 05:34:41', '2026-08-22 05:36:12', 1),
+(16, 4, 'rger', '<!--DIARY_RICH_TEXT_V1--><figure data-diary-size=\"medium\" data-diary-align=\"center\" data-diary-wrap=\"none\"><img src=\"/student-routine-organizer/uploads/diary/user_4/d36b5eb8e78f48fa1583ad19e5a90f38.png\" alt=\"Journal image\"></figure>ew', 'Calm', NULL, '2026-08-22', '2026-08-22 10:11:26', '2026-08-22 11:36:02', 1),
+(18, 4, 'hm', '<!--DIARY_RICH_TEXT_V1-->mhn', 'Happy', NULL, '2026-08-22', '2026-08-22 18:58:20', '2026-08-22 18:58:20', 0),
+(19, 4, 'mn', '<!--DIARY_RICH_TEXT_V1-->m                              ', 'Stressed', NULL, '2026-08-22', '2026-08-22 18:58:28', '2026-08-22 18:58:28', 0),
+(20, 4, 'gdf', '<!--DIARY_RICH_TEXT_V1-->fdg', 'Calm', NULL, '2026-08-23', '2026-08-22 20:45:21', '2026-08-22 20:45:21', 0);
 
 -- --------------------------------------------------------
 
@@ -218,7 +221,7 @@ CREATE TABLE `fitness_profile` (
 
 INSERT INTO `fitness_profile` (`profile_id`, `user_id`, `height_cm`, `weight_kg`, `daily_calorie_goal`, `daily_step_goal`, `current_steps`, `water_intake_ml`, `sleep_hours`, `steps_date`, `updated_at`) VALUES
 (1, 1, 175.0, 72.5, 500, 10000, 6500, 1500, 7.5, '2026-08-19', '2026-08-19 06:12:14'),
-(2, 4, 170.0, 65.0, 500, 10000, 0, 0, 0.0, '2026-08-22', '2026-08-22 03:44:27');
+(2, 4, 170.0, 65.0, 500, 10000, 0, 0, 0.0, '2026-08-23', '2026-08-23 09:05:59');
 
 -- --------------------------------------------------------
 
@@ -295,6 +298,40 @@ CREATE TABLE `habit_logs` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `money_budgets`
+--
+
+CREATE TABLE `money_budgets` (
+  `budget_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `category` varchar(50) NOT NULL,
+  `monthly_limit` decimal(10,2) NOT NULL,
+  `budget_month` date NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `money_transactions`
+--
+
+CREATE TABLE `money_transactions` (
+  `transaction_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `transaction_type` enum('Income','Expense') NOT NULL,
+  `category` varchar(50) NOT NULL,
+  `amount` decimal(10,2) NOT NULL,
+  `transaction_date` date NOT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `password_reset_tokens`
 --
 
@@ -306,6 +343,14 @@ CREATE TABLE `password_reset_tokens` (
   `used_at` datetime DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `password_reset_tokens`
+--
+
+INSERT INTO `password_reset_tokens` (`reset_id`, `user_id`, `token_hash`, `expires_at`, `used_at`, `created_at`) VALUES
+(3, 4, '25c1bc5a00e61f9879b78ff7cb6393466c34aff447a163cbab582fd31c512adf', '2026-08-23 19:10:03', '2026-08-23 18:42:46', '2026-08-23 10:40:03'),
+(4, 4, '452ff731982cadb2282cad42abd62e46b26ef936afa97bdc9f9fa49e6291e918', '2026-08-23 19:12:46', NULL, '2026-08-23 10:42:46');
 
 -- --------------------------------------------------------
 
@@ -411,6 +456,20 @@ ALTER TABLE `habit_logs`
   ADD UNIQUE KEY `uq_habit_daily_checkin` (`habit_id`,`log_date`);
 
 --
+-- Indexes for table `money_budgets`
+--
+ALTER TABLE `money_budgets`
+  ADD PRIMARY KEY (`budget_id`),
+  ADD UNIQUE KEY `unique_user_category_month` (`user_id`,`category`,`budget_month`);
+
+--
+-- Indexes for table `money_transactions`
+--
+ALTER TABLE `money_transactions`
+  ADD PRIMARY KEY (`transaction_id`),
+  ADD KEY `idx_money_user_date` (`user_id`,`transaction_date`);
+
+--
 -- Indexes for table `password_reset_tokens`
 --
 ALTER TABLE `password_reset_tokens`
@@ -446,13 +505,13 @@ ALTER TABLE `badge_types`
 -- AUTO_INCREMENT for table `diary_entries`
 --
 ALTER TABLE `diary_entries`
-  MODIFY `diary_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `diary_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT for table `diary_monthly_reflections`
 --
 ALTER TABLE `diary_monthly_reflections`
-  MODIFY `reflection_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `reflection_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `exercise`
@@ -491,10 +550,22 @@ ALTER TABLE `habit_logs`
   MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `money_budgets`
+--
+ALTER TABLE `money_budgets`
+  MODIFY `budget_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `money_transactions`
+--
+ALTER TABLE `money_transactions`
+  MODIFY `transaction_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `password_reset_tokens`
 --
 ALTER TABLE `password_reset_tokens`
-  MODIFY `reset_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `reset_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `users`
@@ -556,12 +627,24 @@ ALTER TABLE `habit_badges`
 --
 ALTER TABLE `habit_logs`
   ADD CONSTRAINT `fk_habit_logs_habit` FOREIGN KEY (`habit_id`) REFERENCES `habits` (`habit_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `money_budgets`
+--
+ALTER TABLE `money_budgets`
+  ADD CONSTRAINT `fk_money_budget_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `money_transactions`
+--
+ALTER TABLE `money_transactions`
+  ADD CONSTRAINT `fk_money_transaction_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
 --
 -- Constraints for table `password_reset_tokens`
 --
 ALTER TABLE `password_reset_tokens`
   ADD CONSTRAINT `fk_password_reset_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
-
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

@@ -657,6 +657,57 @@ button[type="submit"]:active {
     text-decoration: underline;
 }
 
+.auth-forgot-link {
+    margin-top: 9px;
+    text-align: right;
+    font-size: 12px;
+}
+
+.auth-forgot-link a,
+.development-reset-link a {
+    color: var(--purple-dark);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.auth-forgot-link a:hover,
+.development-reset-link a:hover {
+    color: var(--blue-dark);
+    text-decoration: underline;
+}
+
+.auth-card--recovery h1::before {
+    content: '🔑 ';
+}
+
+.auth-help {
+    margin-top: 8px;
+    color: var(--gray-500);
+    font-size: 12px;
+}
+
+.development-reset-link {
+    margin-bottom: 20px;
+    padding: 14px 16px;
+    border: 1px solid rgba(96, 165, 250, 0.35);
+    border-radius: var(--radius-xs);
+    background: rgba(96, 165, 250, 0.1);
+    color: var(--gray-600);
+    font-size: 12px;
+    line-height: 1.55;
+}
+
+.development-reset-link strong {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--gray-800);
+    font-size: 13px;
+}
+
+.development-reset-link p {
+    margin-bottom: 7px;
+}
+
 /* ---------------------------------------------------------------
    Password strength bar (register.php)
 --------------------------------------------------------------- */

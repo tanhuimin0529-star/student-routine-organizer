@@ -5,6 +5,7 @@
 // ===================================================================
 
 require_once __DIR__ . "/../includes/session_start.php";
+require_once __DIR__ . "/../includes/theme_control.php";
 
 // If already logged in, no need to register again
 if (isset($_SESSION['user_id'])) {
@@ -62,6 +63,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link rel="stylesheet" href="../assets/css/theme.css">
 </head>
 <body class="page-register">
+<?php renderGlobalThemeControl(true); ?>
 
 <!-- Morphing blob background -->
 <div class="morph-bg">

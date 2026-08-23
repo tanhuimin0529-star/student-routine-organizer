@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . "/../includes/admin_guard.php";
 require_once __DIR__ . "/../config/database.php";
+require_once __DIR__ . "/../includes/theme_control.php";
 require_once __DIR__ . "/admin_model.php";
 
 $users = getAllRegisteredUsers($conn);
@@ -30,6 +31,7 @@ $users = getAllRegisteredUsers($conn);
     <div>
         <a href="index.php">Admin Dashboard</a>
         <a href="../authentication/logout.php">Logout</a>
+        <?php renderGlobalThemeControl(); ?>
     </div>
 </nav>
 

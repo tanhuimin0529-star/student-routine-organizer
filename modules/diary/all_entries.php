@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../../includes/session_check.php';
+require_once __DIR__ . '/../../includes/shared_navbar.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/diary_model.php';
 require_once __DIR__ . '/diary_content.php';
@@ -298,10 +299,15 @@ $all_entries_context = diaryNavigationBuildReturnTo(
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>All Journal Entries</title>
+    <script src="../../assets/js/theme.js"></script>
+    <link rel="stylesheet" href="../../assets/css/theme.css">
+    <?php renderSharedNavbarAssets('../../'); ?>
     <link rel="stylesheet" href="../../assets/css/diary.css?v=<?php echo rawurlencode((string) $diary_css_version); ?>">
     <script src="../../assets/js/diary.js?v=<?php echo rawurlencode((string) $diary_js_version); ?>" defer></script>
 </head>
 <body class="diary-page diary-home-page diary-all-entries-page">
+
+    <?php renderIntegratedModuleHeader('../../', 'diary'); ?>
     <main class="diary-container">
         <section class="diary-home-hero diary-all-entries-hero">
             <header class="diary-list-header">
@@ -309,10 +315,6 @@ $all_entries_context = diaryNavigationBuildReturnTo(
                     <p class="diary-eyebrow">Personal Journal</p>
                     <h1>All Journal Entries</h1>
                     <p>Browse every thought, reflection, and memory in your journal.</p>
-                </div>
-                <div class="diary-header-actions">
-                    <a class="diary-button diary-button-secondary" href="index.php">Back to Diary Home</a>
-                    <a class="diary-button diary-new-entry-button" href="add.php">+ New Journal Entry</a>
                 </div>
             </header>
         </section>

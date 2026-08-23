@@ -1,6 +1,7 @@
 <?php
 // Separate login entry point for existing users whose role is "admin".
 require_once __DIR__ . "/../includes/session_start.php";
+require_once __DIR__ . "/../includes/theme_control.php";
 
 // Preserve the existing session destinations for users who are already signed in.
 if (isset($_SESSION['user_id'])) {
@@ -64,6 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="../assets/css/theme.css">
 </head>
 <body class="page-login">
+<?php renderGlobalThemeControl(true); ?>
 
 <div class="morph-bg">
     <div class="blob blob-1"></div>

@@ -5,6 +5,7 @@
 // ===================================================================
 
 require_once "../../includes/session_check.php";
+require_once "../../includes/shared_navbar.php";
 require_once "../../config/database.php";
 require_once "exercise_functions.php";
 
@@ -94,6 +95,10 @@ $page_title = "Fitness Dashboard";
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
+    <script src="../../assets/js/theme.js"></script>
+    <link rel="stylesheet" href="../../assets/css/theme.css">
+    <?php renderSharedNavbarAssets('../../'); ?>
+
     <!-- Stylesheets -->
     <link rel="stylesheet" href="../../assets/css/exercise.css">
     <link rel="stylesheet" href="../../assets/css/dashboard.css">
@@ -112,18 +117,14 @@ $page_title = "Fitness Dashboard";
 
 <!-- Confetti canvas (injected by JS when needed) -->
 
-<!-- Navbar -->
-<nav class="navbar">
-    <div class="nav-brand">Student Routine Organizer</div>
-    <div class="nav-links">
-        <a href="../../dashboard/dashboard.php">Home</a>
-        <a href="dashboard.php" class="active">Fitness Dashboard</a>
-        <a href="exercise_list.php">My Records</a>
-        <a href="export_report.php" target="_blank">Export PDF</a>
-        <a href="../../authentication/logout.php">Logout</a>
-    </div>
-    <button class="dark-mode-toggle" title="Toggle dark mode">🌙</button>
-</nav>
+<?php
+renderIntegratedModuleHeader(
+    '../../',
+    'exercise',
+    'dashboard',
+    array('export' => array('label' => 'Export PDF', 'href' => 'export_report.php', 'target' => '_blank'))
+);
+?>
 
 <div class="page-wrapper">
 

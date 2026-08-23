@@ -7,7 +7,7 @@
 
 require_once __DIR__ . "/../includes/session_start.php";
 require_once __DIR__ . "/../includes/cookie_consent.php";
-require_once __DIR__ . "/../includes/theme_control.php";
+require_once __DIR__ . "/../includes/shared_navbar.php";
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../authentication/login.php");
@@ -167,6 +167,7 @@ $show_cookie_consent =
 
     <script src="../assets/js/theme.js"></script>
     <link rel="stylesheet" href="../assets/css/theme.css">
+    <?php renderSharedNavbarAssets('../'); ?>
 
 </head>
 
@@ -183,32 +184,7 @@ $show_cookie_consent =
 </div>
 
 
-<!-- Navigation -->
-<nav class="navbar">
-
-    <div class="nav-brand">
-        Student Routine Organizer
-    </div>
-
-    <div class="nav-links">
-
-        <a href="dashboard.php">
-            Dashboard
-        </a>
-
-        <a href="profile.php">
-            Profile Settings
-        </a>
-
-        <?php renderGlobalThemeControl(); ?>
-
-        <a href="../authentication/logout.php">
-            Logout
-        </a>
-
-    </div>
-
-</nav>
+<?php renderSharedStudentNavbar('../', '', 'dashboard'); ?>
 
 
 <!-- Main Dashboard -->

@@ -3,6 +3,7 @@
 // (HTML head + sticky navbar with dark mode toggle).
 // It is included by add_exercise, edit_exercise, exercise_list,
 // and exercise_details — but NOT by dashboard.php (self-contained).
+require_once __DIR__ . "/shared_navbar.php";
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -16,6 +17,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script src="../../assets/js/theme.js"></script>
+    <link rel="stylesheet" href="../../assets/css/theme.css">
+    <?php renderSharedNavbarAssets('../../'); ?>
 
     <!-- Core styles -->
     <link rel="stylesheet" href="../../assets/css/exercise.css">
@@ -37,17 +42,13 @@
     <div class="blob blob-6"></div>
 </div>
 
-<!-- ── Sticky navbar ─────────────────────────────────── -->
-<nav class="navbar">
-    <div class="nav-brand">Student Routine Organizer</div>
-    <div class="nav-links">
-        <a href="../../dashboard/dashboard.php">Home</a>
-        <a href="dashboard.php"<?php if (isset($page_title) && $page_title === 'Fitness Dashboard') echo ' class="active"'; ?>>Fitness Dashboard</a>
-        <a href="exercise_list.php"<?php if (isset($page_title) && $page_title === 'Exercise List') echo ' class="active"'; ?>>My Records</a>
-        <a href="../../authentication/logout.php">Logout</a>
-    </div>
-    <button class="dark-mode-toggle" title="Toggle dark/light mode">🌙</button>
-</nav>
+
+<?php
+$exercise_secondary_active = isset($page_title) && $page_title === 'Exercise List'
+    ? 'records'
+    : '';
+renderIntegratedModuleHeader('../../', 'exercise', $exercise_secondary_active);
+?>
 
 <div class="page-wrapper">
 <!-- ↑ page-wrapper is closed in footer.php -->

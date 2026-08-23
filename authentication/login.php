@@ -6,6 +6,7 @@
 // ===================================================================
 
 require_once __DIR__ . "/../includes/session_start.php";
+require_once __DIR__ . "/../includes/theme_control.php";
 require_once __DIR__ . "/../includes/cookie_consent.php";
 
 // If already logged in, return each role to its own area.
@@ -35,6 +36,8 @@ if (isset($_GET['msg']) && $_GET['msg'] == "registered") {
     $success_message = "Account created successfully. Please login.";
 } elseif (isset($_GET['msg']) && $_GET['msg'] == "loggedout") {
     $success_message = "You have been logged out.";
+} elseif (isset($_GET['msg']) && $_GET['msg'] === "password_reset") {
+    $success_message = "Your password has been reset successfully. Please log in.";
 }
 
 $session_message = "";
@@ -108,6 +111,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link rel="stylesheet" href="../assets/css/theme.css">
 </head>
 <body class="page-login">
+<?php renderGlobalThemeControl(true); ?>
 
 <!-- Morphing blob background -->
 <div class="morph-bg">
@@ -200,6 +204,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             <label for="password">Password</label>
             <input type="password" name="password" id="password" required>
+
+            <p class="auth-forgot-link"><a href="forgot_password.php">Forgot Password?</a></p>
 
             <label class="checkbox-label">
                 <input type="checkbox" name="remember_me" <?php if ($email != "") echo "checked"; ?>>

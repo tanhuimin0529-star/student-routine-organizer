@@ -36,10 +36,25 @@
         return preference;
     }
 
-    function updateControls() {
-        var options = document.querySelectorAll('[data-theme-option]');
+    function updateControls(resolvedTheme) {
+        var toggles = document.querySelectorAll('[data-theme-toggle]');
+        var isDark = resolvedTheme === 'dark';
 
-        options.forEach(function (option) {
+        toggles.forEach(function (toggle) {
+            var label = isDark ? 'Switch to light mode' : 'Switch to dark mode';
+            var icon = toggle.querySelector('[data-theme-icon]');
+
+            toggle.setAttribute('aria-label', label);
+            toggle.setAttribute('title', label);
+            toggle.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+
+            if (icon) {
+                icon.textContent = isDark ? '☾' : '☀';
+            }
+        });
+
+        // Retain support for any older three-option control markup.
+        document.querySelectorAll('[data-theme-option]').forEach(function (option) {
             var isActive = option.getAttribute('data-theme-option') === currentPreference;
             option.classList.toggle('is-active', isActive);
             option.setAttribute('aria-pressed', isActive ? 'true' : 'false');
@@ -66,7 +81,7 @@
             savePreference(preference);
         }
 
-        updateControls();
+        updateControls(resolvedTheme);
     }
 
     // Apply the stored preference immediately to reduce theme flashing while loading.
@@ -76,13 +91,19 @@
         applyTheme(currentPreference, false);
 
         document.addEventListener('click', function (event) {
-            var option = event.target.closest('[data-theme-option]');
+            var toggle = event.target.closest('[data-theme-toggle]');
 
-            if (!option) {
+            if (toggle) {
+                var currentTheme = root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+                applyTheme(currentTheme === 'dark' ? 'light' : 'dark', true);
                 return;
             }
 
-            applyTheme(option.getAttribute('data-theme-option'), true);
+            var option = event.target.closest('[data-theme-option]');
+
+            if (option) {
+                applyTheme(option.getAttribute('data-theme-option'), true);
+            }
         });
     });
 

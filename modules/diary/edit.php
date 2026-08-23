@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../../includes/session_check.php';
+require_once __DIR__ . '/../../includes/shared_navbar.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/diary_model.php';
 require_once __DIR__ . '/diary_content.php';
@@ -129,10 +130,16 @@ $diary_js_version = filemtime(__DIR__ . '/../../assets/js/diary.js');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Journal Entry</title>
+    <script src="../../assets/js/theme.js"></script>
+    <link rel="stylesheet" href="../../assets/css/theme.css">
+    <?php renderSharedNavbarAssets('../../'); ?>
     <link rel="stylesheet" href="../../assets/css/diary.css?v=<?php echo rawurlencode((string) $diary_css_version); ?>">
     <script src="../../assets/js/diary.js?v=<?php echo rawurlencode((string) $diary_js_version); ?>" defer></script>
 </head>
 <body class="diary-page">
+
+    <?php renderIntegratedModuleHeader('../../', 'diary'); ?>
+
     <main class="diary-container">
         <header class="diary-page-header">
             <p class="diary-eyebrow">Diary Journal</p>

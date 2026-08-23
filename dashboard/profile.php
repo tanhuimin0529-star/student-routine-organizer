@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../includes/session_check.php';
 require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../includes/theme_control.php';
+require_once __DIR__ . '/../includes/shared_navbar.php';
 
 function profileSettingsEscape($value) {
     return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
@@ -301,6 +301,9 @@ $home_label = $is_admin ? 'Back to Admin Home' : 'Back to Home';
     <link rel="stylesheet" href="../assets/css/profile.css">
     <script src="../assets/js/theme.js"></script>
     <link rel="stylesheet" href="../assets/css/theme.css">
+    <?php if (!$is_admin): ?>
+        <?php renderSharedNavbarAssets('../'); ?>
+    <?php endif; ?>
 </head>
 <body class="profile-page">
 <div class="morph-bg" aria-hidden="true">
@@ -310,14 +313,18 @@ $home_label = $is_admin ? 'Back to Admin Home' : 'Back to Home';
     <div class="blob blob-4"></div>
 </div>
 
-<nav class="navbar">
-    <div class="nav-brand">Student Routine Organizer</div>
-    <div class="nav-links">
-        <a href="<?php echo profileSettingsEscape($home_url); ?>"><?php echo profileSettingsEscape($home_label); ?></a>
-        <?php renderGlobalThemeControl(); ?>
-        <a href="../authentication/logout.php">Logout</a>
-    </div>
-</nav>
+<?php if ($is_admin): ?>
+    <nav class="navbar">
+        <div class="nav-brand">Student Routine Organizer</div>
+        <div class="nav-links">
+            <a href="<?php echo profileSettingsEscape($home_url); ?>"><?php echo profileSettingsEscape($home_label); ?></a>
+            <?php renderGlobalThemeControl(); ?>
+            <a href="../authentication/logout.php">Logout</a>
+        </div>
+    </nav>
+<?php else: ?>
+    <?php renderSharedStudentNavbar('../', '', 'profile'); ?>
+<?php endif; ?>
 
 <main class="page-wrapper profile-wrapper">
     <header class="profile-header">

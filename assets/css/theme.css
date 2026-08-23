@@ -1,11 +1,10 @@
-/* Shared Light / Dark / System theme layer for global account pages. */
+/* Shared Light / Dark / System theme layer for global and module pages. */
 :root {
-    --global-theme-control-bg: rgba(255, 255, 255, 0.58);
-    --global-theme-control-border: rgba(148, 163, 184, 0.34);
-    --global-theme-control-text: #475569;
-    --global-theme-control-active-bg: #4f46e5;
-    --global-theme-control-active-text: #ffffff;
-    --global-theme-focus: rgba(99, 102, 241, 0.38);
+    --global-theme-toggle-bg: rgba(255, 255, 255, 0.88);
+    --global-theme-toggle-border: rgba(100, 116, 139, 0.28);
+    --global-theme-toggle-icon: #b45309;
+    --global-theme-toggle-hover: rgba(99, 102, 241, 0.12);
+    --global-theme-focus: rgba(99, 102, 241, 0.4);
 }
 
 :root[data-theme="dark"] {
@@ -28,12 +27,11 @@
     --glass-border-hover: rgba(167, 139, 250, 0.46);
     --glass-shadow: 0 10px 36px rgba(0, 0, 0, 0.34);
     --glass-shadow-hover: 0 18px 52px rgba(0, 0, 0, 0.44);
-    --global-theme-control-bg: rgba(15, 23, 42, 0.58);
-    --global-theme-control-border: rgba(148, 163, 184, 0.34);
-    --global-theme-control-text: #dbe4f0;
-    --global-theme-control-active-bg: #a78bfa;
-    --global-theme-control-active-text: #111827;
-    --global-theme-focus: rgba(167, 139, 250, 0.46);
+    --global-theme-toggle-bg: rgba(15, 23, 42, 0.9);
+    --global-theme-toggle-border: rgba(148, 163, 184, 0.38);
+    --global-theme-toggle-icon: #f8fafc;
+    --global-theme-toggle-hover: rgba(167, 139, 250, 0.18);
+    --global-theme-focus: rgba(167, 139, 250, 0.48);
 }
 
 html[data-theme="dark"] body {
@@ -43,57 +41,62 @@ html[data-theme="dark"] body {
 
 .global-theme-control {
     display: inline-flex;
+    flex: 0 0 auto;
     align-items: center;
-    gap: 7px;
-    min-width: 0;
+    justify-content: center;
+    margin: 0;
     font-family: var(--font, Arial, Helvetica, sans-serif);
 }
 
-.global-theme-label {
-    color: var(--gray-500, var(--global-theme-control-text));
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
+.global-theme-control--floating {
+    position: fixed;
+    top: 14px;
+    right: 16px;
+    z-index: 2000;
 }
 
-.global-theme-options {
-    display: inline-flex;
-    align-items: center;
-    gap: 2px;
-    padding: 3px;
-    border: 1px solid var(--global-theme-control-border);
-    border-radius: 10px;
-    background: var(--global-theme-control-bg);
-}
-
-.global-theme-options button {
-    min-width: 0;
+.global-theme-toggle {
+    display: inline-grid;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
     margin: 0;
-    padding: 6px 9px;
-    border: 0;
-    border-radius: 7px;
-    background: transparent;
-    box-shadow: none;
-    color: var(--global-theme-control-text);
+    padding: 0;
+    place-items: center;
+    border: 1px solid var(--global-theme-toggle-border);
+    border-radius: 50%;
+    background: var(--global-theme-toggle-bg);
+    box-shadow: 0 5px 16px rgba(15, 23, 42, 0.16);
+    color: var(--global-theme-toggle-icon);
     cursor: pointer;
-    font: 600 12px/1 var(--font, Arial, Helvetica, sans-serif);
+    font: inherit;
+    line-height: 1;
     text-transform: none;
-    transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+    transition: transform 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.global-theme-options button:hover {
-    background: rgba(99, 102, 241, 0.12);
+.global-theme-toggle [data-theme-icon] {
+    display: block;
+    font-size: 21px;
+    line-height: 1;
+    transform: translateY(-0.5px);
 }
 
-.global-theme-options button.is-active {
-    background: var(--global-theme-control-active-bg);
-    color: var(--global-theme-control-active-text);
-    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.2);
+.global-theme-toggle:hover {
+    background: var(--global-theme-toggle-hover);
+    box-shadow: 0 7px 20px rgba(15, 23, 42, 0.22);
+    transform: translateY(-1px);
 }
 
-.global-theme-options button:focus-visible {
+.global-theme-toggle:focus-visible {
     outline: 3px solid var(--global-theme-focus);
-    outline-offset: 2px;
+    outline-offset: 3px;
+}
+
+.global-theme-toggle:active {
+    transform: translateY(0) scale(0.96);
 }
 
 /* Authentication pages use auth.css; these overrides preserve readable controls. */
@@ -152,6 +155,187 @@ html[data-theme="dark"] .cookie-consent-card {
     color: var(--gray-800);
 }
 
+/* ------------------------------------------------------------------
+   Dark-theme contrast for modules that intentionally retain light
+   cream/white surfaces. Parent colors fix inherited text without
+   changing the modules' layouts, backgrounds, or accent palettes.
+------------------------------------------------------------------ */
+
+/* Diary Journal: light paper surfaces keep the module's brown ink. */
+html[data-theme="dark"] body.diary-page {
+    color: #f3eee7;
+}
+
+html[data-theme="dark"] .diary-journal-card,
+html[data-theme="dark"] .diary-favorites-empty,
+html[data-theme="dark"] .diary-entry-card,
+html[data-theme="dark"] .diary-empty-state,
+html[data-theme="dark"] .diary-form,
+html[data-theme="dark"] .diary-search-panel,
+html[data-theme="dark"] .diary-search-empty,
+html[data-theme="dark"] .diary-all-entries-hero,
+html[data-theme="dark"] .diary-calendar-section,
+html[data-theme="dark"] .diary-mood-summary-section,
+html[data-theme="dark"] .diary-selected-date-empty,
+html[data-theme="dark"] .diary-reflection-section,
+html[data-theme="dark"] .diary-reflection-readonly,
+html[data-theme="dark"] .diary-reflection-empty-state,
+html[data-theme="dark"] .diary-reflection-editor-shell,
+html[data-theme="dark"] .diary-today-corner,
+html[data-theme="dark"] .diary-today-note,
+html[data-theme="dark"] .diary-memory-corner,
+html[data-theme="dark"] .diary-reading-page,
+html[data-theme="dark"] .diary-memory-album-month,
+html[data-theme="dark"] .diary-memory-photo-card,
+html[data-theme="dark"] .diary-memory-album-empty,
+html[data-theme="dark"] .diary-editor-toolbar,
+html[data-theme="dark"] .diary-editor-image-controls,
+html[data-theme="dark"] .diary-editor-surface {
+    color: var(--diary-text, #342e28);
+}
+
+html[data-theme="dark"] .diary-home-page:not(.diary-all-entries-page)
+    .diary-home-hero > .diary-list-header h1,
+html[data-theme="dark"] .diary-page > .diary-container > .diary-page-header h1 {
+    color: #fffaf3;
+}
+
+html[data-theme="dark"] .diary-home-page:not(.diary-all-entries-page)
+    .diary-home-hero > .diary-list-header p:not(.diary-eyebrow),
+html[data-theme="dark"] .diary-page > .diary-container > .diary-page-header p:not(.diary-eyebrow) {
+    color: #d9d2c9;
+}
+
+html[data-theme="dark"] .diary-home-page:not(.diary-all-entries-page)
+    .diary-home-hero > .diary-list-header .diary-eyebrow,
+html[data-theme="dark"] .diary-page > .diary-container > .diary-page-header .diary-eyebrow {
+    color: #c7d6b9 !important;
+}
+
+html[data-theme="dark"] .diary-home-page:not(.diary-all-entries-page)
+    .diary-home-hero > .diary-list-header .diary-button-secondary {
+    border-color: #aebd9f;
+    color: #edf4e7;
+}
+
+html[data-theme="dark"] .diary-home-page:not(.diary-all-entries-page)
+    .diary-home-hero > .diary-list-header .diary-button-secondary:hover,
+html[data-theme="dark"] .diary-home-page:not(.diary-all-entries-page)
+    .diary-home-hero > .diary-list-header .diary-button-secondary:focus-visible {
+    background: rgba(237, 244, 231, 0.12);
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .diary-library > .diary-section-heading .diary-eyebrow,
+html[data-theme="dark"] .diary-search-results-section > .diary-section-heading .diary-eyebrow,
+html[data-theme="dark"] .diary-selected-date-section > .diary-section-heading .diary-eyebrow {
+    color: #c7d6b9 !important;
+}
+/* Money Tracker: white navigation, cards, and empty states use dark ink. */
+html[data-theme="dark"] body:has(> .navbar h2) > .navbar,
+html[data-theme="dark"] body:has(> .navbar h2) .summary-card,
+html[data-theme="dark"] body:has(> .navbar h2) .transaction-card,
+html[data-theme="dark"] body:has(> .navbar h2) .card,
+html[data-theme="dark"] body:has(> .navbar h2) .empty-state {
+    color: #1f2937;
+}
+
+html[data-theme="dark"] body:has(> .navbar h2) .page-header {
+    color: #f8fafc;
+}
+
+html[data-theme="dark"] body:has(> .navbar h2) .page-header p {
+    color: #cbd5e1;
+}
+
+/* Habit Garden: preserve dark garden ink inside its cream/pastel cards. */
+html[data-theme="dark"] body:has(> .site-header) .site-header,
+html[data-theme="dark"] body:has(> .site-header) .card,
+html[data-theme="dark"] body:has(> .site-header) .greeting-card,
+html[data-theme="dark"] body:has(> .site-header) .today-habit,
+html[data-theme="dark"] body:has(> .site-header) .garden-card,
+html[data-theme="dark"] body:has(> .site-header) .garden-stage,
+html[data-theme="dark"] body:has(> .site-header) .garden-float,
+html[data-theme="dark"] body:has(> .site-header) .achievement-item,
+html[data-theme="dark"] body:has(> .site-header) .empty-state,
+html[data-theme="dark"] body:has(> .site-header) .habit-row {
+    color: var(--ink, #47382d);
+}
+
+html[data-theme="dark"] body:has(> .site-header) .page-hero {
+    color: #f8fafc;
+}
+
+html[data-theme="dark"] body:has(> .site-header) .page-hero p {
+    color: #cbd5e1;
+}
+
+/* Diary collection footer sits on the dark page surface, not on paper. */
+html[data-theme="dark"] .diary-collection-footer .diary-button-secondary,
+html[data-theme="dark"] .diary-collection-footer .diary-button-secondary:visited {
+    border-color: #aebf9f;
+    background: rgba(70, 94, 70, 0.3);
+    color: #f3f8ee;
+}
+
+html[data-theme="dark"] .diary-collection-footer .diary-button-secondary:hover,
+html[data-theme="dark"] .diary-collection-footer .diary-button-secondary:focus-visible,
+html[data-theme="dark"] .diary-collection-footer .diary-button-secondary:active {
+    border-color: #d7e5cc;
+    background: #dfead7;
+    color: #304534;
+}
+
+/* Habit page heroes and garden copy retain pale yellow/blue cards. */
+html[data-theme="dark"] body:has(> .site-header) .page-hero,
+html[data-theme="dark"] body:has(> .site-header) .page-hero h1,
+html[data-theme="dark"] body:has(> .site-header) .garden-card__copy h2,
+html[data-theme="dark"] body:has(> .site-header) .garden-stage__copy h2 {
+    color: #3f342b;
+}
+
+html[data-theme="dark"] body:has(> .site-header) .page-hero p,
+html[data-theme="dark"] body:has(> .site-header) .garden-card__copy p,
+html[data-theme="dark"] body:has(> .site-header) .garden-stage__copy p {
+    color: #4e5f55;
+}
+
+/* Money pages now use the shared module navbar; their cards remain white. */
+html[data-theme="dark"] body:has(> .module-integrated-header--money) .summary-card,
+html[data-theme="dark"] body:has(> .module-integrated-header--money) .transaction-card,
+html[data-theme="dark"] body:has(> .module-integrated-header--money) .card,
+html[data-theme="dark"] body:has(> .module-integrated-header--money) .empty-state {
+    color: #1f2937;
+}
+
+html[data-theme="dark"] body:has(> .module-integrated-header--money) .page-header {
+    color: #f8fafc;
+}
+
+html[data-theme="dark"] body:has(> .module-integrated-header--money) .page-header p {
+    color: #cbd5e1;
+}
+
+/* Shared outlined secondary buttons stay legible on dark glass surfaces. */
+html[data-theme="dark"] .btn-secondary,
+html[data-theme="dark"] a.btn-secondary:visited {
+    color: #e2e8f0;
+}
+
+html[data-theme="dark"] .btn-secondary:hover,
+html[data-theme="dark"] .btn-secondary:focus-visible,
+html[data-theme="dark"] .btn-secondary:active {
+    border-color: #a5b4fc;
+    background: #334155;
+    color: #ffffff;
+}
+/* Dark inputs remain legible without losing visible placeholders or focus. */
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder,
+html[data-theme="dark"] [contenteditable="true"]:empty::before {
+    color: #94a3b8;
+    opacity: 1;
+}
 /* Admin pages currently use compact inline styles; this shared layer themes them. */
 body.global-admin-page {
     color: #1f2937;
@@ -199,12 +383,23 @@ html[data-theme="dark"] body.global-admin-page th {
     background: #273449;
 }
 
-@media (max-width: 760px) {
-    .global-theme-control {
-        width: 100%;
-        justify-content: flex-end;
-    }
+.global-theme-header-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    min-width: 0;
+}
 
+/* Keep the compact control aligned with existing page action groups. */
+.navbar .global-theme-control,
+nav .global-theme-control,
+.site-header .global-theme-control,
+.diary-header-actions .global-theme-control {
+    align-self: center;
+}
+
+@media (max-width: 760px) {
     body.global-admin-page nav {
         align-items: flex-start;
         flex-direction: column;
@@ -213,28 +408,28 @@ html[data-theme="dark"] body.global-admin-page th {
     body.global-admin-page nav > div {
         justify-content: flex-start;
     }
+
+    .global-theme-control--floating {
+        top: 10px;
+        right: 10px;
+    }
 }
 
 @media (max-width: 520px) {
-    .global-theme-label {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        padding: 0;
-        margin: -1px;
-        overflow: hidden;
-        clip: rect(0, 0, 0, 0);
-        white-space: nowrap;
-        border: 0;
+    .global-theme-toggle {
+        width: 38px;
+        height: 38px;
+        min-width: 38px;
+        min-height: 38px;
     }
 
-    .global-theme-options button {
-        padding-inline: 8px;
+    .global-theme-toggle [data-theme-icon] {
+        font-size: 20px;
     }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .global-theme-options button {
+    .global-theme-toggle {
         transition: none;
     }
 }
