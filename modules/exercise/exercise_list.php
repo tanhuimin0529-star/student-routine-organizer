@@ -25,10 +25,13 @@ if (isset($_GET['sort'])) {
 $search           = isset($_GET['search'])      ? trim($_GET['search'])      : "";
 $filter_date      = isset($_GET['filter_date']) ? trim($_GET['filter_date']) : "";
 $filter_activity  = isset($_GET['filter_act'])  ? trim($_GET['filter_act'])  : "";
-$filter_min_cal   = isset($_GET['min_cal'])     ? (int)$_GET['min_cal']     : 0;
-$filter_max_cal   = isset($_GET['max_cal'])     ? (int)$_GET['max_cal']     : 99999;
-$filter_min_dur   = isset($_GET['min_dur'])     ? (int)$_GET['min_dur']     : 0;
-$filter_max_dur   = isset($_GET['max_dur'])     ? (int)$_GET['max_dur']     : 99999;
+// An empty text box is still submitted by the browser (e.g. "max_cal="),
+// so isset() alone is not enough. A blank value must fall back to the
+// default, otherwise (int)"" becomes 0 and the range filter matches nothing.
+$filter_min_cal   = (isset($_GET['min_cal']) && $_GET['min_cal'] !== '') ? (int)$_GET['min_cal'] : 0;
+$filter_max_cal   = (isset($_GET['max_cal']) && $_GET['max_cal'] !== '') ? (int)$_GET['max_cal'] : 99999;
+$filter_min_dur   = (isset($_GET['min_dur']) && $_GET['min_dur'] !== '') ? (int)$_GET['min_dur'] : 0;
+$filter_max_dur   = (isset($_GET['max_dur']) && $_GET['max_dur'] !== '') ? (int)$_GET['max_dur'] : 99999;
 
 // ── Get data ──────────────────────────────────────────────────
 $all_exercises = getExercisesForUser($conn, $logged_in_user_id, $search, $filter_date, $sort);

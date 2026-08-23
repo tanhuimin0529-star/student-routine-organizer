@@ -187,8 +187,8 @@ $total_remaining =
 
         body {
             font-family: Arial, sans-serif;
-            background: #f5f7fb;
-            color: #1f2937;
+            background: #f6f0e2;
+            color: #47382d;
         }
 
         /* =========================
@@ -196,7 +196,7 @@ $total_remaining =
         ========================= */
 
         .navbar {
-            background: white;
+            background: #fffdf7;
             padding: 20px 40px;
 
             display: flex;
@@ -204,7 +204,7 @@ $total_remaining =
             align-items: center;
 
             box-shadow:
-                0 2px 10px rgba(0,0,0,0.05);
+                0 2px 10px rgba(112,83,42,0.07);
         }
 
         .navbar h2 {
@@ -213,7 +213,7 @@ $total_remaining =
 
         .navbar a {
             text-decoration: none;
-            color: #6d5dfc;
+            color: #d9a441;
             font-weight: bold;
             margin-left: 20px;
         }
@@ -240,7 +240,7 @@ $total_remaining =
 
         .page-header p {
             margin-top: 6px;
-            color: #6b7280;
+            color: #78695d;
         }
 
         /* =========================
@@ -278,14 +278,14 @@ $total_remaining =
         ========================= */
 
         .card {
-            background: white;
+            background: #fffdf7;
 
             border-radius: 16px;
 
             padding: 25px;
 
             box-shadow:
-                0 6px 20px rgba(0,0,0,0.06);
+                0 6px 20px rgba(112,83,42,0.08);
 
             margin-bottom: 30px;
         }
@@ -309,7 +309,7 @@ $total_remaining =
             padding: 11px 12px;
 
             border:
-                1px solid #d1d5db;
+                1px solid #dec38c;
 
             border-radius: 8px;
 
@@ -339,12 +339,12 @@ $total_remaining =
         }
 
         .btn-primary {
-            background: #6d5dfc;
-            color: white;
+            background: #d9a441;
+            color: #fffdf7;
         }
 
         .btn-primary:hover {
-            background: #5848e5;
+            background: #a9761f;
         }
 
         .btn-delete {
@@ -376,18 +376,18 @@ $total_remaining =
         }
 
         .summary-card {
-            background: white;
+            background: #fffdf7;
 
             padding: 25px;
 
             border-radius: 16px;
 
             box-shadow:
-                0 6px 20px rgba(0,0,0,0.06);
+                0 6px 20px rgba(112,83,42,0.08);
         }
 
         .summary-title {
-            color: #6b7280;
+            color: #78695d;
 
             font-size: 14px;
 
@@ -400,7 +400,7 @@ $total_remaining =
         }
 
         .budget-color {
-            color: #6d5dfc;
+            color: #d9a441;
         }
 
         .spent-color {
@@ -454,27 +454,27 @@ $total_remaining =
         th {
             text-align: left;
 
-            background: #f9fafb;
+            background: #fffdf7;
 
             padding: 14px;
 
             font-size: 13px;
 
-            color: #6b7280;
+            color: #78695d;
         }
 
         td {
             padding: 14px;
 
             border-top:
-                1px solid #e5e7eb;
+                1px solid #ead7af;
         }
 
         .progress-container {
             width: 150px;
             height: 10px;
 
-            background: #e5e7eb;
+            background: #ead7af;
 
             border-radius: 10px;
 
@@ -515,7 +515,7 @@ $total_remaining =
 
             padding: 45px 20px;
 
-            color: #6b7280;
+            color: #78695d;
         }
 
         .empty-state .icon {
@@ -754,7 +754,7 @@ $total_remaining =
 
                 <div
                     class="summary-title"
-                    style="color:#6b7280;"
+                    style="color:#78695d;"
                 >
                     💰 Remaining
                 </div>

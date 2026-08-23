@@ -50,25 +50,25 @@ $userName  = isset($_SESSION['name']) ? htmlspecialchars($_SESSION['name']) : 'U
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Poppins', sans-serif; color: #1F2937; background: #fff; padding: 32px; max-width: 800px; margin: 0 auto; }
-        h1 { font-size: 26px; font-weight: 800; margin-bottom: 4px; }
-        h2 { font-size: 16px; font-weight: 700; margin: 24px 0 10px; color: #374151; border-bottom: 2px solid #E5E7EB; padding-bottom: 6px; }
-        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; padding-bottom: 20px; border-bottom: 3px solid #A78BFA; }
-        .header-right { text-align: right; font-size: 13px; color: #6B7280; }
+        body { font-family: 'Poppins', sans-serif; color: #47382d; background: #fff; padding: 32px; max-width: 800px; margin: 0 auto; }
+        h1 { font-family: Georgia, 'Times New Roman', serif; font-size: 27px; font-weight: 700; margin-bottom: 4px; }
+        h2 { font-family: Georgia, 'Times New Roman', serif; font-size: 17px; font-weight: 700; margin: 24px 0 10px; color: #5d4c3f; border-bottom: 2px solid #ead7af; padding-bottom: 6px; }
+        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; padding-bottom: 20px; border-bottom: 3px solid #d9a441; }
+        .header-right { text-align: right; font-size: 13px; color: #78695d; }
         .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px; }
-        .stat-box { background: #F9FAFB; border-radius: 12px; padding: 18px; text-align: center; border: 1px solid #E5E7EB; }
-        .stat-box .val { font-size: 28px; font-weight: 800; color: #1F2937; display: block; }
-        .stat-box .lbl { font-size: 11px; color: #6B7280; text-transform: uppercase; letter-spacing: 0.8px; margin-top: 4px; display: block; }
+        .stat-box { background: #fffdf7; border-radius: 12px; padding: 18px; text-align: center; border: 1px solid #ead7af; }
+        .stat-box .val { font-size: 28px; font-weight: 800; color: #47382d; display: block; }
+        .stat-box .lbl { font-size: 11px; color: #78695d; text-transform: uppercase; letter-spacing: 0.8px; margin-top: 4px; display: block; }
         table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        table th { background: #F3F4F6; padding: 10px 12px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: #6B7280; }
-        table td { padding: 10px 12px; border-bottom: 1px solid #F3F4F6; color: #374151; }
-        table tr:hover td { background: #F9FAFB; }
-        .activity-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; background: #EDE9FE; color: #5B21B6; }
+        table th { background: #f6efe0; padding: 10px 12px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: #78695d; }
+        table td { padding: 10px 12px; border-bottom: 1px solid #f6efe0; color: #5d4c3f; }
+        table tr:hover td { background: #fffdf7; }
+        .activity-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; background: #fbeecd; color: #8a5a12; }
         .breakdown { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
-        .breakdown .bk-item { background: #F3F4F6; border-radius: 20px; padding: 6px 14px; font-size: 12px; color: #374151; }
-        .footer-text { margin-top: 32px; padding-top: 16px; border-top: 1px solid #E5E7EB; font-size: 11px; color: #9CA3AF; text-align: center; }
-        .print-btn { background: #A78BFA; color: #fff; border: none; padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif; margin-bottom: 24px; }
-        .print-btn:hover { background: #7C3AED; }
+        .breakdown .bk-item { background: #f6efe0; border-radius: 20px; padding: 6px 14px; font-size: 12px; color: #5d4c3f; }
+        .footer-text { margin-top: 32px; padding-top: 16px; border-top: 1px solid #ead7af; font-size: 11px; color: #a3927f; text-align: center; }
+        .print-btn { background: #d9a441; color: #fff; border: none; padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif; margin-bottom: 24px; }
+        .print-btn:hover { background: #a9761f; }
         @media print {
             .print-btn { display: none; }
             body { padding: 16px; }
@@ -81,9 +81,9 @@ $userName  = isset($_SESSION['name']) ? htmlspecialchars($_SESSION['name']) : 'U
 
 <div class="header">
     <div>
-        <div style="font-size:13px; color:#6B7280; margin-bottom:4px; font-weight:600; text-transform:uppercase; letter-spacing:0.8px;">Monthly Exercise Report</div>
+        <div style="font-size:13px; color:#78695d; margin-bottom:4px; font-weight:600; text-transform:uppercase; letter-spacing:0.8px;">Monthly Exercise Report</div>
         <h1><?php echo $monthName; ?></h1>
-        <p style="font-size:13px; color:#6B7280; margin-top:6px;">Athlete: <strong><?php echo $userName; ?></strong></p>
+        <p style="font-size:13px; color:#78695d; margin-top:6px;">Athlete: <strong><?php echo $userName; ?></strong></p>
     </div>
     <div class="header-right">
         <p><strong>Generated</strong><br><?php echo date('F j, Y'); ?></p>
@@ -121,7 +121,7 @@ $userName  = isset($_SESSION['name']) ? htmlspecialchars($_SESSION['name']) : 'U
 <!-- Exercise Table -->
 <h2>📋 Exercise Log</h2>
 <?php if (empty($monthEx)): ?>
-    <p style="color:#6B7280; font-style:italic;">No exercises recorded this month.</p>
+    <p style="color:#78695d; font-style:italic;">No exercises recorded this month.</p>
 <?php else: ?>
     <table>
         <thead>
@@ -142,12 +142,12 @@ $userName  = isset($_SESSION['name']) ? htmlspecialchars($_SESSION['name']) : 'U
                     <td><span class="activity-badge"><?php echo htmlspecialchars($row['activity_type']); ?></span></td>
                     <td><?php echo $row['duration']; ?> min</td>
                     <td><?php echo number_format($row['calories_burned']); ?> kcal</td>
-                    <td style="color:#9CA3AF;"><?php echo htmlspecialchars($row['notes'] ?: '—'); ?></td>
+                    <td style="color:#a3927f;"><?php echo htmlspecialchars($row['notes'] ?: '—'); ?></td>
                 </tr>
             <?php endforeach; ?>
         </tbody>
         <tfoot>
-            <tr style="background:#F3F4F6;">
+            <tr style="background:#f6efe0;">
                 <td colspan="3" style="font-weight:700; padding:10px 12px; font-size:12px;">TOTAL</td>
                 <td style="font-weight:700;"><?php echo $totalDur; ?> min</td>
                 <td style="font-weight:700;"><?php echo number_format($totalCal); ?> kcal</td>

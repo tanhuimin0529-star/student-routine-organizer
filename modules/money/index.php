@@ -57,8 +57,8 @@ $error = isset($_GET["error"])
 
         body {
             font-family: Arial, sans-serif;
-            background: #f5f7fb;
-            color: #1f2937;
+            background: #f6f0e2;
+            color: #47382d;
         }
 
         /* =========================
@@ -66,7 +66,7 @@ $error = isset($_GET["error"])
         ========================= */
 
         .navbar {
-            background: white;
+            background: #fffdf7;
 
             padding: 20px 40px;
 
@@ -75,7 +75,7 @@ $error = isset($_GET["error"])
             align-items: center;
 
             box-shadow:
-                0 2px 10px rgba(0, 0, 0, 0.05);
+                0 2px 10px rgba(112, 83, 42, 0.07);
         }
 
         .navbar h2 {
@@ -90,12 +90,12 @@ $error = isset($_GET["error"])
 
         .navbar a {
             text-decoration: none;
-            color: #6d5dfc;
+            color: #d9a441;
             font-weight: bold;
         }
 
         .navbar a:hover {
-            color: #5848e5;
+            color: #a9761f;
         }
 
         /* =========================
@@ -123,7 +123,7 @@ $error = isset($_GET["error"])
         }
 
         .page-header p {
-            color: #6b7280;
+            color: #78695d;
         }
 
         /* =========================
@@ -149,16 +149,16 @@ $error = isset($_GET["error"])
         }
 
         .btn-primary {
-            background: #6d5dfc;
-            color: white;
+            background: #d9a441;
+            color: #fffdf7;
         }
 
         .btn-primary:hover {
-            background: #5848e5;
+            background: #a9761f;
         }
 
         .btn-edit {
-            background: #e0e7ff;
+            background: #fbeecd;
             color: #4338ca;
 
             padding: 7px 12px;
@@ -199,18 +199,18 @@ $error = isset($_GET["error"])
         }
 
         .summary-card {
-            background: white;
+            background: #fffdf7;
 
             border-radius: 16px;
 
             padding: 25px;
 
             box-shadow:
-                0 6px 20px rgba(0, 0, 0, 0.06);
+                0 6px 20px rgba(112, 83, 42, 0.08);
         }
 
         .summary-title {
-            color: #6b7280;
+            color: #78695d;
 
             font-size: 14px;
 
@@ -223,7 +223,7 @@ $error = isset($_GET["error"])
         }
 
         .balance {
-            color: #6d5dfc;
+            color: #d9a441;
         }
 
         .income {
@@ -239,14 +239,14 @@ $error = isset($_GET["error"])
         ========================= */
 
         .transaction-card {
-            background: white;
+            background: #fffdf7;
 
             border-radius: 16px;
 
             padding: 25px;
 
             box-shadow:
-                0 6px 20px rgba(0, 0, 0, 0.06);
+                0 6px 20px rgba(112, 83, 42, 0.08);
         }
 
         .transaction-card h2 {
@@ -263,9 +263,9 @@ $error = isset($_GET["error"])
 
             padding: 14px;
 
-            background: #f9fafb;
+            background: #fffdf7;
 
-            color: #6b7280;
+            color: #78695d;
 
             font-size: 13px;
         }
@@ -274,7 +274,7 @@ $error = isset($_GET["error"])
             padding: 14px;
 
             border-top:
-                1px solid #e5e7eb;
+                1px solid #ead7af;
         }
 
         .income-text {
@@ -350,7 +350,7 @@ $error = isset($_GET["error"])
 
             padding: 50px 20px;
 
-            color: #6b7280;
+            color: #78695d;
         }
 
         .empty-icon {

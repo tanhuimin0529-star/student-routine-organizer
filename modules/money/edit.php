@@ -73,19 +73,19 @@ $error = isset($_GET["error"]) ? $_GET["error"] : "";
 
         body {
             font-family: Arial, sans-serif;
-            background: #f5f7fb;
-            color: #1f2937;
+            background: #f6f0e2;
+            color: #47382d;
         }
 
         .navbar {
-            background: white;
+            background: #fffdf7;
             padding: 20px 40px;
 
             display: flex;
             justify-content: space-between;
             align-items: center;
 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 10px rgba(112,83,42,0.07);
         }
 
         .navbar h2 {
@@ -94,7 +94,7 @@ $error = isset($_GET["error"]) ? $_GET["error"] : "";
 
         .navbar a {
             text-decoration: none;
-            color: #6d5dfc;
+            color: #d9a441;
             font-weight: bold;
             margin-left: 20px;
         }
@@ -106,12 +106,12 @@ $error = isset($_GET["error"]) ? $_GET["error"] : "";
         }
 
         .card {
-            background: white;
+            background: #fffdf7;
             padding: 35px;
             border-radius: 18px;
 
             box-shadow:
-                0 10px 30px rgba(0,0,0,0.08);
+                0 10px 30px rgba(112,83,42,0.10);
         }
 
         h1 {
@@ -119,7 +119,7 @@ $error = isset($_GET["error"]) ? $_GET["error"] : "";
         }
 
         .subtitle {
-            color: #6b7280;
+            color: #78695d;
             margin-bottom: 30px;
         }
 
@@ -142,7 +142,7 @@ $error = isset($_GET["error"]) ? $_GET["error"] : "";
             padding: 12px;
 
             border:
-                1px solid #d1d5db;
+                1px solid #dec38c;
 
             border-radius: 8px;
 
@@ -164,9 +164,9 @@ $error = isset($_GET["error"]) ? $_GET["error"] : "";
 
             border-radius: 8px;
 
-            background: #6d5dfc;
+            background: #d9a441;
 
-            color: white;
+            color: #fffdf7;
 
             font-size: 16px;
 
@@ -176,7 +176,7 @@ $error = isset($_GET["error"]) ? $_GET["error"] : "";
         }
 
         .btn:hover {
-            background: #5848e5;
+            background: #a9761f;
         }
 
         .error {
@@ -200,7 +200,7 @@ $error = isset($_GET["error"]) ? $_GET["error"] : "";
 
             text-decoration: none;
 
-            color: #6d5dfc;
+            color: #d9a441;
         }
 
     </style>
