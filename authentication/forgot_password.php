@@ -95,13 +95,18 @@ function forgotPasswordEscape($value) {
     <div class="blob blob-5"></div>
 </div>
 
-<main class="auth-wrapper">
-    <section class="auth-card auth-card--recovery" aria-labelledby="forgot-password-heading">
+<main class="auth-wrapper auth-login-wrapper">
+    <header class="auth-page-brand">
+        <h1>Student Routine Organizer</h1>
+        <p>Manage your daily routine in one place.</p>
+    </header>
+
+    <section class="auth-card auth-login-card auth-card--recovery" aria-labelledby="forgot-password-heading">
         <h1 id="forgot-password-heading">Forgot Password</h1>
         <p class="auth-subtitle">Enter your student account email to receive a reset link.</p>
 
         <?php if ($generic_message !== ''): ?>
-            <div class="alert alert-success" role="status">
+            <div class="alert alert-success" role="status" data-auth-auto-dismiss="success">
                 <?php echo forgotPasswordEscape($generic_message); ?>
             </div>
         <?php endif; ?>
@@ -116,13 +121,6 @@ function forgotPasswordEscape($value) {
             </div>
         <?php endif; ?>
 
-        <?php if ($demo_reset_link !== ''): ?>
-            <aside class="development-reset-link" aria-label="Local development reset link">
-                <strong>Local XAMPP demo link</strong>
-                <p>Development fallback only. This link is shown only on localhost.</p>
-                <a href="<?php echo forgotPasswordEscape($demo_reset_link); ?>">Open Password Reset</a>
-            </aside>
-        <?php endif; ?>
 
         <form method="post" action="forgot_password.php">
             <input
@@ -145,8 +143,10 @@ function forgotPasswordEscape($value) {
             <button type="submit" class="btn-primary">Send Reset Link</button>
         </form>
 
+
         <p class="auth-switch"><a href="login.php">Back to Student Login</a></p>
     </section>
 </main>
+<script src="../assets/js/auth.js"></script>
 </body>
 </html>

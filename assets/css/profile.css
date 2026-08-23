@@ -59,6 +59,16 @@
     font-size: 24px;
 }
 
+.profile-summary-facts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.profile-summary-facts .profile-role {
+    min-width: 0;
+}
+
 .profile-role {
     min-width: 130px;
     padding: 12px 18px;
@@ -80,6 +90,19 @@
 .profile-role strong {
     color: var(--purple-dark);
     font-size: 16px;
+}
+
+.profile-member-since {
+    min-width: 170px;
+}
+
+.profile-member-since time {
+    display: block;
+    color: var(--purple-dark);
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.35;
+    white-space: nowrap;
 }
 
 .profile-settings-grid {
@@ -215,12 +238,19 @@
         text-align: center;
     }
 
-    .profile-role {
+    .profile-role,
+    .profile-summary-facts {
         width: 100%;
     }
 
     .profile-card,
     .profile-summary {
         padding: 20px;
+    }
+}
+
+@media (max-width: 460px) {
+    .profile-summary-facts {
+        grid-template-columns: 1fr;
     }
 }

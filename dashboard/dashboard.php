@@ -14,6 +14,131 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+require_once __DIR__ . "/../config/database.php";
+
+/**
+ * Load small, generic activity summaries for the authenticated student.
+ * Each SELECT is isolated so one unavailable module table does not prevent
+ * the remaining Dashboard activity from being shown.
+ */
+function dashboardLoadRecentActivities($conn, $user_id) {
+    $user_id = (int) $user_id;
+
+    if ($user_id <= 0) {
+        return array();
+    }
+
+    $queries = array(
+        array(
+            'module' => 'Exercise Tracker',
+            'icon' => '🏋️',
+            'description' => 'Logged an exercise activity',
+            'sql' => 'SELECT created_at AS activity_at
+                      FROM exercise
+                      WHERE user_id = ?
+                      ORDER BY created_at DESC
+                      LIMIT 6'
+        ),
+        array(
+            'module' => 'Diary Journal',
+            'icon' => '📔',
+            'description' => 'Added a diary entry',
+            'sql' => 'SELECT created_at AS activity_at
+                      FROM diary_entries
+                      WHERE user_id = ?
+                      ORDER BY created_at DESC
+                      LIMIT 6'
+        ),
+        array(
+            'module' => 'Money Tracker',
+            'icon' => '💰',
+            'description' => '',
+            'sql' => 'SELECT transaction_type, created_at AS activity_at
+                      FROM money_transactions
+                      WHERE user_id = ?
+                      ORDER BY created_at DESC
+                      LIMIT 6'
+        ),
+        array(
+            'module' => 'Habit Tracker',
+            'icon' => '✅',
+            'description' => 'Completed a habit',
+            'sql' => 'SELECT CONCAT(hl.log_date, " ", hl.log_time) AS activity_at
+                      FROM habit_logs hl
+                      INNER JOIN habits h ON h.habit_id = hl.habit_id
+                      WHERE h.user_id = ? AND hl.completed = 1
+                      ORDER BY hl.log_date DESC, hl.log_time DESC
+                      LIMIT 6'
+        )
+    );
+
+    $activities = array();
+
+    foreach ($queries as $query) {
+        $statement = null;
+
+        try {
+            $statement = mysqli_prepare($conn, $query['sql']);
+            mysqli_stmt_bind_param($statement, 'i', $user_id);
+            mysqli_stmt_execute($statement);
+            $result = mysqli_stmt_get_result($statement);
+
+            while ($row = mysqli_fetch_assoc($result)) {
+                $activity_at = isset($row['activity_at'])
+                    ? (string) $row['activity_at']
+                    : '';
+                $sort_time = strtotime($activity_at);
+
+                if ($sort_time === false) {
+                    continue;
+                }
+
+                $description = $query['description'];
+
+                if ($query['module'] === 'Money Tracker') {
+                    $transaction_type = isset($row['transaction_type'])
+                        ? (string) $row['transaction_type']
+                        : '';
+
+                    if ($transaction_type === 'Income') {
+                        $description = 'Recorded an income transaction';
+                    } elseif ($transaction_type === 'Expense') {
+                        $description = 'Recorded an expense transaction';
+                    } else {
+                        $description = 'Recorded a transaction';
+                    }
+                }
+
+                $activities[] = array(
+                    'module' => $query['module'],
+                    'icon' => $query['icon'],
+                    'description' => $description,
+                    'activity_at' => $activity_at,
+                    'sort_time' => $sort_time
+                );
+            }
+        } catch (mysqli_sql_exception $exception) {
+            // Keep technical details private and let the other modules load.
+            error_log(
+                '[Dashboard recent activity]['
+                . $query['module']
+                . '] mysqli error '
+                . (int) $exception->getCode()
+            );
+        } finally {
+            if ($statement instanceof mysqli_stmt) {
+                mysqli_stmt_close($statement);
+            }
+        }
+    }
+
+    usort($activities, function ($first, $second) {
+        return $second['sort_time'] <=> $first['sort_time'];
+    });
+
+    return array_slice($activities, 0, 6);
+}
+
 $cookie_consent = getCookieConsentChoice();
 
 if (
@@ -69,6 +194,8 @@ $show_cookie_consent =
     isset($_SESSION['role']) &&
     $_SESSION['role'] === 'student' &&
     $cookie_consent === null;
+
+$recent_activities = dashboardLoadRecentActivities($conn, (int) $_SESSION['user_id']);
 ?>
 
 <!DOCTYPE html>
@@ -297,6 +424,47 @@ $show_cookie_consent =
         </a>
 
     </div>
+
+    <section class="dashboard-motivation-banner" aria-labelledby="dashboard-motivation-title">
+        <span class="dashboard-motivation-accent" aria-hidden="true"></span>
+        <div>
+            <h2 id="dashboard-motivation-title">Stay consistent, stay amazing!</h2>
+            <p>Small daily actions lead to meaningful progress.</p>
+        </div>
+    </section>
+
+    <section class="dashboard-recent-activity" aria-labelledby="recent-activity-title">
+        <header class="dashboard-section-heading">
+            <div>
+                <p class="dashboard-section-eyebrow">Your latest updates</p>
+                <h2 id="recent-activity-title">Recent Activity</h2>
+            </div>
+            <?php if (!empty($recent_activities)) { ?>
+                <span>Latest <?php echo count($recent_activities); ?></span>
+            <?php } ?>
+        </header>
+
+        <?php if (empty($recent_activities)) { ?>
+            <p class="dashboard-activity-empty">No recent activity yet.</p>
+        <?php } else { ?>
+            <div class="dashboard-activity-list">
+                <?php foreach ($recent_activities as $activity) { ?>
+                    <article class="dashboard-activity-item">
+                        <span class="dashboard-activity-icon" aria-hidden="true">
+                            <?php echo htmlspecialchars($activity['icon'], ENT_QUOTES, 'UTF-8'); ?>
+                        </span>
+                        <div class="dashboard-activity-copy">
+                            <strong><?php echo htmlspecialchars($activity['description'], ENT_QUOTES, 'UTF-8'); ?></strong>
+                            <span><?php echo htmlspecialchars($activity['module'], ENT_QUOTES, 'UTF-8'); ?></span>
+                        </div>
+                        <time datetime="<?php echo htmlspecialchars($activity['activity_at'], ENT_QUOTES, 'UTF-8'); ?>">
+                            <?php echo htmlspecialchars(date('M j, Y · g:i A', $activity['sort_time']), ENT_QUOTES, 'UTF-8'); ?>
+                        </time>
+                    </article>
+                <?php } ?>
+            </div>
+        <?php } ?>
+    </section>
 
 </div>
 

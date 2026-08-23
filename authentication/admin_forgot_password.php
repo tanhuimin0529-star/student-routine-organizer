@@ -114,13 +114,6 @@ function adminForgotPasswordEscape($value) {
             </div>
         <?php endif; ?>
 
-        <?php if ($demo_reset_link !== ''): ?>
-            <aside class="development-reset-link" aria-label="Local development admin reset link">
-                <strong>Local XAMPP admin demo link</strong>
-                <p>Development fallback only. This link is shown only on localhost.</p>
-                <a href="<?php echo adminForgotPasswordEscape($demo_reset_link); ?>">Open Admin Password Reset</a>
-            </aside>
-        <?php endif; ?>
 
         <form method="post" action="admin_forgot_password.php">
             <input

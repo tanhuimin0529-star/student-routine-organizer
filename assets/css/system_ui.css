@@ -153,6 +153,189 @@ body.system-ui-page.global-dashboard-page .module-icon {
     background: var(--system-lavender-pale);
 }
 
+/* Student Dashboard motivation and privacy-safe recent activity. */
+body.system-ui-page.global-dashboard-page .dashboard-motivation-banner,
+body.system-ui-page.global-dashboard-page .dashboard-recent-activity {
+    border: 1px solid var(--system-border);
+    background: rgba(255, 253, 249, 0.95);
+    box-shadow: var(--system-shadow-soft);
+}
+
+body.system-ui-page.global-dashboard-page .dashboard-motivation-banner {
+    display: flex;
+    align-items: center;
+    gap: 17px;
+    padding: 18px 22px;
+    border-radius: 18px;
+    background: linear-gradient(105deg, var(--system-card), var(--system-lavender-pale));
+}
+
+body.system-ui-page.global-dashboard-page .dashboard-motivation-accent {
+    width: 6px;
+    height: 44px;
+    flex: 0 0 6px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, var(--system-lavender), var(--system-purple));
+}
+
+body.system-ui-page.global-dashboard-page .dashboard-motivation-banner h2 {
+    margin: 0 0 3px;
+    color: var(--system-text);
+    font-size: 1.08rem;
+    letter-spacing: -0.01em;
+}
+
+body.system-ui-page.global-dashboard-page .dashboard-motivation-banner p {
+    margin: 0;
+    color: var(--system-muted);
+    font-size: 0.9rem;
+}
+
+body.system-ui-page.global-dashboard-page .dashboard-recent-activity {
+    margin-top: 24px;
+    padding: 25px;
+    border-radius: 20px;
+}
+
+body.system-ui-page.global-dashboard-page .dashboard-section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 15px;
+}
+
+body.system-ui-page.global-dashboard-page .dashboard-section-heading h2 {
+    margin: 0;
+    color: var(--system-text);
+    font-size: 1.3rem;
+}
+
+body.system-ui-page.global-dashboard-page .dashboard-section-eyebrow {
+    margin: 0 0 2px;
+    color: #6757aa;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+body.system-ui-page.global-dashboard-page .dashboard-section-heading > span {
+    padding: 6px 10px;
+    border: 1px solid rgba(157, 141, 218, 0.25);
+    border-radius: 999px;
+    background: var(--system-lavender-pale);
+    color: #5c4d9e;
+    font-size: 0.74rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+body.system-ui-page.global-dashboard-page .dashboard-activity-list {
+    border-top: 1px solid var(--system-border);
+}
+
+body.system-ui-page.global-dashboard-page .dashboard-activity-item {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+    padding: 14px 2px;
+    border-bottom: 1px solid var(--system-border);
+}
+
+body.system-ui-page.global-dashboard-page .dashboard-activity-item:last-child {
+    border-bottom: 0;
+    padding-bottom: 2px;
+}
+
+body.system-ui-page.global-dashboard-page .dashboard-activity-icon {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(157, 141, 218, 0.22);
+    border-radius: 13px;
+    background: var(--system-lavender-pale);
+    font-size: 1.12rem;
+}
+
+body.system-ui-page.global-dashboard-page .dashboard-activity-copy {
+    min-width: 0;
+}
+
+body.system-ui-page.global-dashboard-page .dashboard-activity-copy strong,
+body.system-ui-page.global-dashboard-page .dashboard-activity-copy span {
+    display: block;
+}
+
+body.system-ui-page.global-dashboard-page .dashboard-activity-copy strong {
+    overflow: hidden;
+    color: var(--system-text);
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+body.system-ui-page.global-dashboard-page .dashboard-activity-copy span,
+body.system-ui-page.global-dashboard-page .dashboard-activity-item time {
+    color: var(--system-muted);
+    font-size: 0.77rem;
+}
+
+body.system-ui-page.global-dashboard-page .dashboard-activity-item time {
+    text-align: right;
+    white-space: nowrap;
+}
+
+body.system-ui-page.global-dashboard-page .dashboard-activity-empty {
+    margin: 0;
+    padding: 24px 16px;
+    border: 1px dashed var(--system-border);
+    border-radius: 14px;
+    background: var(--system-panel);
+    color: var(--system-muted);
+    text-align: center;
+}
+
+html[data-theme="dark"] body.system-ui-page.global-dashboard-page .dashboard-motivation-banner,
+html[data-theme="dark"] body.system-ui-page.global-dashboard-page .dashboard-recent-activity {
+    border-color: var(--system-border);
+    background: var(--system-card);
+}
+
+html[data-theme="dark"] body.system-ui-page.global-dashboard-page .dashboard-motivation-banner {
+    background: linear-gradient(105deg, var(--system-card), var(--system-lavender-pale));
+}
+
+html[data-theme="dark"] body.system-ui-page.global-dashboard-page .dashboard-section-eyebrow,
+html[data-theme="dark"] body.system-ui-page.global-dashboard-page .dashboard-section-heading > span {
+    color: var(--system-lavender);
+}
+
+@media (max-width: 620px) {
+    body.system-ui-page.global-dashboard-page .dashboard-motivation-banner {
+        align-items: flex-start;
+        padding: 17px 18px;
+    }
+
+    body.system-ui-page.global-dashboard-page .dashboard-recent-activity {
+        padding: 20px 17px;
+    }
+
+    body.system-ui-page.global-dashboard-page .dashboard-activity-item {
+        grid-template-columns: 40px minmax(0, 1fr);
+        gap: 11px 12px;
+    }
+
+    body.system-ui-page.global-dashboard-page .dashboard-activity-item time {
+        grid-column: 2;
+        margin-top: -8px;
+        text-align: left;
+    }
+}
 body.system-ui-page .cookie-consent-card {
     border-color: var(--system-border);
     background: var(--system-card);
@@ -202,7 +385,8 @@ body.system-ui-page.profile-page .profile-card-icon {
     background: var(--system-lavender-pale);
 }
 
-body.system-ui-page.profile-page .profile-role strong {
+body.system-ui-page.profile-page .profile-role strong,
+body.system-ui-page.profile-page .profile-member-since time {
     color: #5c4d9e;
 }
 
@@ -406,7 +590,109 @@ body.system-ui-page .alert-error {
 
 /* Admin Dashboard and Registered Users. */
 body.system-ui-page.global-admin-page {
-    font-family: Inter, Arial, Helvetica, sans-serif;
+    font-family: 'Poppins', 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+body.system-ui-page.global-admin-page .admin-brand,
+body.system-ui-page.global-admin-page > nav strong {
+    font-size: clamp(1rem, 1.6vw, 1.22rem);
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+body.system-ui-page.global-admin-page .admin-nav-actions > a,
+body.system-ui-page.global-admin-page > nav a {
+    font-size: 0.86rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+body.system-ui-page.global-admin-page .admin-welcome h1,
+body.system-ui-page.global-admin-page > main h1 {
+    font-size: clamp(1.9rem, 4vw, 2.7rem);
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.03em;
+}
+
+body.system-ui-page.global-admin-page .admin-welcome > div > p:last-child,
+body.system-ui-page.global-admin-page > main > p {
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.6;
+}
+
+body.system-ui-page.global-admin-page .admin-panel h2 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+body.system-ui-page.global-admin-page .admin-eyebrow {
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+body.system-ui-page.global-admin-page .admin-button {
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+body.system-ui-page.global-admin-page .admin-stat-card p {
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+body.system-ui-page.global-admin-page .admin-stat-card strong {
+    font-size: 1.625rem;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+body.system-ui-page.global-admin-page .admin-panel-heading > span,
+body.system-ui-page.global-admin-page .admin-role-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+body.system-ui-page.global-admin-page .admin-recent-table th,
+body.system-ui-page.global-admin-page > main th {
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+body.system-ui-page.global-admin-page .admin-recent-table td,
+body.system-ui-page.global-admin-page > main td {
+    font-size: 0.82rem;
+    font-weight: 400;
+}
+
+body.system-ui-page.global-admin-page .admin-user-name {
+    font-weight: 700;
+}
+
+body.system-ui-page.global-admin-page .admin-distribution-label {
+    font-size: 0.82rem;
+}
+
+body.system-ui-page.global-admin-page .admin-distribution-label span,
+body.system-ui-page.global-admin-page .admin-distribution-label strong {
+    font-weight: 600;
+}
+
+body.system-ui-page.global-admin-page .admin-distribution-label strong {
+    font-size: 0.75rem;
+}
+
+body.system-ui-page.global-admin-page .admin-action-card strong {
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+body.system-ui-page.global-admin-page .admin-action-card small {
+    font-size: 0.75rem;
+    font-weight: 400;
+    line-height: 1.45;
 }
 
 body.system-ui-page.global-admin-page .admin-topbar,
@@ -646,6 +932,7 @@ body.system-ui-page .auth-login-card form label:not(.checkbox-label) {
     font-size: 0.78rem;
 }
 
+body.system-ui-page .auth-login-card form input[type="text"],
 body.system-ui-page .auth-login-card form input[type="email"],
 body.system-ui-page .auth-login-card form input[type="password"] {
     width: 100%;
@@ -798,6 +1085,11 @@ html[data-theme="dark"] body.system-ui-page .auth-card select {
 html[data-theme="dark"] body.system-ui-page.profile-page .profile-form input[readonly] {
     background: var(--system-panel);
     color: var(--system-muted);
+}
+
+html[data-theme="dark"] body.system-ui-page.profile-page .profile-role strong,
+html[data-theme="dark"] body.system-ui-page.profile-page .profile-member-since time {
+    color: var(--system-lavender);
 }
 
 html[data-theme="dark"] body.system-ui-page .auth-card .btn-primary,

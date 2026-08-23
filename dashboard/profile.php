@@ -7,6 +7,29 @@ function profileSettingsEscape($value) {
     return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
 }
 
+function profileSettingsMemberSince($value) {
+    $fallback = array(
+        'display' => 'Not available',
+        'datetime' => '',
+    );
+
+    $value = trim((string) $value);
+    if ($value === '') {
+        return $fallback;
+    }
+
+    try {
+        $date = new DateTimeImmutable($value, new DateTimeZone('Asia/Kuala_Lumpur'));
+
+        return array(
+            'display' => $date->format('F j, Y'),
+            'datetime' => $date->format('Y-m-d'),
+        );
+    } catch (Exception $exception) {
+        return $fallback;
+    }
+}
+
 function profileSettingsTextLength($value) {
     return function_exists('mb_strlen')
         ? mb_strlen((string) $value, 'UTF-8')
@@ -29,7 +52,7 @@ function profileSettingsLoadUser($conn, $user_id, &$database_error) {
     try {
         $stmt = mysqli_prepare(
             $conn,
-            'SELECT user_id, name, email, password, role
+            'SELECT user_id, name, email, password, role, created_at
              FROM users
              WHERE user_id = ?
              LIMIT 1'
@@ -67,6 +90,11 @@ $current_user = profileSettingsLoadUser(
     $conn,
     (int) $logged_in_user_id,
     $database_error
+);
+$member_since = profileSettingsMemberSince(
+    $current_user !== null && isset($current_user['created_at'])
+        ? $current_user['created_at']
+        : ''
 );
 
 $details_errors = array();
@@ -360,9 +388,19 @@ $home_label = $is_admin ? 'Back to Admin Home' : 'Back to Home';
                 <h2 id="profile-summary-heading"><?php echo profileSettingsEscape($current_user['name']); ?></h2>
                 <p><?php echo profileSettingsEscape($current_user['email']); ?></p>
             </div>
-            <div class="profile-role">
-                <span>Role</span>
-                <strong><?php echo profileSettingsEscape(ucfirst($current_user['role'])); ?></strong>
+            <div class="profile-summary-facts" aria-label="Account information">
+                <div class="profile-role">
+                    <span>Role</span>
+                    <strong><?php echo profileSettingsEscape(ucfirst($current_user['role'])); ?></strong>
+                </div>
+                <div class="profile-role profile-member-since">
+                    <span>Member Since</span>
+                    <?php if ($member_since['datetime'] !== ''): ?>
+                        <time datetime="<?php echo profileSettingsEscape($member_since['datetime']); ?>"><?php echo profileSettingsEscape($member_since['display']); ?></time>
+                    <?php else: ?>
+                        <strong><?php echo profileSettingsEscape($member_since['display']); ?></strong>
+                    <?php endif; ?>
+                </div>
             </div>
         </section>
 
