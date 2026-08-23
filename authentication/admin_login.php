@@ -81,13 +81,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="blob blob-5"></div>
 </div>
 
-<div class="auth-wrapper">
-    <div class="auth-card">
+<div class="auth-wrapper auth-login-wrapper auth-login-wrapper--admin">
+    <header class="auth-page-brand">
+        <h1>Student Routine Organizer</h1>
+        <p>Manage your daily routine in one place.</p>
+    </header>
+    <div class="auth-card auth-login-card auth-login-card--admin">
         <h1>Admin Login</h1>
         <p class="auth-subtitle">Administrator access only</p>
 
         <?php if ($success_message != "") { ?>
-            <div class="alert alert-success"><?php echo htmlspecialchars($success_message); ?></div>
+            <div class="alert alert-success" data-auth-auto-dismiss="success"><?php echo htmlspecialchars($success_message); ?></div>
         <?php } ?>
 
         <?php if ($session_message != "") { ?>
@@ -120,5 +124,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 </div>
 
+<script src="../assets/js/auth.js"></script>
 </body>
 </html>

@@ -123,66 +123,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <div class="blob blob-5"></div>
 </div>
 
-<!-- Decorative floating student-life icons -->
-<div class="bg-scene">
 
-    <!-- Graduation cap -->
-    <svg class="float-icon icon-cap" viewBox="0 0 24 24" fill="currentColor">
-        <polygon points="12,3 22,8 12,13 2,8" />
-        <path d="M6 10.5 V15 C6 17 9 18.5 12 18.5 C15 18.5 18 17 18 15 V10.5" fill="none" stroke="currentColor" stroke-width="1.4" />
-        <line x1="22" y1="8" x2="22" y2="14" stroke="currentColor" stroke-width="1.4" />
-    </svg>
-
-    <!-- Open book -->
-    <svg class="float-icon icon-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
-        <path d="M2 5 C5 3.5 9 3.5 12 5 C15 3.5 19 3.5 22 5 V18 C19 16.5 15 16.5 12 18 C9 16.5 5 16.5 2 18 Z" />
-        <line x1="12" y1="5" x2="12" y2="18" />
-    </svg>
-
-    <!-- Pencil -->
-    <svg class="float-icon icon-pencil" viewBox="0 0 24 24" fill="currentColor">
-        <rect x="10.5" y="2" width="3" height="16" rx="1" transform="rotate(20 12 10)" />
-        <polygon points="9,17 15,17 12,22" transform="rotate(20 12 10)" />
-    </svg>
-
-    <!-- Coffee cup -->
-    <svg class="float-icon icon-cup" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
-        <path d="M4 8 H17 V15 C17 18 14.5 20 10.5 20 C6.5 20 4 18 4 15 Z" />
-        <path d="M17 9.5 H19 C20.5 9.5 21.5 11 20.5 12.5 C20 13.3 19 13.5 17.5 13.3" />
-        <line x1="8" y1="4" x2="8" y2="6.5" />
-        <line x1="12" y1="3.5" x2="12" y2="6" />
-    </svg>
-
-    <!-- Apple -->
-    <svg class="float-icon icon-apple" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 8.5 C9 6.5 5 8 5 12.5 C5 16.5 8 20 11 20 C11.7 20 12.3 19.8 13 19.8 C13.7 19.8 14.3 20 15 20 C18 20 21 16.5 21 12.5 C21 8 17 6.5 14 8.5" />
-        <path d="M12 8.5 C12 6.5 13 5 15 4.5" fill="none" stroke="currentColor" stroke-width="1.4" />
-    </svg>
-
-    <!-- Light bulb (idea) -->
-    <svg class="float-icon icon-bulb" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
-        <circle cx="12" cy="10" r="6" />
-        <line x1="9.5" y1="19" x2="14.5" y2="19" />
-        <line x1="10" y1="21" x2="14" y2="21" />
-        <line x1="12" y1="16" x2="12" y2="19" />
-    </svg>
-
-    <!-- Backpack -->
-    <svg class="float-icon icon-backpack" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
-        <rect x="5" y="8" width="14" height="13" rx="3" />
-        <path d="M9 8 V5 C9 3.5 10.3 2.5 12 2.5 C13.7 2.5 15 3.5 15 5 V8" />
-        <line x1="9" y1="13" x2="15" y2="13" />
-    </svg>
-
-</div>
-
-<div class="auth-wrapper">
-    <div class="auth-card">
+<div class="auth-wrapper auth-login-wrapper">
+    <header class="auth-page-brand">
+        <h1>Student Routine Organizer</h1>
+        <p>Manage your daily routine in one place.</p>
+    </header>
+    <div class="auth-card auth-login-card">
         <h1>Welcome Back</h1>
-        <p class="auth-subtitle">Login to Student Routine Organizer</p>
+        <p class="auth-subtitle">Login to your Student Routine Organizer account</p>
 
         <?php if ($success_message != "") { ?>
-            <div class="alert alert-success"><?php echo htmlspecialchars($success_message); ?></div>
+            <div class="alert alert-success" data-auth-auto-dismiss="success"><?php echo htmlspecialchars($success_message); ?></div>
         <?php } ?>
 
         <?php if ($session_message != "") { ?>
@@ -221,5 +173,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 </div>
 
+<script src="../assets/js/auth.js"></script>
 </body>
 </html>

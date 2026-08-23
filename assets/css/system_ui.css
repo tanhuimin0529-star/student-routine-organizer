@@ -576,6 +576,137 @@ body.system-ui-page.global-admin-page > main table {
     border-radius: 18px;
 }
 
+/* Login-only composition: shared brand above a larger, matching card. */
+body.system-ui-page .auth-login-wrapper {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-flow: row;
+    align-content: center;
+    justify-items: center;
+    width: 100%;
+    min-height: 100vh;
+    gap: 28px;
+    padding: 64px 20px 48px;
+}
+
+body.system-ui-page .auth-page-brand {
+    grid-column: 1;
+    width: min(640px, 100%);
+    text-align: center;
+}
+
+body.system-ui-page .auth-page-brand h1 {
+    margin: 0;
+    color: var(--system-text);
+    font-size: clamp(2.25rem, 5vw, 3.35rem);
+    font-weight: 800;
+    letter-spacing: -0.05em;
+    line-height: 1.08;
+}
+
+body.system-ui-page .auth-page-brand p {
+    margin: 11px 0 0;
+    color: var(--system-muted);
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+body.system-ui-page .auth-login-card {
+    grid-column: 1;
+    width: min(600px, 100%);
+    max-width: 600px;
+    padding: 52px 58px;
+    border-radius: 25px;
+}
+
+body.system-ui-page .auth-login-card > h1 {
+    margin-bottom: 9px;
+    font-size: clamp(1.8rem, 4vw, 2.1rem);
+}
+
+body.system-ui-page .auth-login-card > h1::before {
+    display: none;
+    content: none !important;
+}
+
+body.system-ui-page .auth-login-card .auth-subtitle {
+    margin-bottom: 34px;
+    font-size: 0.92rem;
+    line-height: 1.55;
+}
+
+body.system-ui-page .auth-login-card form {
+    width: 100%;
+}
+
+body.system-ui-page .auth-login-card form label:not(.checkbox-label) {
+    margin-top: 20px;
+    margin-bottom: 9px;
+    color: var(--system-text);
+    font-size: 0.78rem;
+}
+
+body.system-ui-page .auth-login-card form input[type="email"],
+body.system-ui-page .auth-login-card form input[type="password"] {
+    width: 100%;
+    min-height: 52px;
+    padding: 14px 17px;
+    font-size: 0.97rem;
+}
+
+body.system-ui-page .auth-login-card .auth-forgot-link {
+    margin-top: 12px;
+}
+
+body.system-ui-page .auth-login-card .checkbox-label {
+    margin-top: 19px !important;
+}
+
+body.system-ui-page .auth-login-card button[type="submit"] {
+    min-height: 52px;
+    margin-top: 28px;
+    border-radius: 11px;
+    font-size: 0.98rem;
+}
+
+body.system-ui-page .auth-login-card .auth-switch {
+    margin-top: 19px;
+}
+
+body.system-ui-page .auth-login-card [data-auth-auto-dismiss="success"] {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 240ms ease, transform 240ms ease;
+}
+
+body.system-ui-page .auth-login-card .auth-alert-is-dismissing {
+    opacity: 0;
+    transform: translateY(-6px);
+    pointer-events: none;
+}
+
+@media (max-width: 620px) {
+    body.system-ui-page .auth-login-wrapper {
+        align-content: start;
+        gap: 20px;
+        padding: 64px 14px 32px;
+    }
+
+    body.system-ui-page .auth-page-brand h1 {
+        font-size: clamp(2rem, 10vw, 2.65rem);
+    }
+
+    body.system-ui-page .auth-login-card {
+        padding: 40px 25px;
+        border-radius: 21px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.system-ui-page .auth-login-card [data-auth-auto-dismiss="success"] {
+        transition: none;
+    }
+}
 /* Dark mode stays warm and readable without turning light cards into contrast traps. */
 html[data-theme="dark"] body.system-ui-page {
     --system-cream: #1f1b26;
