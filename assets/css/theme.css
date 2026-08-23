@@ -1,0 +1,240 @@
+/* Shared Light / Dark / System theme layer for global account pages. */
+:root {
+    --global-theme-control-bg: rgba(255, 255, 255, 0.58);
+    --global-theme-control-border: rgba(148, 163, 184, 0.34);
+    --global-theme-control-text: #475569;
+    --global-theme-control-active-bg: #4f46e5;
+    --global-theme-control-active-text: #ffffff;
+    --global-theme-focus: rgba(99, 102, 241, 0.38);
+}
+
+:root[data-theme="dark"] {
+    --bg-base: #0f172a;
+    --bg-alt: #1e293b;
+    --bg-white: #1e293b;
+    --gray-50: #1e293b;
+    --gray-100: #1e293b;
+    --gray-200: #334155;
+    --gray-300: #475569;
+    --gray-400: #94a3b8;
+    --gray-500: #a8b5c7;
+    --gray-600: #cbd5e1;
+    --gray-700: #e2e8f0;
+    --gray-800: #f1f5f9;
+    --gray-900: #f8fafc;
+    --glass-bg: rgba(30, 41, 59, 0.78);
+    --glass-bg-strong: rgba(30, 41, 59, 0.92);
+    --glass-border: rgba(100, 116, 139, 0.52);
+    --glass-border-hover: rgba(167, 139, 250, 0.46);
+    --glass-shadow: 0 10px 36px rgba(0, 0, 0, 0.34);
+    --glass-shadow-hover: 0 18px 52px rgba(0, 0, 0, 0.44);
+    --global-theme-control-bg: rgba(15, 23, 42, 0.58);
+    --global-theme-control-border: rgba(148, 163, 184, 0.34);
+    --global-theme-control-text: #dbe4f0;
+    --global-theme-control-active-bg: #a78bfa;
+    --global-theme-control-active-text: #111827;
+    --global-theme-focus: rgba(167, 139, 250, 0.46);
+}
+
+html[data-theme="dark"] body {
+    color: var(--gray-800);
+    background-color: var(--bg-base);
+}
+
+.global-theme-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+    font-family: var(--font, Arial, Helvetica, sans-serif);
+}
+
+.global-theme-label {
+    color: var(--gray-500, var(--global-theme-control-text));
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+
+.global-theme-options {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 3px;
+    border: 1px solid var(--global-theme-control-border);
+    border-radius: 10px;
+    background: var(--global-theme-control-bg);
+}
+
+.global-theme-options button {
+    min-width: 0;
+    margin: 0;
+    padding: 6px 9px;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    box-shadow: none;
+    color: var(--global-theme-control-text);
+    cursor: pointer;
+    font: 600 12px/1 var(--font, Arial, Helvetica, sans-serif);
+    text-transform: none;
+    transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+
+.global-theme-options button:hover {
+    background: rgba(99, 102, 241, 0.12);
+}
+
+.global-theme-options button.is-active {
+    background: var(--global-theme-control-active-bg);
+    color: var(--global-theme-control-active-text);
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.2);
+}
+
+.global-theme-options button:focus-visible {
+    outline: 3px solid var(--global-theme-focus);
+    outline-offset: 2px;
+}
+
+/* Authentication pages use auth.css; these overrides preserve readable controls. */
+html[data-theme="dark"] .auth-card {
+    box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+html[data-theme="dark"] .auth-card::after {
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
+}
+
+html[data-theme="dark"] form input[type="email"],
+html[data-theme="dark"] form input[type="password"],
+html[data-theme="dark"] form input[type="text"],
+html[data-theme="dark"] form input[type="number"],
+html[data-theme="dark"] form textarea,
+html[data-theme="dark"] form select,
+html[data-theme="dark"] .profile-form input {
+    border-color: var(--gray-300);
+    background: rgba(15, 23, 42, 0.72);
+    color: var(--gray-800);
+}
+
+html[data-theme="dark"] form input:hover,
+html[data-theme="dark"] form textarea:hover,
+html[data-theme="dark"] form select:hover,
+html[data-theme="dark"] .profile-form input:hover {
+    background: rgba(15, 23, 42, 0.88);
+}
+
+html[data-theme="dark"] form input:focus,
+html[data-theme="dark"] form textarea:focus,
+html[data-theme="dark"] form select:focus,
+html[data-theme="dark"] .profile-form input:focus {
+    background: #0f172a;
+}
+
+html[data-theme="dark"] .profile-form input[readonly] {
+    background: #172033;
+    color: var(--gray-500);
+}
+
+html[data-theme="dark"] .alert-error,
+html[data-theme="dark"] .profile-alert-error {
+    color: #fecaca;
+}
+
+html[data-theme="dark"] .alert-success,
+html[data-theme="dark"] .profile-alert-success {
+    color: #a7f3d0;
+}
+
+html[data-theme="dark"] .cookie-consent-card {
+    border-color: var(--glass-border);
+    background: rgba(30, 41, 59, 0.98);
+    color: var(--gray-800);
+}
+
+/* Admin pages currently use compact inline styles; this shared layer themes them. */
+body.global-admin-page {
+    color: #1f2937;
+    background: #f3f4f6;
+}
+
+body.global-admin-page nav {
+    gap: 16px;
+}
+
+body.global-admin-page nav > div {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+body.global-admin-page nav a {
+    margin-left: 10px;
+}
+
+html[data-theme="dark"] body.global-admin-page {
+    color: #e2e8f0;
+    background: #0f172a;
+}
+
+html[data-theme="dark"] body.global-admin-page nav {
+    background: #312e81;
+}
+
+html[data-theme="dark"] body.global-admin-page .card,
+html[data-theme="dark"] body.global-admin-page table {
+    color: #e2e8f0;
+    background: #1e293b;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.32);
+}
+
+html[data-theme="dark"] body.global-admin-page th,
+html[data-theme="dark"] body.global-admin-page td {
+    border-bottom-color: #334155;
+}
+
+html[data-theme="dark"] body.global-admin-page th {
+    background: #273449;
+}
+
+@media (max-width: 760px) {
+    .global-theme-control {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    body.global-admin-page nav {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    body.global-admin-page nav > div {
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 520px) {
+    .global-theme-label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+
+    .global-theme-options button {
+        padding-inline: 8px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .global-theme-options button {
+        transition: none;
+    }
+}

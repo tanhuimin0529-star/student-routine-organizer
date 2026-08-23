@@ -24,4 +24,80 @@ if (session_status() === PHP_SESSION_NONE) {
 
     session_start();
 }
+
+// Five minutes without a valid authenticated request ends the session.
+if (!defined('AUTHENTICATED_SESSION_INACTIVITY_TIMEOUT')) {
+    define('AUTHENTICATED_SESSION_INACTIVITY_TIMEOUT', 5 * 60);
+}
+
+if (!function_exists('destroyApplicationSessionSafely')) {
+    /**
+     * Clear server-side session data and expire the active session cookie.
+     */
+    function destroyApplicationSessionSafely() {
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            return;
+        }
+
+        $_SESSION = array();
+
+        if (ini_get('session.use_cookies')) {
+            $cookie_params = session_get_cookie_params();
+            $expired_cookie = array(
+                'expires' => time() - 42000,
+                'path' => $cookie_params['path'],
+                'secure' => $cookie_params['secure'],
+                'httponly' => $cookie_params['httponly'],
+                'samesite' => isset($cookie_params['samesite'])
+                    ? $cookie_params['samesite']
+                    : 'Lax'
+            );
+
+            if ($cookie_params['domain'] !== '') {
+                $expired_cookie['domain'] = $cookie_params['domain'];
+            }
+
+            setcookie(session_name(), '', $expired_cookie);
+        }
+
+        session_destroy();
+    }
+}
+
+if (isset($_SESSION['user_id'])) {
+    $current_activity_time = time();
+    $last_activity_time = isset($_SESSION['auth_last_activity'])
+        && is_numeric($_SESSION['auth_last_activity'])
+            ? (int) $_SESSION['auth_last_activity']
+            : 0;
+
+    if (
+        $last_activity_time > 0
+        && $current_activity_time >= $last_activity_time
+        && ($current_activity_time - $last_activity_time) >= AUTHENTICATED_SESSION_INACTIVITY_TIMEOUT
+    ) {
+        $expired_session_role = isset($_SESSION['role'])
+            ? (string) $_SESSION['role']
+            : 'student';
+
+        destroyApplicationSessionSafely();
+
+        $application_directory = rawurlencode(basename(dirname(__DIR__)));
+        $login_page = $expired_session_role === 'admin'
+            ? 'admin_login.php'
+            : 'login.php';
+
+        header(
+            'Location: /' . $application_directory
+            . '/authentication/' . $login_page
+            . '?msg=session_expired',
+            true,
+            303
+        );
+        exit();
+    }
+
+    // Every valid authenticated request refreshes the inactivity timer.
+    $_SESSION['auth_last_activity'] = $current_activity_time;
+}
 ?>

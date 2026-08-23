@@ -37,6 +37,11 @@ if (isset($_GET['msg']) && $_GET['msg'] == "registered") {
     $success_message = "You have been logged out.";
 }
 
+$session_message = "";
+if (isset($_GET['msg']) && $_GET['msg'] === "session_expired") {
+    $session_message = "Your session has expired due to inactivity. Please log in again.";
+}
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $email    = trim($_POST['email']);
@@ -59,9 +64,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 session_regenerate_id(true);
 
                 // Save the important details in the session
-                $_SESSION['user_id'] = $user['user_id'];
-                $_SESSION['name']    = $user['name'];
-                $_SESSION['role']    = $user['role'];
+                $_SESSION['user_id']            = $user['user_id'];
+                $_SESSION['name']               = $user['name'];
+                $_SESSION['role']               = $user['role'];
+                $_SESSION['auth_last_activity'] = time();
 
                 // Remember the email only after optional cookies are accepted.
                 if ($remember) {
@@ -98,6 +104,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/auth.css">
+    <script src="../assets/js/theme.js"></script>
+    <link rel="stylesheet" href="../assets/css/theme.css">
 </head>
 <body class="page-login">
 
@@ -170,6 +178,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         <?php if ($success_message != "") { ?>
             <div class="alert alert-success"><?php echo htmlspecialchars($success_message); ?></div>
+        <?php } ?>
+
+        <?php if ($session_message != "") { ?>
+            <div class="alert alert-error"><?php echo htmlspecialchars($session_message); ?></div>
         <?php } ?>
 
         <?php if (count($errors) > 0) { ?>

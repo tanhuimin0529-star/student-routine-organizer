@@ -7,6 +7,7 @@
 
 require_once __DIR__ . "/../includes/session_start.php";
 require_once __DIR__ . "/../includes/cookie_consent.php";
+require_once __DIR__ . "/../includes/theme_control.php";
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../authentication/login.php");
@@ -164,9 +165,12 @@ $show_cookie_consent =
 
     </style>
 
+    <script src="../assets/js/theme.js"></script>
+    <link rel="stylesheet" href="../assets/css/theme.css">
+
 </head>
 
-<body>
+<body class="global-dashboard-page">
 
 <!-- Morphing blob background -->
 <div class="morph-bg">
@@ -191,6 +195,12 @@ $show_cookie_consent =
         <a href="dashboard.php">
             Dashboard
         </a>
+
+        <a href="profile.php">
+            Profile Settings
+        </a>
+
+        <?php renderGlobalThemeControl(); ?>
 
         <a href="../authentication/logout.php">
             Logout

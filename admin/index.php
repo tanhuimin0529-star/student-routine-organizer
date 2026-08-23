@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . "/../includes/admin_guard.php";
 require_once __DIR__ . "/../config/database.php";
+require_once __DIR__ . "/../includes/theme_control.php";
 require_once __DIR__ . "/admin_model.php";
 
 $counts = getAdminUserCounts($conn);
@@ -21,12 +22,16 @@ $counts = getAdminUserCounts($conn);
         .card strong { display: block; margin-top: 8px; font-size: 28px; }
         .button { display: inline-block; padding: 10px 16px; border-radius: 6px; color: white; background: #4f46e5; text-decoration: none; }
     </style>
+    <script src="../assets/js/theme.js"></script>
+    <link rel="stylesheet" href="../assets/css/theme.css">
 </head>
-<body>
+<body class="global-admin-page">
 <nav>
     <strong>Student Routine Organizer — Admin</strong>
     <div>
         <a href="users.php">Registered Users</a>
+        <a href="../dashboard/profile.php">Profile Settings</a>
+        <?php renderGlobalThemeControl(); ?>
         <a href="../authentication/logout.php">Logout</a>
     </div>
 </nav>

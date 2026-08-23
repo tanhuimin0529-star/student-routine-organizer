@@ -21,8 +21,10 @@ $users = getAllRegisteredUsers($conn);
         th { background: #eef2ff; }
         .empty { padding: 24px; text-align: center; }
     </style>
+    <script src="../assets/js/theme.js"></script>
+    <link rel="stylesheet" href="../assets/css/theme.css">
 </head>
-<body>
+<body class="global-admin-page">
 <nav>
     <strong>Student Routine Organizer — Admin</strong>
     <div>

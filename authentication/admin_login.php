@@ -18,6 +18,11 @@ require_once __DIR__ . "/auth_functions.php";
 $errors = array();
 $email = "";
 
+$session_message = "";
+if (isset($_GET['msg']) && $_GET['msg'] === 'session_expired') {
+    $session_message = "Your session has expired due to inactivity. Please log in again.";
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = isset($_POST['email']) ? trim($_POST['email']) : "";
     $password = isset($_POST['password']) ? $_POST['password'] : "";
@@ -34,9 +39,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             session_regenerate_id(true);
 
-            $_SESSION['user_id'] = $user['user_id'];
-            $_SESSION['name']    = $user['name'];
-            $_SESSION['role']    = $user['role'];
+            $_SESSION['user_id']            = $user['user_id'];
+            $_SESSION['name']               = $user['name'];
+            $_SESSION['role']               = $user['role'];
+            $_SESSION['auth_last_activity'] = time();
 
             header("Location: ../admin/index.php");
             exit();
@@ -54,6 +60,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/auth.css">
+    <script src="../assets/js/theme.js"></script>
+    <link rel="stylesheet" href="../assets/css/theme.css">
 </head>
 <body class="page-login">
 
@@ -69,6 +77,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="auth-card">
         <h1>Admin Login</h1>
         <p class="auth-subtitle">Administrator access only</p>
+
+        <?php if ($session_message != "") { ?>
+            <div class="alert alert-error"><?php echo htmlspecialchars($session_message); ?></div>
+        <?php } ?>
 
         <?php if (count($errors) > 0) { ?>
             <div class="alert alert-error">
