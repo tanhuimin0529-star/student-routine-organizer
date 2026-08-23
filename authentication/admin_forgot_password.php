@@ -80,8 +80,9 @@ function adminForgotPasswordEscape($value) {
     <link rel="stylesheet" href="../assets/css/auth.css">
     <script src="../assets/js/theme.js"></script>
     <link rel="stylesheet" href="../assets/css/theme.css">
+    <link rel="stylesheet" href="../assets/css/system_ui.css">
 </head>
-<body class="page-forgot-password">
+<body class="page-forgot-password system-ui-page">
 <?php renderGlobalThemeControl(true); ?>
 
 <div class="morph-bg" aria-hidden="true">

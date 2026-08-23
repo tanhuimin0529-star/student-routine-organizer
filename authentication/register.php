@@ -61,8 +61,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link rel="stylesheet" href="../assets/css/auth.css">
     <script src="../assets/js/theme.js"></script>
     <link rel="stylesheet" href="../assets/css/theme.css">
+    <link rel="stylesheet" href="../assets/css/system_ui.css">
 </head>
-<body class="page-register">
+<body class="page-register system-ui-page">
 <?php renderGlobalThemeControl(true); ?>
 
 <!-- Morphing blob background -->

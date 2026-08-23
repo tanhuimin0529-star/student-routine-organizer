@@ -24,8 +24,9 @@ $users = getAllRegisteredUsers($conn);
     </style>
     <script src="../assets/js/theme.js"></script>
     <link rel="stylesheet" href="../assets/css/theme.css">
+    <link rel="stylesheet" href="../assets/css/system_ui.css">
 </head>
-<body class="global-admin-page">
+<body class="global-admin-page system-ui-page">
 <nav>
     <strong>Student Routine Organizer — Admin</strong>
     <div>

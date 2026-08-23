@@ -68,8 +68,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="../assets/css/auth.css">
     <script src="../assets/js/theme.js"></script>
     <link rel="stylesheet" href="../assets/css/theme.css">
+    <link rel="stylesheet" href="../assets/css/system_ui.css">
 </head>
-<body class="page-login">
+<body class="page-login system-ui-page">
 <?php renderGlobalThemeControl(true); ?>
 
 <div class="morph-bg">

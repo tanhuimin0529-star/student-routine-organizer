@@ -1,0 +1,752 @@
+/*
+ * Shared system-level presentation layer.
+ * Scoped to .system-ui-page so Diary, Habit, Exercise, and other module
+ * identities remain controlled by their own stylesheets.
+ */
+
+body.system-ui-page {
+    --system-cream: #f8f3ea;
+    --system-card: #fffdf9;
+    --system-panel: #f4eee4;
+    --system-lavender: #b8a7e8;
+    --system-purple: #9d8dda;
+    --system-lavender-pale: #f1ecfb;
+    --system-text: #2f2a3a;
+    --system-muted: #756f7f;
+    --system-border: #ded5e8;
+    --system-green: #879b72;
+    --system-danger: #c94a4a;
+    --system-link: #6554a4;
+    --system-shadow: 0 14px 38px rgba(67, 55, 85, 0.09);
+    --system-shadow-soft: 0 7px 22px rgba(67, 55, 85, 0.07);
+    min-height: 100vh;
+    color: var(--system-text);
+    background:
+        radial-gradient(circle at 88% 7%, rgba(184, 167, 232, 0.18), transparent 28rem),
+        radial-gradient(circle at 7% 94%, rgba(135, 155, 114, 0.1), transparent 25rem),
+        var(--system-cream);
+}
+
+body.system-ui-page .morph-bg .blob {
+    opacity: 0.24;
+    filter: blur(92px);
+}
+
+body.system-ui-page .morph-bg .blob-1,
+body.system-ui-page .morph-bg .blob-3,
+body.system-ui-page .morph-bg .blob-5 {
+    background: radial-gradient(circle, rgba(184, 167, 232, 0.46), rgba(241, 236, 251, 0.08));
+}
+
+body.system-ui-page .morph-bg .blob-2,
+body.system-ui-page .morph-bg .blob-4,
+body.system-ui-page .morph-bg .blob-6 {
+    background: radial-gradient(circle, rgba(244, 238, 228, 0.72), rgba(135, 155, 114, 0.08));
+}
+
+body.system-ui-page a {
+    text-underline-offset: 3px;
+}
+
+body.system-ui-page :focus-visible {
+    outline-color: var(--system-purple);
+}
+
+/* Shared student navigation on Dashboard and Profile only. */
+body.system-ui-page .global-navbar {
+    --system-header-bg: rgba(255, 253, 249, 0.94);
+    --system-header-text: var(--system-text);
+    --system-header-muted: #5f5869;
+    --system-header-border: rgba(157, 141, 218, 0.24);
+    --system-header-hover: var(--system-lavender-pale);
+    --system-header-accent: #6757aa;
+    box-shadow: 0 5px 22px rgba(67, 55, 85, 0.07);
+}
+
+body.system-ui-page .global-navbar__inner {
+    width: min(1280px, calc(100% - 48px));
+}
+
+body.system-ui-page .global-navbar__brand {
+    color: var(--system-text);
+}
+
+body.system-ui-page .global-navbar .module-shared-actions__link {
+    color: #5f5869;
+}
+
+body.system-ui-page .global-navbar .module-shared-actions__link:hover,
+body.system-ui-page .global-navbar .module-shared-actions__link:focus-visible,
+body.system-ui-page .global-navbar .module-shared-actions__link.is-active {
+    background: var(--system-lavender-pale);
+    color: #5c4d9e;
+}
+
+body.system-ui-page .global-navbar .module-shared-actions__logout {
+    color: var(--system-danger);
+}
+
+/* Student Dashboard. */
+body.system-ui-page.global-dashboard-page .page-wrapper {
+    width: min(1280px, calc(100% - 48px));
+    max-width: none;
+    padding: clamp(42px, 6vw, 76px) 0;
+}
+
+body.system-ui-page.global-dashboard-page .page-wrapper > h1 {
+    margin-bottom: 8px;
+    color: var(--system-text);
+    font-size: clamp(1.9rem, 4vw, 2.7rem);
+    letter-spacing: -0.035em;
+}
+
+body.system-ui-page.global-dashboard-page .page-wrapper > p {
+    margin-bottom: 30px !important;
+    color: var(--system-muted) !important;
+    font-size: 1rem !important;
+}
+
+body.system-ui-page.global-dashboard-page .stats-container {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 22px;
+}
+
+body.system-ui-page.global-dashboard-page .module-card {
+    min-width: 0;
+    min-height: 230px;
+    padding: 30px 27px;
+    border: 1px solid var(--system-border);
+    border-radius: 22px;
+    background: rgba(255, 253, 249, 0.94);
+    box-shadow: var(--system-shadow-soft);
+    backdrop-filter: blur(10px);
+}
+
+body.system-ui-page.global-dashboard-page .module-card::before {
+    height: 4px;
+    background: linear-gradient(90deg, var(--system-lavender), var(--system-purple), var(--system-green));
+}
+
+body.system-ui-page.global-dashboard-page .module-card:hover,
+body.system-ui-page.global-dashboard-page .module-card:focus-visible {
+    border-color: var(--system-lavender);
+    box-shadow: 0 18px 38px rgba(92, 75, 130, 0.14);
+}
+
+body.system-ui-page.global-dashboard-page .module-card h3 {
+    color: var(--system-text);
+    font-size: 1.06rem;
+}
+
+body.system-ui-page.global-dashboard-page .module-card p {
+    color: var(--system-muted);
+    line-height: 1.65;
+}
+
+body.system-ui-page.global-dashboard-page .module-icon {
+    width: 52px;
+    height: 52px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(157, 141, 218, 0.2);
+    border-radius: 16px;
+    background: var(--system-lavender-pale);
+}
+
+body.system-ui-page .cookie-consent-card {
+    border-color: var(--system-border);
+    background: var(--system-card);
+    color: var(--system-text);
+    box-shadow: var(--system-shadow);
+}
+
+body.system-ui-page .cookie-consent-card p {
+    color: var(--system-muted);
+}
+
+/* Profile Settings, shared by student and admin accounts. */
+body.system-ui-page.profile-page .profile-wrapper {
+    width: min(1120px, calc(100% - 48px));
+    max-width: none;
+    padding: 42px 0 64px;
+}
+
+body.system-ui-page.profile-page .profile-header h1,
+body.system-ui-page.profile-page .profile-summary h2,
+body.system-ui-page.profile-page .profile-card h2 {
+    color: var(--system-text);
+}
+
+body.system-ui-page.profile-page .profile-header > div > p:last-child,
+body.system-ui-page.profile-page .profile-summary p,
+body.system-ui-page.profile-page .profile-card-heading p,
+body.system-ui-page.profile-page .profile-help {
+    color: var(--system-muted);
+}
+
+body.system-ui-page.profile-page .profile-eyebrow {
+    color: #6757aa;
+}
+
+body.system-ui-page.profile-page .profile-summary,
+body.system-ui-page.profile-page .profile-card {
+    border-color: var(--system-border);
+    background: rgba(255, 253, 249, 0.96);
+    box-shadow: var(--system-shadow-soft);
+    backdrop-filter: blur(10px);
+}
+
+body.system-ui-page.profile-page .profile-role,
+body.system-ui-page.profile-page .profile-card-icon {
+    border-color: rgba(157, 141, 218, 0.25);
+    background: var(--system-lavender-pale);
+}
+
+body.system-ui-page.profile-page .profile-role strong {
+    color: #5c4d9e;
+}
+
+body.system-ui-page.profile-page .profile-form label {
+    color: var(--system-text);
+}
+
+body.system-ui-page.profile-page .profile-form input {
+    border-color: var(--system-border);
+    background: var(--system-card);
+    color: var(--system-text);
+}
+
+body.system-ui-page.profile-page .profile-form input:focus {
+    border-color: var(--system-purple);
+    box-shadow: 0 0 0 4px rgba(184, 167, 232, 0.24);
+}
+
+body.system-ui-page.profile-page .profile-form input[readonly] {
+    background: var(--system-panel);
+    color: var(--system-muted);
+}
+
+/* The same profile page also serves administrators. */
+body.system-ui-page.profile-page > .navbar {
+    border-bottom: 1px solid var(--system-border);
+    background: rgba(255, 253, 249, 0.95);
+    color: var(--system-text);
+    box-shadow: 0 5px 22px rgba(67, 55, 85, 0.07);
+    backdrop-filter: blur(14px);
+}
+
+body.system-ui-page.profile-page > .navbar .nav-brand {
+    color: var(--system-text);
+}
+
+body.system-ui-page.profile-page > .navbar .nav-brand::before {
+    content: none;
+}
+
+body.system-ui-page.profile-page > .navbar .nav-links a {
+    color: #5f5869;
+}
+
+body.system-ui-page.profile-page > .navbar .nav-links a:hover,
+body.system-ui-page.profile-page > .navbar .nav-links a:focus-visible {
+    background: var(--system-lavender-pale);
+    color: #5c4d9e;
+}
+
+body.system-ui-page.profile-page > .navbar .nav-links a[href*="logout"] {
+    color: var(--system-danger);
+}
+/* Shared neutral and primary buttons on system pages. */
+body.system-ui-page .btn-primary,
+body.system-ui-page.profile-page .btn-primary {
+    border: 1px solid #9d8dda;
+    background: #b8a7e8;
+    color: #2f2a3a;
+    box-shadow: 0 7px 18px rgba(117, 97, 177, 0.18);
+}
+
+body.system-ui-page .btn-primary:hover,
+body.system-ui-page .btn-primary:focus-visible,
+body.system-ui-page.profile-page .btn-primary:hover,
+body.system-ui-page.profile-page .btn-primary:focus-visible {
+    border-color: #8d7acb;
+    background: #9d8dda;
+    color: #211c2d;
+    box-shadow: 0 9px 22px rgba(117, 97, 177, 0.24);
+}
+
+body.system-ui-page .btn-secondary {
+    border-color: var(--system-border);
+    background: var(--system-card);
+    color: var(--system-text);
+}
+
+body.system-ui-page .btn-secondary:hover,
+body.system-ui-page .btn-secondary:focus-visible {
+    border-color: var(--system-lavender);
+    background: var(--system-lavender-pale);
+    color: #514584;
+}
+
+/* Authentication and password-recovery cards. */
+body.system-ui-page.page-login,
+body.system-ui-page.page-register,
+body.system-ui-page.page-forgot-password,
+body.system-ui-page.page-reset-password {
+    background:
+        radial-gradient(circle at 12% 8%, rgba(184, 167, 232, 0.2), transparent 26rem),
+        radial-gradient(circle at 90% 90%, rgba(135, 155, 114, 0.09), transparent 24rem),
+        var(--system-cream);
+}
+
+body.system-ui-page .auth-card {
+    border: 1px solid var(--system-border);
+    background: rgba(255, 253, 249, 0.96);
+    color: var(--system-text);
+    box-shadow: var(--system-shadow);
+    backdrop-filter: blur(13px);
+}
+
+body.system-ui-page .auth-card::before {
+    background: linear-gradient(90deg, var(--system-lavender), var(--system-purple), var(--system-lavender));
+}
+
+body.system-ui-page .auth-card::after {
+    background: radial-gradient(circle, rgba(184, 167, 232, 0.15), transparent 68%);
+}
+
+body.system-ui-page .auth-card h1 {
+    color: var(--system-text);
+}
+
+body.system-ui-page .auth-subtitle,
+body.system-ui-page .auth-switch,
+body.system-ui-page .auth-help,
+body.system-ui-page .auth-divider span,
+body.system-ui-page .development-reset-link p {
+    color: var(--system-muted);
+}
+
+body.system-ui-page .form-group label,
+body.system-ui-page .auth-card label {
+    color: var(--system-text);
+}
+
+body.system-ui-page .form-group input,
+body.system-ui-page .auth-card input,
+body.system-ui-page .auth-card select {
+    border-color: var(--system-border);
+    background: var(--system-card);
+    color: var(--system-text);
+}
+
+body.system-ui-page .form-group input::placeholder,
+body.system-ui-page .auth-card input::placeholder {
+    color: #918a99;
+}
+
+body.system-ui-page .form-group input:focus,
+body.system-ui-page .auth-card input:focus,
+body.system-ui-page .auth-card select:focus {
+    border-color: var(--system-purple);
+    box-shadow: 0 0 0 4px rgba(184, 167, 232, 0.24);
+}
+
+body.system-ui-page .auth-card .btn-primary,
+body.system-ui-page .auth-card button[type="submit"] {
+    border: 1px solid #9d8dda;
+    background: #b8a7e8;
+    color: #2f2a3a;
+    box-shadow: 0 8px 20px rgba(117, 97, 177, 0.18);
+}
+
+body.system-ui-page .auth-card .btn-primary:hover,
+body.system-ui-page .auth-card .btn-primary:focus-visible,
+body.system-ui-page .auth-card button[type="submit"]:hover,
+body.system-ui-page .auth-card button[type="submit"]:focus-visible {
+    background: #9d8dda;
+    color: #211c2d;
+    box-shadow: 0 10px 24px rgba(117, 97, 177, 0.26);
+}
+
+body.system-ui-page .auth-switch a,
+body.system-ui-page .auth-forgot-link a,
+body.system-ui-page .development-reset-link a {
+    color: var(--system-link);
+}
+
+body.system-ui-page .auth-switch a:hover,
+body.system-ui-page .auth-forgot-link a:hover,
+body.system-ui-page .development-reset-link a:hover {
+    color: #493b83;
+}
+
+body.system-ui-page .development-reset-link {
+    border-color: rgba(157, 141, 218, 0.3);
+    background: var(--system-lavender-pale);
+    color: var(--system-text);
+}
+
+body.system-ui-page .auth-divider::before,
+body.system-ui-page .auth-divider::after {
+    background: var(--system-border);
+}
+
+body.system-ui-page .alert-success {
+    border-color: rgba(135, 155, 114, 0.45);
+    background: #edf3e7;
+    color: #39502f;
+}
+
+body.system-ui-page .alert-error {
+    border-color: rgba(201, 74, 74, 0.35);
+    background: #fff0ee;
+    color: #8f2e2e;
+}
+
+/* Admin Dashboard and Registered Users. */
+body.system-ui-page.global-admin-page {
+    font-family: Inter, Arial, Helvetica, sans-serif;
+}
+
+body.system-ui-page.global-admin-page .admin-topbar,
+body.system-ui-page.global-admin-page > nav {
+    border-bottom: 1px solid var(--system-border);
+    background: rgba(255, 253, 249, 0.95);
+    color: var(--system-text);
+    box-shadow: 0 5px 22px rgba(67, 55, 85, 0.07);
+    backdrop-filter: blur(14px);
+}
+
+body.system-ui-page.global-admin-page .admin-brand,
+body.system-ui-page.global-admin-page > nav strong,
+body.system-ui-page.global-admin-page > nav a {
+    color: var(--system-text);
+}
+
+body.system-ui-page.global-admin-page .admin-brand span,
+body.system-ui-page.global-admin-page .admin-panel-heading > span {
+    border-color: rgba(157, 141, 218, 0.25);
+    background: var(--system-lavender-pale);
+    color: #5c4d9e;
+}
+
+body.system-ui-page.global-admin-page .admin-nav-actions > a,
+body.system-ui-page.global-admin-page > nav a {
+    color: #5f5869;
+}
+
+body.system-ui-page.global-admin-page .admin-nav-actions > a:hover,
+body.system-ui-page.global-admin-page .admin-nav-actions > a:focus-visible,
+body.system-ui-page.global-admin-page > nav a:hover,
+body.system-ui-page.global-admin-page > nav a:focus-visible {
+    background: var(--system-lavender-pale);
+    color: #5c4d9e;
+}
+
+body.system-ui-page.global-admin-page .admin-nav-actions .admin-logout-link,
+body.system-ui-page.global-admin-page > nav a[href*="logout"] {
+    color: var(--system-danger);
+}
+
+body.system-ui-page.global-admin-page .admin-dashboard-main,
+body.system-ui-page.global-admin-page > main {
+    width: min(1240px, calc(100% - 48px));
+    max-width: none;
+}
+
+body.system-ui-page.global-admin-page .admin-welcome h1,
+body.system-ui-page.global-admin-page .admin-panel h2,
+body.system-ui-page.global-admin-page > main h1 {
+    color: var(--system-text);
+}
+
+body.system-ui-page.global-admin-page .admin-welcome > div > p:last-child,
+body.system-ui-page.global-admin-page > main > p {
+    color: var(--system-muted);
+}
+
+body.system-ui-page.global-admin-page .admin-eyebrow {
+    color: #6757aa;
+}
+
+body.system-ui-page.global-admin-page .admin-button-primary {
+    border: 1px solid #9d8dda;
+    background: #b8a7e8;
+    color: #2f2a3a;
+    box-shadow: 0 7px 18px rgba(117, 97, 177, 0.18);
+}
+
+body.system-ui-page.global-admin-page .admin-button-primary:hover,
+body.system-ui-page.global-admin-page .admin-button-primary:focus-visible {
+    border-color: #8d7acb;
+    background: #9d8dda;
+    color: #211c2d;
+}
+
+body.system-ui-page.global-admin-page .admin-stat-card,
+body.system-ui-page.global-admin-page .admin-panel,
+body.system-ui-page.global-admin-page table {
+    border-color: var(--system-border);
+    background: var(--system-card);
+    color: var(--system-text);
+    box-shadow: var(--system-shadow-soft);
+}
+
+body.system-ui-page.global-admin-page .admin-stat-card-total {
+    background: linear-gradient(145deg, var(--system-lavender-pale), var(--system-card));
+}
+
+body.system-ui-page.global-admin-page .admin-stat-icon,
+body.system-ui-page.global-admin-page .admin-action-card > span {
+    border: 1px solid rgba(157, 141, 218, 0.2);
+    background: var(--system-lavender-pale);
+}
+
+body.system-ui-page.global-admin-page .admin-stat-card p,
+body.system-ui-page.global-admin-page .admin-action-card small,
+body.system-ui-page.global-admin-page .admin-recent-table td {
+    color: var(--system-muted);
+}
+
+body.system-ui-page.global-admin-page .admin-stat-card strong,
+body.system-ui-page.global-admin-page .admin-action-card strong,
+body.system-ui-page.global-admin-page .admin-user-name,
+body.system-ui-page.global-admin-page .admin-distribution-label {
+    color: var(--system-text);
+}
+
+body.system-ui-page.global-admin-page .admin-action-card,
+body.system-ui-page.global-admin-page .admin-empty-state {
+    border-color: var(--system-border);
+    background: var(--system-panel);
+    color: var(--system-text);
+}
+
+body.system-ui-page.global-admin-page .admin-action-card:hover,
+body.system-ui-page.global-admin-page .admin-action-card:focus-visible {
+    border-color: var(--system-lavender);
+    background: var(--system-lavender-pale);
+}
+
+body.system-ui-page.global-admin-page .admin-recent-table th,
+body.system-ui-page.global-admin-page > main th {
+    border-color: var(--system-border);
+    background: var(--system-lavender-pale);
+    color: var(--system-text);
+}
+
+body.system-ui-page.global-admin-page .admin-recent-table td,
+body.system-ui-page.global-admin-page > main td {
+    border-color: #ece5ef;
+}
+
+body.system-ui-page.global-admin-page .admin-recent-table tbody tr:hover,
+body.system-ui-page.global-admin-page > main tbody tr:hover {
+    background: #faf7fd;
+}
+
+body.system-ui-page.global-admin-page .admin-role-student {
+    background: #edf3e7;
+    color: #48603d;
+}
+
+body.system-ui-page.global-admin-page .admin-role-admin {
+    background: var(--system-lavender-pale);
+    color: #5c4d9e;
+}
+
+body.system-ui-page.global-admin-page .admin-dot-student,
+body.system-ui-page.global-admin-page .admin-progress-student {
+    background: var(--system-green);
+}
+
+body.system-ui-page.global-admin-page .admin-dot-admin,
+body.system-ui-page.global-admin-page .admin-progress-admin {
+    background: var(--system-purple);
+}
+
+body.system-ui-page.global-admin-page .admin-progress {
+    background: var(--system-panel);
+}
+
+body.system-ui-page.global-admin-page > main table {
+    overflow: hidden;
+    border: 1px solid var(--system-border);
+    border-radius: 18px;
+}
+
+/* Dark mode stays warm and readable without turning light cards into contrast traps. */
+html[data-theme="dark"] body.system-ui-page {
+    --system-cream: #1f1b26;
+    --system-card: #2b2632;
+    --system-panel: #342e3a;
+    --system-lavender: #c3b5ed;
+    --system-purple: #b09ee6;
+    --system-lavender-pale: #3a3347;
+    --system-text: #f5f0f7;
+    --system-muted: #c5bccb;
+    --system-border: #4b4255;
+    --system-green: #a7bb91;
+    --system-danger: #f19a9a;
+    --system-link: #d0c2f4;
+    --system-shadow: 0 16px 42px rgba(0, 0, 0, 0.25);
+    --system-shadow-soft: 0 8px 26px rgba(0, 0, 0, 0.2);
+    color: var(--system-text);
+    background:
+        radial-gradient(circle at 88% 7%, rgba(157, 141, 218, 0.16), transparent 28rem),
+        radial-gradient(circle at 7% 94%, rgba(135, 155, 114, 0.08), transparent 25rem),
+        var(--system-cream);
+}
+
+html[data-theme="dark"] body.system-ui-page .global-navbar,
+html[data-theme="dark"] body.system-ui-page.profile-page > .navbar,
+html[data-theme="dark"] body.system-ui-page.global-admin-page .admin-topbar,
+html[data-theme="dark"] body.system-ui-page.global-admin-page > nav {
+    --system-header-bg: rgba(43, 38, 50, 0.96);
+    --system-header-text: var(--system-text);
+    --system-header-muted: var(--system-muted);
+    --system-header-border: var(--system-border);
+    --system-header-hover: var(--system-lavender-pale);
+    --system-header-accent: var(--system-lavender);
+    border-color: var(--system-border);
+    background: rgba(43, 38, 50, 0.96);
+    color: var(--system-text);
+}
+
+html[data-theme="dark"] body.system-ui-page .global-navbar .module-shared-actions__link,
+html[data-theme="dark"] body.system-ui-page.profile-page > .navbar .nav-links a,
+html[data-theme="dark"] body.system-ui-page.global-admin-page .admin-nav-actions > a,
+html[data-theme="dark"] body.system-ui-page.global-admin-page > nav a {
+    color: var(--system-muted);
+}
+
+html[data-theme="dark"] body.system-ui-page .global-navbar .module-shared-actions__link:hover,
+html[data-theme="dark"] body.system-ui-page .global-navbar .module-shared-actions__link:focus-visible,
+html[data-theme="dark"] body.system-ui-page .global-navbar .module-shared-actions__link.is-active,
+html[data-theme="dark"] body.system-ui-page.profile-page > .navbar .nav-links a:hover,
+html[data-theme="dark"] body.system-ui-page.profile-page > .navbar .nav-links a:focus-visible,
+html[data-theme="dark"] body.system-ui-page.global-admin-page .admin-nav-actions > a:hover,
+html[data-theme="dark"] body.system-ui-page.global-admin-page .admin-nav-actions > a:focus-visible,
+html[data-theme="dark"] body.system-ui-page.global-admin-page > nav a:hover,
+html[data-theme="dark"] body.system-ui-page.global-admin-page > nav a:focus-visible {
+    background: var(--system-lavender-pale);
+    color: var(--system-lavender);
+}
+
+html[data-theme="dark"] body.system-ui-page.global-dashboard-page .module-card,
+html[data-theme="dark"] body.system-ui-page.profile-page .profile-summary,
+html[data-theme="dark"] body.system-ui-page.profile-page .profile-card,
+html[data-theme="dark"] body.system-ui-page .auth-card,
+html[data-theme="dark"] body.system-ui-page.global-admin-page .admin-stat-card,
+html[data-theme="dark"] body.system-ui-page.global-admin-page .admin-panel,
+html[data-theme="dark"] body.system-ui-page.global-admin-page table {
+    border-color: var(--system-border);
+    background: var(--system-card);
+    color: var(--system-text);
+}
+
+html[data-theme="dark"] body.system-ui-page.global-admin-page .admin-stat-card-total,
+html[data-theme="dark"] body.system-ui-page.global-admin-page .admin-action-card,
+html[data-theme="dark"] body.system-ui-page.global-admin-page .admin-empty-state,
+html[data-theme="dark"] body.system-ui-page .development-reset-link {
+    border-color: var(--system-border);
+    background: var(--system-panel);
+    color: var(--system-text);
+}
+
+html[data-theme="dark"] body.system-ui-page.profile-page .profile-form input,
+html[data-theme="dark"] body.system-ui-page .form-group input,
+html[data-theme="dark"] body.system-ui-page .auth-card input,
+html[data-theme="dark"] body.system-ui-page .auth-card select {
+    border-color: var(--system-border);
+    background: #251f2b;
+    color: var(--system-text);
+}
+
+html[data-theme="dark"] body.system-ui-page.profile-page .profile-form input[readonly] {
+    background: var(--system-panel);
+    color: var(--system-muted);
+}
+
+html[data-theme="dark"] body.system-ui-page .auth-card .btn-primary,
+html[data-theme="dark"] body.system-ui-page .auth-card button[type="submit"],
+html[data-theme="dark"] body.system-ui-page .btn-primary,
+html[data-theme="dark"] body.system-ui-page.global-admin-page .admin-button-primary {
+    border-color: #c3b5ed;
+    background: #b8a7e8;
+    color: #211c2d;
+}
+
+html[data-theme="dark"] body.system-ui-page .btn-secondary {
+    border-color: var(--system-border);
+    background: var(--system-panel);
+    color: var(--system-text);
+}
+
+html[data-theme="dark"] body.system-ui-page .alert-success {
+    border-color: #617555;
+    background: #263323;
+    color: #d8ead0;
+}
+
+html[data-theme="dark"] body.system-ui-page .alert-error {
+    border-color: #754747;
+    background: #3a2428;
+    color: #ffd8d8;
+}
+
+html[data-theme="dark"] body.system-ui-page.global-admin-page .admin-recent-table th,
+html[data-theme="dark"] body.system-ui-page.global-admin-page > main th {
+    border-color: var(--system-border);
+    background: var(--system-lavender-pale);
+    color: var(--system-text);
+}
+
+html[data-theme="dark"] body.system-ui-page.global-admin-page .admin-recent-table tbody tr:hover,
+html[data-theme="dark"] body.system-ui-page.global-admin-page > main tbody tr:hover {
+    background: var(--system-panel);
+}
+
+@media (max-width: 1050px) {
+    body.system-ui-page.global-dashboard-page .stats-container {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 760px) {
+    body.system-ui-page .global-navbar__inner,
+    body.system-ui-page.global-dashboard-page .page-wrapper,
+    body.system-ui-page.profile-page .profile-wrapper,
+    body.system-ui-page.global-admin-page .admin-dashboard-main,
+    body.system-ui-page.global-admin-page > main {
+        width: min(100% - 28px, 680px);
+    }
+
+    body.system-ui-page.global-dashboard-page .page-wrapper {
+        padding: 34px 0 48px;
+    }
+
+    body.system-ui-page.global-admin-page > nav {
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 560px) {
+    body.system-ui-page.global-dashboard-page .stats-container {
+        grid-template-columns: 1fr;
+    }
+
+    body.system-ui-page.global-dashboard-page .module-card {
+        min-height: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.system-ui-page *,
+    body.system-ui-page *::before,
+    body.system-ui-page *::after {
+        scroll-behavior: auto !important;
+    }
+}

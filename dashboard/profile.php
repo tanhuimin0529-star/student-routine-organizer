@@ -304,8 +304,9 @@ $home_label = $is_admin ? 'Back to Admin Home' : 'Back to Home';
     <?php if (!$is_admin): ?>
         <?php renderSharedNavbarAssets('../'); ?>
     <?php endif; ?>
+    <link rel="stylesheet" href="../assets/css/system_ui.css">
 </head>
-<body class="profile-page">
+<body class="profile-page system-ui-page">
 <div class="morph-bg" aria-hidden="true">
     <div class="blob blob-1"></div>
     <div class="blob blob-2"></div>

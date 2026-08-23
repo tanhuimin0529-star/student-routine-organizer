@@ -27,8 +27,9 @@ $admin_percentage = $total_users > 0
     <script src="../assets/js/theme.js"></script>
     <link rel="stylesheet" href="../assets/css/theme.css">
     <link rel="stylesheet" href="../assets/css/admin.css">
+    <link rel="stylesheet" href="../assets/css/system_ui.css">
 </head>
-<body class="global-admin-page admin-dashboard-page">
+<body class="global-admin-page admin-dashboard-page system-ui-page">
 <nav class="admin-topbar" aria-label="Admin navigation">
     <a class="admin-brand" href="index.php">Student Routine Organizer <span>Admin</span></a>
     <div class="admin-nav-actions">

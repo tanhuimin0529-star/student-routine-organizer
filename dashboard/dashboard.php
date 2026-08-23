@@ -169,9 +169,10 @@ $show_cookie_consent =
     <link rel="stylesheet" href="../assets/css/theme.css">
     <?php renderSharedNavbarAssets('../'); ?>
 
+    <link rel="stylesheet" href="../assets/css/system_ui.css">
 </head>
 
-<body class="global-dashboard-page">
+<body class="global-dashboard-page system-ui-page">
 
 <!-- Morphing blob background -->
 <div class="morph-bg">
