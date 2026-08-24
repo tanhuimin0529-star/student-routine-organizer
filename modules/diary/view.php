@@ -6,6 +6,10 @@ require_once __DIR__ . '/diary_model.php';
 require_once __DIR__ . '/diary_content.php';
 require_once __DIR__ . '/diary_navigation.php';
 
+$delete_flash = isset($_SESSION['diary_delete_flash']) && is_array($_SESSION['diary_delete_flash'])
+    ? $_SESSION['diary_delete_flash']
+    : null;
+unset($_SESSION['diary_delete_flash']);
 $favorite_flash = isset($_SESSION['diary_favorite_flash']) && is_array($_SESSION['diary_favorite_flash'])
     ? $_SESSION['diary_favorite_flash']
     : null;
@@ -15,6 +19,9 @@ $requested_return_to = isset($_GET['return_to']) && is_string($_GET['return_to']
     ? $_GET['return_to']
     : '';
 $return_to = diaryNavigationSanitizeReturnTo($requested_return_to);
+$sequence_mode = diaryNavigationIsSequenceMode(
+    isset($_GET['sequence']) && is_string($_GET['sequence']) ? $_GET['sequence'] : ''
+);
 $entry = null;
 $database_error = false;
 $requested_id = isset($_GET['id']) && is_string($_GET['id'])
@@ -50,6 +57,7 @@ if ($entry !== null) {
     $user_entries = getDiaryEntriesForUser($conn, $logged_in_user_id);
 
     if (is_array($user_entries)) {
+        $user_entries = diaryNavigationEntriesForContext($user_entries, $return_to);
         $current_position = null;
 
         foreach ($user_entries as $position => $user_entry) {
@@ -76,7 +84,7 @@ if ($entry !== null) {
 
 
 $current_view_url = $entry !== null
-    ? diaryNavigationViewUrl($entry['diary_id'], $return_to)
+    ? diaryNavigationViewUrl($entry['diary_id'], $return_to, $sequence_mode)
     : $return_to;
 $current_edit_url = $entry !== null
     ? diaryNavigationEditUrl($entry['diary_id'], $return_to)
@@ -147,6 +155,17 @@ function diaryViewWeatherEmoji($weather) {
     <?php renderIntegratedModuleHeader('../../', 'diary'); ?>
 
     <main class="diary-container diary-reader-container">
+        <?php if ($delete_flash !== null): ?>
+            <?php $delete_flash_type = isset($delete_flash['type']) && $delete_flash['type'] === 'success' ? 'success' : 'error'; ?>
+            <div
+                class="diary-alert diary-alert-<?php echo diaryViewEscape($delete_flash_type); ?>"
+                data-diary-flash="<?php echo diaryViewEscape($delete_flash_type); ?>"
+                role="<?php echo $delete_flash_type === 'success' ? 'status' : 'alert'; ?>"
+            >
+                <?php echo diaryViewEscape(isset($delete_flash['message']) ? $delete_flash['message'] : 'Journal entry could not be deleted.'); ?>
+            </div>
+        <?php endif; ?>
+
         <?php if ($favorite_flash !== null): ?>
             <?php $favorite_flash_type = isset($favorite_flash['type']) && $favorite_flash['type'] === 'success' ? 'success' : 'error'; ?>
             <div
@@ -191,6 +210,9 @@ function diaryViewWeatherEmoji($weather) {
                     <form action="delete_handler.php" method="post">
                         <input type="hidden" name="diary_id" value="<?php echo diaryViewEscape($entry['diary_id']); ?>">
                         <input type="hidden" name="return_to" value="<?php echo diaryViewEscape($return_to); ?>">
+                        <?php if ($sequence_mode): ?>
+                            <input type="hidden" name="sequence" value="1">
+                        <?php endif; ?>
                         <input
                             type="hidden"
                             name="csrf_token"
@@ -259,7 +281,7 @@ function diaryViewWeatherEmoji($weather) {
                 <?php if ($previous_entry_id !== null): ?>
                     <a
                         class="diary-entry-sequence-link diary-entry-sequence-previous"
-                        href="<?php echo diaryViewEscape(diaryNavigationViewUrl($previous_entry_id, $return_to)); ?>"
+                        href="<?php echo diaryViewEscape(diaryNavigationViewUrl($previous_entry_id, $return_to, true)); ?>"
                         aria-label="Previous journal entry"
                     >←</a>
                 <?php else: ?>
@@ -273,7 +295,7 @@ function diaryViewWeatherEmoji($weather) {
                 <?php if ($next_entry_id !== null): ?>
                     <a
                         class="diary-entry-sequence-link diary-entry-sequence-next"
-                        href="<?php echo diaryViewEscape(diaryNavigationViewUrl($next_entry_id, $return_to)); ?>"
+                        href="<?php echo diaryViewEscape(diaryNavigationViewUrl($next_entry_id, $return_to, true)); ?>"
                         aria-label="Next journal entry"
                     >→</a>
                 <?php else: ?>

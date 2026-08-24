@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../../includes/session_check.php';
 require_once __DIR__ . '/../../includes/shared_navbar.php';
+require_once __DIR__ . '/diary_navigation.php';
 
 if (empty($_SESSION['diary_add_csrf_token'])) {
     $_SESSION['diary_add_csrf_token'] = bin2hex(random_bytes(32));
@@ -12,6 +13,12 @@ $errors = isset($_SESSION['diary_add_errors']) && is_array($_SESSION['diary_add_
 $old = isset($_SESSION['diary_add_old']) && is_array($_SESSION['diary_add_old'])
     ? $_SESSION['diary_add_old']
     : array();
+$requested_entry_date = isset($_GET['date']) && is_string($_GET['date'])
+    ? $_GET['date']
+    : '';
+$default_entry_date = diaryNavigationIsValidDate($requested_entry_date)
+    ? $requested_entry_date
+    : date('Y-m-d');
 
 if (!isset($_SESSION['diary_upload_batches']) || !is_array($_SESSION['diary_upload_batches'])) {
     $_SESSION['diary_upload_batches'] = array();
@@ -371,7 +378,7 @@ $diary_js_version = filemtime(__DIR__ . '/../../assets/js/diary.js');
                     id="entry_date"
                     name="entry_date"
                     required
-                    value="<?php echo diaryFormValue($old, 'entry_date', date('Y-m-d')); ?>"
+                    value="<?php echo diaryFormValue($old, 'entry_date', $default_entry_date); ?>"
                 >
             </div>
 

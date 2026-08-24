@@ -395,6 +395,10 @@ if (preg_match('/^[1-9][0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/', $re
     }
 }
 
+$add_entry_url = $selected_date !== null
+    ? 'add.php?date=' . rawurlencode($selected_date)
+    : 'add.php';
+
 if (empty($_SESSION['diary_delete_csrf_token'])) {
     $_SESSION['diary_delete_csrf_token'] = bin2hex(random_bytes(32));
 }
@@ -688,7 +692,9 @@ if ($today_memory_change_requested) {
 </head>
 <body class="diary-page diary-home-page">
 
-    <?php renderIntegratedModuleHeader('../../', 'diary', 'home'); ?>
+    <?php renderIntegratedModuleHeader('../../', 'diary', 'home', array(
+        'add' => array('label' => 'Add Entry', 'href' => $add_entry_url)
+    )); ?>
     <main class="diary-container">
         <section class="diary-home-hero">
             <header class="diary-list-header">
@@ -1225,7 +1231,7 @@ if ($today_memory_change_requested) {
                 <?php if (empty($selected_date_entries)): ?>
                     <div class="diary-selected-date-empty">
                         <p>No journal entries for this date.</p>
-                        <a class="diary-button diary-new-entry-button" href="add.php">+ Write an Entry</a>
+                        <a class="diary-button diary-new-entry-button" href="<?php echo diaryEscape($add_entry_url); ?>">+ Write an Entry</a>
                     </div>
                 <?php else: ?>
                     <div class="diary-entry-list diary-selected-entry-list">
@@ -1306,7 +1312,7 @@ if ($today_memory_change_requested) {
                 <span class="diary-empty-icon" aria-hidden="true">📖</span>
                 <h2>Your journal is waiting for its first story.</h2>
                 <p>Write about your day, thoughts, goals, or memories.</p>
-                <a class="diary-button diary-new-entry-button" href="add.php">Write My First Entry</a>
+                <a class="diary-button diary-new-entry-button" href="<?php echo diaryEscape($add_entry_url); ?>">Write My First Entry</a>
             </section>
         <?php else: ?>
             <section class="diary-library" aria-labelledby="journal-entries-heading">

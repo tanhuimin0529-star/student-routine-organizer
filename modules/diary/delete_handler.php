@@ -12,14 +12,70 @@ function diaryDeleteReturnTarget() {
 
     return diaryNavigationSanitizeReturnTo($requested_target);
 }
-function returnFromDiaryDelete($message, $type = 'error') {
+
+function diaryDeleteSequenceRequested() {
+    return isset($_POST['sequence'])
+        && is_string($_POST['sequence'])
+        && diaryNavigationIsSequenceMode($_POST['sequence']);
+}
+
+function returnFromDiaryDelete(
+    $message,
+    $type = 'error',
+    $redirect_target = null,
+    $expected_diary_id = null
+) {
     $_SESSION['diary_delete_flash'] = array(
         'type' => $type === 'success' ? 'success' : 'error',
         'message' => (string) $message
     );
 
-    header('Location: ' . diaryDeleteReturnTarget(), true, 303);
+    $safe_target = $redirect_target === null
+        ? diaryDeleteReturnTarget()
+        : diaryNavigationSanitizeActionTarget($redirect_target, $expected_diary_id);
+
+    header('Location: ' . $safe_target, true, 303);
     exit();
+}
+
+function diaryDeleteSequenceDestination($conn, $diary_id, $user_id, $return_to) {
+    $entries = getDiaryEntriesForUser($conn, $user_id);
+    if (!is_array($entries)) {
+        return null;
+    }
+
+    $entries = diaryNavigationEntriesForContext($entries, $return_to);
+    $current_position = null;
+
+    foreach ($entries as $position => $candidate) {
+        if (isset($candidate['diary_id']) && (int) $candidate['diary_id'] === (int) $diary_id) {
+            $current_position = $position;
+            break;
+        }
+    }
+
+    if ($current_position === null) {
+        return null;
+    }
+
+    $next_position = $current_position - 1;
+    $previous_position = $current_position + 1;
+    $adjacent_id = $next_position >= 0 && isset($entries[$next_position]['diary_id'])
+        ? diaryNavigationPositiveId($entries[$next_position]['diary_id'])
+        : null;
+
+    if ($adjacent_id === null && isset($entries[$previous_position]['diary_id'])) {
+        $adjacent_id = diaryNavigationPositiveId($entries[$previous_position]['diary_id']);
+    }
+
+    if ($adjacent_id === null) {
+        return null;
+    }
+
+    return array(
+        'diary_id' => $adjacent_id,
+        'url' => diaryNavigationViewUrl($adjacent_id, $return_to, true)
+    );
 }
 
 function diaryDeleteCleanupUnreferencedMedia($conn, $deleted_entry_paths, $user_id) {
@@ -112,6 +168,15 @@ if ($entry === null) {
     returnFromDiaryDelete('Journal entry could not be deleted.');
 }
 
+$sequence_destination = diaryDeleteSequenceRequested()
+    ? diaryDeleteSequenceDestination(
+        $conn,
+        $diary_id,
+        $logged_in_user_id,
+        diaryDeleteReturnTarget()
+    )
+    : null;
+
 $deleted_entry_media_paths = array();
 
 try {
@@ -137,5 +202,14 @@ diaryDeleteCleanupUnreferencedMedia(
     $deleted_entry_media_paths,
     $logged_in_user_id
 );
+
+if (is_array($sequence_destination)) {
+    returnFromDiaryDelete(
+        'Journal entry deleted successfully.',
+        'success',
+        $sequence_destination['url'],
+        $sequence_destination['diary_id']
+    );
+}
 
 returnFromDiaryDelete('Journal entry deleted successfully.', 'success');

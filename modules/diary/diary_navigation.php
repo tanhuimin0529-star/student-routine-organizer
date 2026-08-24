@@ -37,14 +37,20 @@ function diaryNavigationBuildReturnTo($destination, $parameters = array(), $frag
     return diaryNavigationSanitizeReturnTo($candidate);
 }
 
-function diaryNavigationViewUrl($diary_id, $return_to = 'index.php') {
+function diaryNavigationIsSequenceMode($value) {
+    return is_string($value) && $value === '1';
+}
+
+function diaryNavigationViewUrl($diary_id, $return_to = 'index.php', $sequence_mode = false) {
     $safe_id = diaryNavigationPositiveId($diary_id);
     if ($safe_id === null) {
         return diaryNavigationSanitizeReturnTo($return_to);
     }
 
-    return 'view.php?id=' . rawurlencode((string) $safe_id)
+    $url = 'view.php?id=' . rawurlencode((string) $safe_id)
         . '&return_to=' . rawurlencode(diaryNavigationSanitizeReturnTo($return_to));
+
+    return $sequence_mode === true ? $url . '&sequence=1' : $url;
 }
 
 function diaryNavigationEditUrl($diary_id, $return_to = 'index.php') {
@@ -86,10 +92,15 @@ function diaryNavigationSanitizeActionTarget($value, $expected_diary_id = null) 
     }
 
     $query = diaryNavigationParseFlatQuery(isset($parts['query']) ? $parts['query'] : '');
-    if ($query === null || array_diff(array_keys($query), array('id', 'return_to')) !== array()) {
+    if ($query === null || array_diff(array_keys($query), array('id', 'return_to', 'sequence')) !== array()) {
         return 'index.php';
     }
-    if (!isset($query['id'], $query['return_to']) || count($query) !== 2) {
+    if (!isset($query['id'], $query['return_to']) || !in_array(count($query), array(2, 3), true)) {
+        return 'index.php';
+    }
+
+    $sequence_mode = isset($query['sequence']) && diaryNavigationIsSequenceMode($query['sequence']);
+    if (isset($query['sequence']) && !$sequence_mode) {
         return 'index.php';
     }
 
@@ -104,7 +115,124 @@ function diaryNavigationSanitizeActionTarget($value, $expected_diary_id = null) 
         return 'index.php';
     }
 
-    return diaryNavigationViewUrl($safe_id, $nested_return_to);
+    return diaryNavigationViewUrl($safe_id, $nested_return_to, $sequence_mode);
+}
+
+function diaryNavigationEntriesForContext($entries, $return_to) {
+    if (!is_array($entries)) {
+        return array();
+    }
+
+    $safe_return_to = diaryNavigationSanitizeReturnTo($return_to);
+    $parts = parse_url($safe_return_to);
+    $query = diaryNavigationParseFlatQuery(
+        is_array($parts) && isset($parts['query']) ? $parts['query'] : ''
+    );
+    $query = is_array($query) ? $query : array();
+    $destination = is_array($parts) && isset($parts['path']) ? $parts['path'] : 'index.php';
+    $fragment = is_array($parts) && isset($parts['fragment']) ? $parts['fragment'] : '';
+    $filter_collection = $destination === 'all_entries.php' || $fragment === 'diary-filters';
+    $date_collection = $fragment === 'selected-date-entries' && isset($query['date']);
+    $favorites_collection = isset($query['favorites']) && $query['favorites'] === '1';
+    $favorites_collection = $favorites_collection || $fragment === 'favorite-entries';
+
+    $filtered = array_values(array_filter($entries, function ($entry) use (
+        $query,
+        $filter_collection,
+        $date_collection,
+        $favorites_collection
+    ) {
+        if ($date_collection
+            && (!isset($entry['entry_date']) || $entry['entry_date'] !== $query['date'])
+        ) {
+            return false;
+        }
+
+        if ($favorites_collection
+            && (!isset($entry['is_favorite']) || (int) $entry['is_favorite'] !== 1)
+        ) {
+            return false;
+        }
+
+        if (!$filter_collection) {
+            return true;
+        }
+
+        if (isset($query['mood'])
+            && (!isset($entry['mood']) || $entry['mood'] !== $query['mood'])
+        ) {
+            return false;
+        }
+
+        if (isset($query['weather'])) {
+            $entry_weather = isset($entry['weather']) && is_string($entry['weather'])
+                ? trim($entry['weather'])
+                : '';
+            if (($query['weather'] === 'not-set' && $entry_weather !== '')
+                || ($query['weather'] !== 'not-set' && $entry_weather !== $query['weather'])
+            ) {
+                return false;
+            }
+        }
+
+        if (isset($query['search'])) {
+            $title = isset($entry['title']) ? (string) $entry['title'] : '';
+            $content = isset($entry['content']) ? $entry['content'] : '';
+            $visible_content = function_exists('diaryContentToPlainText')
+                ? diaryContentToPlainText($content)
+                : (string) $content;
+            $search = $query['search'];
+            $title_matches = function_exists('mb_stripos')
+                ? mb_stripos($title, $search, 0, 'UTF-8') !== false
+                : stripos($title, $search) !== false;
+            $content_matches = function_exists('mb_stripos')
+                ? mb_stripos($visible_content, $search, 0, 'UTF-8') !== false
+                : stripos($visible_content, $search) !== false;
+
+            if (!$title_matches && !$content_matches) {
+                return false;
+            }
+        }
+
+        return true;
+    }));
+
+    if ($filter_collection && isset($query['sort']) && $query['sort'] !== 'newest') {
+        $sort_value = $query['sort'];
+        usort($filtered, function ($first_entry, $second_entry) use ($sort_value) {
+            $first_date = isset($first_entry['entry_date']) ? (string) $first_entry['entry_date'] : '';
+            $second_date = isset($second_entry['entry_date']) ? (string) $second_entry['entry_date'] : '';
+            $first_created = isset($first_entry['created_at']) ? (string) $first_entry['created_at'] : '';
+            $second_created = isset($second_entry['created_at']) ? (string) $second_entry['created_at'] : '';
+
+            if ($sort_value === 'updated') {
+                $first_updated = isset($first_entry['updated_at']) ? (string) $first_entry['updated_at'] : '';
+                $second_updated = isset($second_entry['updated_at']) ? (string) $second_entry['updated_at'] : '';
+                $comparison = strcmp($second_updated, $first_updated);
+                if ($comparison !== 0) {
+                    return $comparison;
+                }
+            }
+
+            if ($sort_value === 'oldest') {
+                $comparison = strcmp($first_date, $second_date);
+                return $comparison !== 0 ? $comparison : strcmp($first_created, $second_created);
+            }
+
+            $comparison = strcmp($second_date, $first_date);
+            return $comparison !== 0 ? $comparison : strcmp($second_created, $first_created);
+        });
+    }
+
+    if ($fragment === 'journal-entries-heading') {
+        return array_slice($filtered, 0, 4);
+    }
+
+    if ($fragment === 'diary-today-corner') {
+        return array_slice($filtered, 4);
+    }
+
+    return $filtered;
 }
 
 function diaryNavigationValidateCollectionTarget($value) {
