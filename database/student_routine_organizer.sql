@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 23, 2026 at 12:46 PM
+-- Generation Time: Aug 24, 2026 at 09:03 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -43,7 +43,8 @@ CREATE TABLE `achievements` (
 INSERT INTO `achievements` (`achievement_id`, `user_id`, `badge_name`, `badge_icon`, `description`, `earned_at`) VALUES
 (1, 1, 'First Workout', '🎯', 'Logged your very first exercise!', '2026-08-19 06:12:14'),
 (2, 1, '7-Day Streak', '🔥', 'Exercised 7 days in a row!', '2026-08-19 06:12:14'),
-(3, 1, '1000 Calories', '💪', 'Burned over 1000 total calories!', '2026-08-19 06:12:14');
+(3, 1, '1000 Calories', '💪', 'Burned over 1000 total calories!', '2026-08-19 06:12:14'),
+(4, 4, 'First Workout', '🎯', 'Logged your very first exercise!', '2026-08-23 16:25:13');
 
 -- --------------------------------------------------------
 
@@ -96,16 +97,15 @@ CREATE TABLE `diary_entries` (
 --
 
 INSERT INTO `diary_entries` (`diary_id`, `user_id`, `title`, `content`, `mood`, `weather`, `entry_date`, `created_at`, `updated_at`, `is_favorite`) VALUES
-(5, 4, 'dcddwe', '<span style=\"background-color: rgb(255, 241, 168);\">qwddwhdbwdqhwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh</span><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div><div><span style=\"background-color: rgb(255, 241, 168);\"><br></span></div>', 'Calm', NULL, '2026-08-20', '2026-08-21 12:26:14', '2026-08-21 12:26:14', 0),
-(6, 4, 'ggtrtrt', '<!--DIARY_RICH_TEXT_V1--><u>ferferfefrf </u>jj<p><br></p><blockquote><blockquote><blockquote><blockquote><p style=\"text-align: justify\"><u>jggggg</u></p></blockquote></blockquote></blockquote></blockquote><p><u><br></u></p><p><u><br></u></p>', 'Happy', NULL, '2026-08-21', '2026-08-21 13:03:40', '2026-08-21 13:03:40', 0),
-(7, 4, 'test', '<!--DIARY_RICH_TEXT_V1-->dsdds plain text<p><b>dd</b></p><p><b><i>dd</i></b></p><p><b><i><u><span style=\"font-family: Times New Roman\">jqtly</span></u></i></b><b><i><u><span style=\"font-family: Verdana\"></span></u></i></b></p><p><span style=\"font-size: 32px\">hh</span></p><p><span style=\"font-size: 32px\"><span style=\"color: #667653\">jjj</span></span></p><p><span style=\"font-size: 32px\"><span style=\"color: #667653\"><br></span></span></p><p><span style=\"font-size: 32px\"><span style=\"color: #667653; background-color: #d8e7f3\">uuu</span></span></p><p style=\"text-align: right\"><span style=\"font-size: 32px\"><span style=\"color: #667653; background-color: #d8e7f3\">oo</span></span></p><p style=\"text-align: left\"><ul><li>fdffg</li></ul><ol><li>hjjhj</li></ol><blockquote>ghfgh (quote)</blockquote></p>', 'Calm', NULL, '2026-08-21', '2026-08-21 13:14:11', '2026-08-21 13:14:11', 0),
-(12, 4, 'ferf', '<!--DIARY_RICH_TEXT_V1-->feferfrf🌈☕', 'Calm', NULL, '2026-08-21', '2026-08-21 18:17:31', '2026-08-21 18:17:31', 0),
-(14, 4, 'THUHSUHD', '<!--DIARY_RICH_TEXT_V1--><b><span style=\"font-family: Arial\"><span style=\"color: #315a7d; background-color: #d8e7f3\">rwere</span></span></b><p><ul><li><br></li><li><br></li></ul><ol><li><br></li><li>r</li></ol><figure data-diary-object=\"drawing\" data-diary-x=\"82.5\" data-diary-y=\"73.2\" data-diary-width=\"35\" data-diary-rotation=\"0\"><img src=\"/student-routine-organizer/uploads/diary/user_4/ee243d5ca012e4bf9db96e1a136f4de1.png\" alt=\"Journal drawing\"></figure></p>', 'Stressed', NULL, '2026-08-22', '2026-08-22 03:33:10', '2026-08-22 03:33:10', 0),
-(15, 4, '. Add entry', '<!--DIARY_RICH_TEXT_V1-->tt<figure data-diary-object=\"drawing\" data-diary-x=\"50\" data-diary-y=\"35\" data-diary-width=\"35\" data-diary-rotation=\"0\"><img src=\"/student-routine-organizer/uploads/diary/user_4/a880437adecd85f518ca72a25c7c22bc.png\" alt=\"Journal drawing\"></figure>', 'Calm', NULL, '2026-08-22', '2026-08-22 05:34:41', '2026-08-22 05:36:12', 1),
-(16, 4, 'rger', '<!--DIARY_RICH_TEXT_V1--><figure data-diary-size=\"medium\" data-diary-align=\"center\" data-diary-wrap=\"none\"><img src=\"/student-routine-organizer/uploads/diary/user_4/d36b5eb8e78f48fa1583ad19e5a90f38.png\" alt=\"Journal image\"></figure>ew', 'Calm', NULL, '2026-08-22', '2026-08-22 10:11:26', '2026-08-22 11:36:02', 1),
-(18, 4, 'hm', '<!--DIARY_RICH_TEXT_V1-->mhn', 'Happy', NULL, '2026-08-22', '2026-08-22 18:58:20', '2026-08-22 18:58:20', 0),
-(19, 4, 'mn', '<!--DIARY_RICH_TEXT_V1-->m                              ', 'Stressed', NULL, '2026-08-22', '2026-08-22 18:58:28', '2026-08-22 18:58:28', 0),
-(20, 4, 'gdf', '<!--DIARY_RICH_TEXT_V1-->fdg', 'Calm', NULL, '2026-08-23', '2026-08-22 20:45:21', '2026-08-22 20:45:21', 0);
+(23, 4, 'A Productive Day', '<!--DIARY_RICH_TEXT_V1-->Today was a really productive day for me. 👍<p>I managed to finish most of my assignments before dinner.</p><p>I also reviewed some lecture notes that I had been delaying.</p><p>It felt good to finally clear several tasks from my list.</p><p>I hope I can maintain this momentum for the rest of the week.</p><figure data-diary-object=\"drawing\" data-diary-x=\"80.7\" data-diary-y=\"74.1\" data-diary-width=\"35\" data-diary-rotation=\"0\"><img src=\"/student-routine-organizer/uploads/diary/user_4/06bb204e9c49d06aa00e9a05f57a345f.png\" alt=\"Journal drawing\"></figure>', 'Happy', 'Sunny', '2026-08-17', '2026-08-23 17:43:17', '2026-08-23 17:43:17', 1),
+(24, 4, 'Feeling a Little Tired', '<!--DIARY_RICH_TEXT_V1-->I felt quite tired today because I did not sleep enough last night.<p>It was difficult to concentrate during the morning lecture.</p><p>After class, I went back and rested for a while.</p><p>I still managed to complete a small part of my work in the evening.</p><p><span style=\"background-color: #dce9ce\">Tonight, I want to sleep earlier and take better care of myself.</span></p>', 'Neutral', 'Cloudy', '2026-08-18', '2026-08-23 17:44:16', '2026-08-23 17:47:17', 0),
+(25, 4, 'Rainy Study Day', '<!--DIARY_RICH_TEXT_V1--><p style=\"text-align: left\">It rained for most of the day, so I stayed indoors after class.</p><p style=\"text-align: left\">The weather made the room feel quiet and comfortable.</p><p style=\"text-align: left\">I made a cup of tea and spent some time revising my notes.</p><p style=\"text-align: left\">I also organised the files for my group assignment.</p><p><p style=\"text-align: left\">Overall, it was a peaceful and simple day.</p><figure data-diary-size=\"medium\" data-diary-align=\"center\" data-diary-wrap=\"right\"><img src=\"/student-routine-organizer/uploads/diary/user_4/57d4841e1f9b846aedc38a7c12c6eb0a.webp\" alt=\"rain\"></figure><br></p>', 'Calm', 'Rainy', '2026-08-19', '2026-08-23 17:46:47', '2026-08-23 17:46:47', 1),
+(26, 4, 'Group Project Progress', '<!--DIARY_RICH_TEXT_V1--><p style=\"text-align: right\"><span style=\"font-family: Verdana\">My group had a productive discussion about our assignment today.</span></p><p style=\"text-align: right\"><span style=\"font-family: Verdana\">We divided the remaining tasks and checked each member\'s progress.</span></p><p style=\"text-align: right\"><span style=\"font-family: Verdana\">There were a few different opinions, but we managed to reach an agreement.</span></p><p style=\"text-align: right\"><span style=\"font-family: Verdana\">I completed my part earlier than I expected.</span></p><p style=\"text-align: right\"><span style=\"font-family: Verdana\">I feel more <b>confident</b> about finishing the project on time.</span></p><figure data-diary-object=\"drawing\" data-diary-x=\"17.5\" data-diary-y=\"75.6\" data-diary-width=\"35\" data-diary-rotation=\"0\"><img src=\"/student-routine-organizer/uploads/diary/user_4/a9ced036dfa221cee66b34808edc5439.png\" alt=\"Journal drawing\"></figure>', 'Happy', 'Windy', '2026-08-20', '2026-08-23 17:49:08', '2026-08-23 17:49:08', 0),
+(27, 4, 'A Stressful Afternoon', '<!--DIARY_RICH_TEXT_V1--><ul><li>This afternoon was more stressful than I expected.</li><li>I realised that I still had several tasks to complete before the deadline.</li><li>For a while, I felt overwhelmed and did not know what to do first.</li><li>I made a small task list and started working through it one by one.</li><li>I am still worried, but at least the situation feels more manageable now.</li></ul><figure data-diary-object=\"drawing\" data-diary-x=\"81.4\" data-diary-y=\"73.7\" data-diary-width=\"35\" data-diary-rotation=\"0\"><img src=\"/student-routine-organizer/uploads/diary/user_4/ec2e54abee1cbe680fe744145f2edd88.png\" alt=\"Journal drawing\"></figure>', 'Stressed', NULL, '2026-08-21', '2026-08-23 17:50:51', '2026-08-23 17:50:51', 0),
+(30, 4, 'mall Achievement', '<!--DIARY_RICH_TEXT_V1--><span style=\"font-family: Courier New\"><b>I finally solved a problem that had been confusing me for several days.</b></span><p><span style=\"font-family: Courier New\"><b>I spent a lot of time checking my work and trying different solutions.</b></span></p><p><span style=\"font-family: Courier New\"><b>When everything finally worked, I felt very relieved.</b></span></p><p><span style=\"font-family: Courier New\"><b>It reminded me that being patient is important when learning something new.</b></span></p><p><span style=\"font-family: Courier New\"><b>Today felt like a small but meaningful achievement.</b></span></p>', 'Happy', 'Sunny', '2026-08-16', '2026-08-23 17:55:58', '2026-08-23 17:55:58', 0),
+(31, 4, 'Funny day', '<!--DIARY_RICH_TEXT_V1-->hsjfbsjbfjfbs', 'Happy', 'Sunny', '2026-08-24', '2026-08-23 18:23:52', '2026-08-23 18:23:52', 0),
+(32, 4, 'Funny day', '<!--DIARY_RICH_TEXT_V1-->hsfgbsjkfbsff<figure data-diary-size=\"medium\" data-diary-align=\"center\" data-diary-wrap=\"none\"><img src=\"/student-routine-organizer/uploads/diary/user_4/61212ab9aca457cf8d46a20a5dca17f4.webp\" alt=\"Journal image\"><figcaption>rainy</figcaption></figure><figure data-diary-size=\"medium\" data-diary-align=\"center\" data-diary-wrap=\"right\"><img src=\"/student-routine-organizer/uploads/diary/user_4/a8c92d3dae792d8b7993d57f48c22951.webp\" alt=\"Journal image\"></figure><br><figure data-diary-object=\"drawing\" data-diary-x=\"82.5\" data-diary-y=\"15.9\" data-diary-width=\"35\" data-diary-rotation=\"0\"><img src=\"/student-routine-organizer/uploads/diary/user_4/aad2a9dec19c49fb05bcd685b4668395.png\" alt=\"Journal drawing\"></figure>', 'Happy', 'Sunny', '2026-08-24', '2026-08-23 18:38:06', '2026-08-23 19:20:17', 0),
+(33, 4, 'retge', '<!--DIARY_RICH_TEXT_V1-->reger', 'Neutral', 'Cloudy', '2026-08-24', '2026-08-23 18:53:16', '2026-08-23 18:53:16', 0);
 
 -- --------------------------------------------------------
 
@@ -127,7 +127,7 @@ CREATE TABLE `diary_monthly_reflections` (
 --
 
 INSERT INTO `diary_monthly_reflections` (`reflection_id`, `user_id`, `reflection_month`, `content`, `created_at`, `updated_at`) VALUES
-(1, 4, '2026-08-01', 'gggg', '2026-08-22 04:23:23', '2026-08-22 04:23:23'),
+(1, 4, '2026-08-01', 'jbfejhr', '2026-08-22 04:23:23', '2026-08-23 19:12:26'),
 (3, 4, '2026-07-01', 'dgf❤️', '2026-08-22 04:24:43', '2026-08-22 04:24:43');
 
 -- --------------------------------------------------------
@@ -193,7 +193,9 @@ INSERT INTO `exercise` (`exercise_id`, `user_id`, `activity_type`, `duration`, `
 (38, 2, 'Yoga', 40, 150, '2026-08-19', 'Evening relaxation session', '2026-08-19 06:12:14', '2026-08-19 06:12:14'),
 (39, 2, 'Cycling', 50, 300, '2026-08-18', 'Cycled to campus and back', '2026-08-19 06:12:14', '2026-08-19 06:12:14'),
 (40, 2, 'Jogging', 30, 230, '2026-08-16', 'Morning jog', '2026-08-19 06:12:14', '2026-08-19 06:12:14'),
-(41, 2, 'Swimming', 35, 280, '2026-08-14', 'Pool session', '2026-08-19 06:12:14', '2026-08-19 06:12:14');
+(41, 2, 'Swimming', 35, 280, '2026-08-14', 'Pool session', '2026-08-19 06:12:14', '2026-08-19 06:12:14'),
+(42, 4, 'Cycling', 4, 5, '2026-08-24', '', '2026-08-23 16:25:10', '2026-08-23 16:25:10'),
+(43, 4, 'Swimming', 6, 6, '2026-08-24', '', '2026-08-23 19:22:52', '2026-08-23 19:22:52');
 
 -- --------------------------------------------------------
 
@@ -221,7 +223,7 @@ CREATE TABLE `fitness_profile` (
 
 INSERT INTO `fitness_profile` (`profile_id`, `user_id`, `height_cm`, `weight_kg`, `daily_calorie_goal`, `daily_step_goal`, `current_steps`, `water_intake_ml`, `sleep_hours`, `steps_date`, `updated_at`) VALUES
 (1, 1, 175.0, 72.5, 500, 10000, 6500, 1500, 7.5, '2026-08-19', '2026-08-19 06:12:14'),
-(2, 4, 170.0, 65.0, 500, 10000, 0, 0, 0.0, '2026-08-23', '2026-08-23 09:05:59');
+(2, 4, 170.0, 65.0, 500, 10000, 0, 0, 0.0, '2026-08-24', '2026-08-23 16:25:13');
 
 -- --------------------------------------------------------
 
@@ -242,6 +244,14 @@ CREATE TABLE `habits` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `habits`
+--
+
+INSERT INTO `habits` (`habit_id`, `user_id`, `category_id`, `habit_name`, `habit_description`, `target_frequency`, `frequency_type`, `start_date`, `status`, `created_at`, `updated_at`) VALUES
+(1, 4, 4, 'rea one book', '', 1, 'Daily', '2026-08-24', 'Active', '2026-08-23 19:23:17', '2026-08-23 19:23:17'),
+(2, 4, 1, 'rea one book', 'rtert', 1, 'Daily', '2026-08-24', 'Active', '2026-08-23 19:23:44', '2026-08-23 19:23:44');
 
 -- --------------------------------------------------------
 
@@ -295,6 +305,14 @@ CREATE TABLE `habit_logs` (
   `log_note` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `habit_logs`
+--
+
+INSERT INTO `habit_logs` (`log_id`, `habit_id`, `log_date`, `log_time`, `completed`, `log_note`) VALUES
+(1, 2, '2026-08-24', '03:23:46', 1, NULL),
+(2, 1, '2026-08-24', '03:23:47', 1, NULL);
+
 -- --------------------------------------------------------
 
 --
@@ -329,6 +347,13 @@ CREATE TABLE `money_transactions` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `money_transactions`
+--
+
+INSERT INTO `money_transactions` (`transaction_id`, `user_id`, `transaction_type`, `category`, `amount`, `transaction_date`, `description`, `created_at`, `updated_at`) VALUES
+(1, 4, 'Income', 'Shopping', 5.00, '2026-08-24', '', '2026-08-23 19:24:05', '2026-08-23 19:24:05');
+
 -- --------------------------------------------------------
 
 --
@@ -350,7 +375,20 @@ CREATE TABLE `password_reset_tokens` (
 
 INSERT INTO `password_reset_tokens` (`reset_id`, `user_id`, `token_hash`, `expires_at`, `used_at`, `created_at`) VALUES
 (3, 4, '25c1bc5a00e61f9879b78ff7cb6393466c34aff447a163cbab582fd31c512adf', '2026-08-23 19:10:03', '2026-08-23 18:42:46', '2026-08-23 10:40:03'),
-(4, 4, '452ff731982cadb2282cad42abd62e46b26ef936afa97bdc9f9fa49e6291e918', '2026-08-23 19:12:46', NULL, '2026-08-23 10:42:46');
+(4, 4, '452ff731982cadb2282cad42abd62e46b26ef936afa97bdc9f9fa49e6291e918', '2026-08-23 19:12:46', '2026-08-23 18:52:48', '2026-08-23 10:42:46'),
+(6, 4, '5cdd61dc90efb3537d25bd04df221f3a56b7e5c5cb81db6e2cb03e7c8a255a35', '2026-08-23 19:26:50', '2026-08-23 18:57:03', '2026-08-23 10:56:50'),
+(7, 4, '81f3af745d0d24faad99a59b5509a00340dd2608b963fb553dd5eedeeca49ddf', '2026-08-23 19:27:03', '2026-08-23 19:06:01', '2026-08-23 10:57:03'),
+(8, 4, '46700e71fa1d57d0b364710004752d0ca54ab2aa517a2ccb8a46da09f64ce36f', '2026-08-23 19:36:01', '2026-08-23 19:06:09', '2026-08-23 11:06:01'),
+(9, 4, 'd36c608483c297269de4ebe4bf384a2a3aed5c2cbb14a1b00538638b18388edc', '2026-08-23 19:36:09', '2026-08-23 19:06:30', '2026-08-23 11:06:09'),
+(10, 4, '58645495f465b6c1fdedbed29a1e249a09e181437e4df3e1b3f41dee0eb11f22', '2026-08-23 19:36:30', '2026-08-23 19:06:44', '2026-08-23 11:06:30'),
+(11, 4, 'd6b081f55256d0b86e2a5c55fd9177195fa1c8dfe53cd23da27e91f094a55813', '2026-08-23 19:36:44', '2026-08-23 19:06:49', '2026-08-23 11:06:44'),
+(12, 4, '78bb1c939dbfc27555d47bf77de624e62f1576e9c04e7d5bc88a41b5a273b93b', '2026-08-23 19:36:49', '2026-08-24 00:15:40', '2026-08-23 11:06:49'),
+(15, 4, 'cd43edb521b1b3b4acf03c8e530a570c3dae7bc9a81a6acc62e660fefb84b589', '2026-08-24 00:45:40', '2026-08-24 00:41:23', '2026-08-23 16:15:40'),
+(16, 4, '013140ab00047003a1a879c415d8fa716963aec72c279e639145098deb4f5ee7', '2026-08-24 01:11:23', '2026-08-24 00:51:28', '2026-08-23 16:41:23'),
+(17, 4, '596e9adf7da8519e8e1124a3ecaddbaa1eb367164eb0e941edbea03323f033b1', '2026-08-24 01:21:28', '2026-08-24 01:08:51', '2026-08-23 16:51:28'),
+(18, 4, '0aef688526b1c1539e2ea1a00f9fd162811944507cdc287599962912d8a34c5b', '2026-08-24 01:38:51', '2026-08-24 01:09:33', '2026-08-23 17:08:51'),
+(19, 4, 'b890b81fa346e9ba10cf851cd90faf46bb0d01357e2bf6edfcafb4872f893e09', '2026-08-24 01:40:05', '2026-08-24 13:21:23', '2026-08-23 17:10:05'),
+(20, 4, 'b28bb4a3e4125d7b314210c59a37af7dec73cea0db47f6403de471adae3ae5a5', '2026-08-24 13:51:23', '2026-08-24 13:22:19', '2026-08-24 05:21:23');
 
 -- --------------------------------------------------------
 
@@ -375,7 +413,7 @@ INSERT INTO `users` (`user_id`, `name`, `email`, `password`, `role`, `created_at
 (1, 'Ali Hassan', 'ali@example.com', 'password123', 'student', '2026-08-19 06:12:14'),
 (2, 'Siti Aminah', 'siti@example.com', 'password123', 'student', '2026-08-19 06:12:14'),
 (3, 'Admin User', 'admin@example.com', 'password123', 'admin', '2026-08-19 06:12:14'),
-(4, 'Tan Hui Min', 'huimin20@1utar.my', '$2y$10$xVAFdYoSnBcj8X3Tt5bxKu2E9LMncZmz.hlpCn4b6NwPeGJ9VZCy2', 'student', '2026-08-19 06:30:54'),
+(4, 'Tan Hui Min', 'huimin20@1utar.my', '$2y$10$HZGh5eoGy8hi6Ow/Mzv3g.PDO22M2ICvWpl1pb.GdDNFX/OLKROTW', 'student', '2026-08-19 06:30:54'),
 (5, 'Tan Hui Min', 'tanhuimin0529@gmail.com', '$2y$10$9TM3rc7QkJ7dfyUcVBiF/u4gcGv0WPcXgUHi0H46mILfB0Pqs5Fzu', 'admin', '2026-08-19 06:55:04');
 
 --
@@ -493,7 +531,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `achievements`
 --
 ALTER TABLE `achievements`
-  MODIFY `achievement_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `achievement_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `badge_types`
@@ -505,19 +543,19 @@ ALTER TABLE `badge_types`
 -- AUTO_INCREMENT for table `diary_entries`
 --
 ALTER TABLE `diary_entries`
-  MODIFY `diary_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+  MODIFY `diary_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
 -- AUTO_INCREMENT for table `diary_monthly_reflections`
 --
 ALTER TABLE `diary_monthly_reflections`
-  MODIFY `reflection_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `reflection_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `exercise`
 --
 ALTER TABLE `exercise`
-  MODIFY `exercise_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
+  MODIFY `exercise_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
 
 --
 -- AUTO_INCREMENT for table `fitness_profile`
@@ -529,7 +567,7 @@ ALTER TABLE `fitness_profile`
 -- AUTO_INCREMENT for table `habits`
 --
 ALTER TABLE `habits`
-  MODIFY `habit_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `habit_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `habit_badges`
@@ -547,7 +585,7 @@ ALTER TABLE `habit_categories`
 -- AUTO_INCREMENT for table `habit_logs`
 --
 ALTER TABLE `habit_logs`
-  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `money_budgets`
@@ -559,13 +597,13 @@ ALTER TABLE `money_budgets`
 -- AUTO_INCREMENT for table `money_transactions`
 --
 ALTER TABLE `money_transactions`
-  MODIFY `transaction_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `transaction_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `password_reset_tokens`
 --
 ALTER TABLE `password_reset_tokens`
-  MODIFY `reset_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `reset_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `users`
